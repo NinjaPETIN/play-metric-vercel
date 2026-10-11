@@ -100,18 +100,37 @@ def upload(snapshot, origin):
     token = os.environ.get('PLAY_METRIC_SERVICE_TOKEN')
     if not token:
         raise RuntimeError('Falta PLAY_METRIC_SERVICE_TOKEN.')
-    try:
-        response = requests.post(origin.rstrip('/') + '/api/nba/import', json=snapshot, headers={'Authorization': 'Bearer ' + token}, timeout=90, allow_redirects=False)
-        response.raise_for_status()
-        receipt = response.json()
-        check = requests.get(origin.rstrip('/') + '/api/props', params={'season': snapshot['season'], 'competition': snapshot.get('competition', 'regular')}, headers={'Authorization': 'Bearer ' + token, 'Cache-Control': 'no-cache'}, timeout=45, allow_redirects=False)
-        check.raise_for_status()
-        current = check.json()
-        if current.get('fetchedAt') != snapshot['fetchedAt'] or len(current.get('players', [])) != len(snapshot['players']) or ('teamGames' in snapshot and len(current.get('teamGames', [])) != len(snapshot['teamGames'])):
-            raise RuntimeError('La lectura posterior no coincide con la importación.')
-        return receipt
-    except requests.RequestException:
-        raise RuntimeError('Falló la importación o la lectura posterior. No se marcará como actualizada.') from None
+    import base64
+    import hashlib
+    import uuid
+    import time
+    body = json.dumps(snapshot, ensure_ascii=False, separators=(',', ':'), allow_nan=False).encode('utf-8')
+    if len(body) > 16_000_000:
+        raise RuntimeError('El historial supera 16 MB; no se enviará una carga incompleta.')
+    pieces = [body[i:i+500_000] for i in range(0, len(body), 500_000)]
+    manifest = {'id': str(uuid.uuid4()), 'parts': len(pieces), 'bytes': len(body), 'sha256': hashlib.sha256(body).hexdigest()}
+    endpoint = origin.rstrip('/') + '/api/nba/upload'
+    def send(payload):
+        for attempt in range(3):
+            try:
+                r = requests.post(endpoint, json=payload, headers={'Authorization': 'Bearer ' + token}, timeout=180, allow_redirects=False)
+                if r.status_code in (429, 500, 502, 503, 504) and attempt < 2:
+                    time.sleep(2 ** attempt)
+                    continue
+                if not r.ok:
+                    raise RuntimeError(f'Importación por lotes: HTTP {r.status_code}. Revisá POST /api/nba/upload en Vercel; no se confirmará como actualizada.')
+                return r.json()
+            except requests.RequestException:
+                if attempt == 2:
+                    raise RuntimeError('La conexión al importador falló después de 3 intentos; no se confirmará como actualizada.') from None
+                time.sleep(2 ** attempt)
+    for index, piece in enumerate(pieces):
+        send({**manifest, 'operation': 'part', 'index': index, 'data': base64.b64encode(piece).decode('ascii')})
+        print(f"{snapshot.get('competition', 'regular')}: lote {index+1}/{len(pieces)} enviado.", flush=True)
+    receipt = send({**manifest, 'operation': 'commit'})
+    if not receipt.get('verified') or receipt.get('sha256') != manifest['sha256'] or receipt.get('fetchedAt') != snapshot['fetchedAt'] or receipt.get('players') != len(snapshot['players']) or receipt.get('totalGames') != sum(len(p['games']) for p in snapshot['players']) or receipt.get('teamGames') != len(snapshot.get('teamGames', [])):
+        raise RuntimeError('La lectura posterior por lotes no coincide con la importación.')
+    return receipt
 
 
 def normalize_calendar(raw, season):

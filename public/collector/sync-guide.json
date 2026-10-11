@@ -1,5 +1,6 @@
 {
-  "version": 1,
+  "version": 2,
+  "transport": "POST /api/nba/upload: immutable 500000-byte base64 parts, SHA-256 validation, atomic activation and exact server-side readback with a small receipt. Deploy endpoint before using the new collector.",
   "target": "Vercel",
   "command": "python collector/sync_nba.py --season auto --competition all --upload https://YOUR-VERCEL-DOMAIN --output /tmp/pm-snapshot.json",
   "authentication": "PLAY_METRIC_SERVICE_TOKEN must equal server COLLECTOR_SECRET; use Authorization: Bearer. Never save credentials in code or logs.",

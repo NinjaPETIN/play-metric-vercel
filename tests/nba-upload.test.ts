@@ -1,0 +1,4 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {joinUpload,sha256,UPLOAD_PART_BYTES} from '../lib/nba-upload';
+test('11 MB UTF-8 history round trips in sub-750KB base64 requests',()=>{const original=JSON.stringify({name:'José · estadísticas',data:'x'.repeat(11_000_000)}),bytes=Buffer.from(original),parts:string[]=[];for(let i=0;i<bytes.length;i+=UPLOAD_PART_BYTES){const part=bytes.subarray(i,i+UPLOAD_PART_BYTES).toString('base64');assert.ok(Buffer.byteLength(JSON.stringify({data:part}))<750_000);parts.push(part)}assert.ok(parts.length>20);assert.equal(joinUpload(parts,bytes.length,sha256(bytes)),original);assert.throws(()=>joinUpload(parts.slice(1),bytes.length,sha256(bytes)));assert.throws(()=>joinUpload([...parts].reverse(),bytes.length,sha256(bytes)));assert.throws(()=>joinUpload(parts,bytes.length,'0'.repeat(64)));assert.throws(()=>joinUpload(parts,bytes.length+1,sha256(bytes)))});
