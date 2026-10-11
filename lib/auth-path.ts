@@ -1,0 +1,1 @@
+export function safeReturnPath(value:string|null|undefined){if(!value||!value.startsWith('/')||value.startsWith('//')||/[\\\x00-\x1f]/.test(value))return '/';try{const u=new URL(value,'https://app.local');if(u.origin!=='https://app.local'||/^\/(auth|login|logout)(\/|$)/.test(u.pathname))return '/';return u.pathname+u.search+u.hash;}catch{return '/';}}

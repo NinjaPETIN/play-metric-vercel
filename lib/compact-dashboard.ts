@@ -1,0 +1,4 @@
+import type {Game} from './analytics';
+const fields=['gameId','team','date','opponent','home','minutes','points','rebounds','assists','threes','played','steals','blocks','turnovers','fieldGoalsAttempted','fieldGoalsMade','freeThrowsAttempted','freeThrowsMade','offensiveRebounds','defensiveRebounds','threeAttempts'] as const;
+export function compactDashboard<T extends {players:{games:Game[]}[]}>(data:T){return {...data,gameFields:fields,players:data.players.map(p=>({...p,games:p.games.map(g=>fields.map(k=>g[k]??null))}))};}
+export function expandDashboard(data:any){if(!Array.isArray(data.gameFields))return data;const {gameFields,...rest}=data;return {...rest,players:data.players.map((p:any)=>({...p,games:p.games.map((row:unknown[])=>Object.fromEntries(gameFields.flatMap((key:string,i:number)=>row[i]===null?[]:[[key,row[i]]])))}))};}

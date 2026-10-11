@@ -1,0 +1,8 @@
+import {jobSchema} from '@/lib/traits-schema';
+import {requestTraits} from '../../../../../lib/traits-store';
+import {accountJson} from '../../../../../lib/account-security';
+import {accountPlan,authorizePlayer,PlanError} from '../../../../../lib/account-plan';
+import {loadPlayerDashboard} from '../../../../../lib/provider';
+import {getChatGPTUser} from '../../../../chatgpt-auth';
+import {env} from '@/lib/database-env';
+export async function POST(req:Request){try{const user=await getChatGPTUser();if(!user)throw new PlanError(401,'Iniciá sesión.');const raw=await accountJson(req),parsed=jobSchema.safeParse(raw);if(!parsed.success)throw new PlanError(400,'Selección no válida.');const job=parsed.data;await accountPlan();const data=await loadPlayerDashboard(job.playerId,job.season,job.competition);if(!data.players.length)throw new PlanError(404,'Jugador no disponible en este historial.');await authorizePlayer(job.playerId);const key='pm:trait-limit:'+user.userId+':'+new Date().toISOString().slice(0,10);const permitted=await env.DB!.prepare("INSERT INTO provider_cache(key,payload,expires_at) VALUES (?,json_object('n',1),?) ON CONFLICT(key) DO UPDATE SET payload=json_set(payload,'$.n',json_extract(payload,'$.n')+1) WHERE json_extract(payload,'$.n')<100 RETURNING key").bind(key,new Date(Date.now()+2*86400000).toISOString()).first();if(!permitted)throw new PlanError(429,'Alcanzaste el límite de solicitudes de actualización de hoy.');await requestTraits(job);return Response.json({ok:true},{status:202,headers:{'Cache-Control':'no-store'}});}catch(e){return Response.json({error:e instanceof PlanError?e.message:'No pudimos solicitar esta actualización.'},{status:e instanceof PlanError?e.status:503,headers:{'Cache-Control':'no-store'}});}}

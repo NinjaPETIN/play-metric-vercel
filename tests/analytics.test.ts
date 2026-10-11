@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import {analyze,value,type Game} from '../lib/analytics.ts';
+const game=(points:number,minutes=30):Game=>({date:'2026-01-01',opponent:'BOS',home:true,minutes,points,rebounds:4,assists:7,threes:2,played:true});
+const result=analyze([game(10),game(20),game(30),game(99,0)],'points',20);
+assert.equal(result.n,3);assert.equal(result.hits,1);assert.equal(result.pushes,1);assert.equal(result.misses,1);assert.equal(result.rate,1/3);assert.equal(result.average,20);assert.equal(result.median,20);
+assert.equal(analyze([game(10),game(20),game(30)],'points',20,'under').hits,1);
+assert.equal(analyze([],'points',10).rate,null);
+assert.equal(analyze([game(4),game(8)],'points',6).median,6);
+assert.equal(value(game(10),'pra'),21);
+assert.equal(analyze([{...game(10),played:false}],'points',5).n,0);
+console.log('Analytics: zero minutes, no participation, pushes, over/under, empty samples, median and combined markets passed.');
+assert.equal(analyze([game(10)],'steals',.5).n,0);
+assert.equal(analyze([{...game(10),steals:0},game(20)],'steals',.5,'under').n,1);
+assert.equal(analyze([{...game(10),steals:0},game(20)],'steals',.5,'under').hits,1);
+assert.equal(value({...game(10),steals:2,blocks:3},'sb'),5);
+assert.equal(value({...game(10),steals:2},'sb'),null);

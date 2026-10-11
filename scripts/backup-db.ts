@@ -1,0 +1,3 @@
+import {writeFile} from 'node:fs/promises';
+import {databaseClient} from '../lib/database-env';
+const file=process.argv[2];if(!file)throw new Error('Indicá una ruta de backup privada fuera del repositorio.');const db=databaseClient();const rows=await db.batch(['SELECT key,payload,expires_at FROM provider_cache','SELECT user_id,prop_id,created_at FROM favorites'],'read');await writeFile(file,JSON.stringify({format:1,createdAt:new Date().toISOString(),provider_cache:rows[0].rows,favorites:rows[1].rows}),{mode:0o600,flag:'wx'});db.close();console.log('Backup creado. Contiene información privada; no subirlo a Git.');

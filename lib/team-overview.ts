@@ -1,0 +1,13 @@
+import type {Player} from './data';
+import {analyze,value,type Market} from './analytics';
+export const teamNames:Record<string,string>={"ATL": "Atlanta Hawks", "BKN": "Brooklyn Nets", "BOS": "Boston Celtics", "CHA": "Charlotte Hornets", "CHI": "Chicago Bulls", "CLE": "Cleveland Cavaliers", "DAL": "Dallas Mavericks", "DEN": "Denver Nuggets", "DET": "Detroit Pistons", "GSW": "Golden State Warriors", "HOU": "Houston Rockets", "IND": "Indiana Pacers", "LAC": "LA Clippers", "LAL": "Los Angeles Lakers", "MEM": "Memphis Grizzlies", "MIA": "Miami Heat", "MIL": "Milwaukee Bucks", "MIN": "Minnesota Timberwolves", "NOP": "New Orleans Pelicans", "NYK": "New York Knicks", "OKC": "Oklahoma City Thunder", "ORL": "Orlando Magic", "PHI": "Philadelphia 76ers", "PHX": "Phoenix Suns", "POR": "Portland Trail Blazers", "SAC": "Sacramento Kings", "SAS": "San Antonio Spurs", "TOR": "Toronto Raptors", "UTA": "Utah Jazz", "WAS": "Washington Wizards"};
+export const teamColors:Record<string,string>={ATL:'#c9253d',BOS:'#098448',BKN:'#343434',CHA:'#087f8c',CHI:'#b51f38',CLE:'#812f48',DAL:'#1468b3',DEN:'#254674',DET:'#b92842',GSW:'#175fae',HOU:'#c32242',IND:'#244a77',LAC:'#bd2941',LAL:'#6d429a',MEM:'#41628c',MIA:'#963040',MIL:'#286747',MIN:'#224b72',NOP:'#364769',NYK:'#1763a2',OKC:'#157ab1',ORL:'#1469b2',PHI:'#2364a4',PHX:'#654187',POR:'#b9303a',SAC:'#67418c',SAS:'#555c63',TOR:'#b5233d',UTA:'#55418c',WAS:'#254d76'};
+export function teamOverview(players:Player[],allPlayers:Player[],team:string,market:Market){
+ const ranked=players.map(p=>({p,a:analyze(p.games.filter(g=>g.team===team).slice(0,10),market,0)})).filter(x=>x.a.n>0).sort((a,b)=>(b.a.average??0)-(a.a.average??0));
+ const totals=players.map(p=>({p,total:p.games.filter(g=>g.team===team&&g.played&&g.minutes>0).reduce((sum,g)=>sum+(value(g,market)??0),0)})).filter(x=>x.total>0).sort((a,b)=>b.total-a.total);
+ const total=totals.reduce((sum,x)=>sum+x.total,0);
+ const distribution=[...totals.slice(0,4).map(x=>({name:x.p.name,value:x.total,share:total?x.total/total:0})),...(totals.length>4?[{name:'Otros jugadores',value:totals.slice(4).reduce((sum,x)=>sum+x.total,0),share:totals.slice(4).reduce((sum,x)=>sum+x.total,0)/total}]:[])];
+ const recent=Array.from(new Map(players.flatMap(p=>p.games.filter(g=>g.team===team&&g.played&&g.minutes>0)).sort((a,b)=>b.date.localeCompare(a.date)).map(g=>[g.date+':'+g.opponent+':'+g.home,{date:g.date,opponent:g.opponent,home:g.home}])).values()).slice(0,10);
+ const opponents=allPlayers.flatMap(p=>p.games.filter(g=>g.opponent===team&&g.played&&g.minutes>0).map(g=>({id:p.id,name:p.name,team:p.team,g}))).sort((a,b)=>b.g.date.localeCompare(a.g.date)||b.g.points-a.g.points).slice(0,10);
+ return {ranked,distribution,total,recent,opponents};
+}

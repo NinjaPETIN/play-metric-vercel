@@ -1,0 +1,2 @@
+import {databaseClient} from '../lib/database-env';
+const db=databaseClient();await db.batch(["CREATE TABLE IF NOT EXISTS provider_cache (key TEXT PRIMARY KEY NOT NULL,payload TEXT NOT NULL,expires_at TEXT NOT NULL)","CREATE TABLE IF NOT EXISTS favorites (user_id TEXT NOT NULL,prop_id TEXT NOT NULL,created_at TEXT NOT NULL,PRIMARY KEY(user_id,prop_id))"],'write');console.log('Esquema preparado. No se insertaron estadísticas ni cuentas.');db.close();

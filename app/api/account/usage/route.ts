@@ -1,0 +1,7 @@
+import {accountJson} from '../../../../lib/account-security';
+import {accountPlan,authorizePlayer,PlanError} from '../../../../lib/account-plan';
+import {loadPlayerDashboard} from '../../../../lib/provider';
+import {isCompetition} from '../../../../lib/competitions';
+function fail(e:unknown){return Response.json({error:e instanceof PlanError?e.message:'No pudimos consultar los usos.'},{status:e instanceof PlanError?e.status:503,headers:{'Cache-Control':'no-store'}});}
+export async function GET(){try{return Response.json(await accountPlan(),{headers:{'Cache-Control':'no-store'}});}catch(e){return fail(e);}}
+export async function POST(req:Request){if(req.headers.get('origin')!==new URL(req.url).origin)return Response.json({error:'Origen no válido.'},{status:403});try{const b=await accountJson(req);if(!b||typeof b!=='object')throw new PlanError(400,'Solicitud no válida.');if(typeof b.playerId!=='string'||!/^\d{1,10}$/.test(b.playerId)||(typeof b.competition!=='string'||!isCompetition(b.competition))||(b.season!==undefined&&!/^20\d{2}$/.test(String(b.season))))throw new PlanError(400,'Solicitud no válida.');await accountPlan();const d=await loadPlayerDashboard(b.playerId,b.season as number|undefined,b.competition);if(!d.players.length)throw new PlanError(404,'Jugador no disponible en este historial.');return Response.json(await authorizePlayer(b.playerId),{headers:{'Cache-Control':'no-store'}});}catch(e){return fail(e);}}

@@ -1,0 +1,26 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {safeReturnPath} from '../lib/auth-path';
+import {validCollectorToken} from '../lib/service-access';
+import {database,databaseClient} from '../lib/database-env';
+import {drizzle} from 'drizzle-orm/d1';
+import {providerCache} from '../db/schema';
+import {redeemInsert,redeemCount,redeemGrant} from '../lib/pro-codes';
+process.env.TURSO_DATABASE_URL='file::memory:';
+test('OAuth redirects reject external, encoded-backslash and reserved destinations',()=>{for(const value of ['https://evil.test','//evil.test','/\\evil.test','/auth/callback','/login','/logout','/\nfoo'])assert.equal(safeReturnPath(value),'/');assert.equal(safeReturnPath('/jugador/123?season=2025'),'/jugador/123?season=2025');});
+test('collector fails closed and uses exact secret',()=>{const secret='a'.repeat(64);assert.equal(validCollectorToken(secret,secret),true);for(const input of [null,'','x'.repeat(64),secret+'x'])assert.equal(validCollectorToken(input,secret),false);assert.equal(validCollectorToken('a','a'),false);});
+test('SQLite adapter preserves Drizzle row mapping, atomic rollback and bounded concurrent promotions',async()=>{
+ await database.prepare('CREATE TABLE provider_cache(key TEXT PRIMARY KEY,payload TEXT NOT NULL,expires_at TEXT NOT NULL)').run();
+ const db=drizzle(database as unknown as D1Database);
+ await db.insert(providerCache).values({key:'mapping',payload:'{}',expiresAt:'2100'});
+ const rows=await db.select().from(providerCache);assert.deepEqual(rows[0],{key:'mapping',payload:'{}',expiresAt:'2100'});
+ await assert.rejects(database.batch([database.prepare("INSERT INTO provider_cache VALUES ('rollback','{}','2100')"),database.prepare('INSERT INTO nonexistent VALUES (1)')]));assert.equal(await database.prepare("SELECT key FROM provider_cache WHERE key='rollback'").first(),null);
+ const key='campaign',now='2026-01-01T00:00:00.000Z';await database.prepare('INSERT INTO provider_cache VALUES (?,?,?)').bind(key,JSON.stringify({active:true,maxUses:2,used:0,expiresAt:'2027-01-01T00:00:00.000Z'}),'2100').run();
+ const attempts=await Promise.all(Array.from({length:8},async(_,i)=>{const redemption=key+':'+i,nonce=String(i);await database.batch([database.prepare(redeemInsert).bind(redemption,nonce,now,key,now),database.prepare(redeemCount).bind(key,redemption,nonce),database.prepare(redeemGrant).bind('member:'+i,now,redemption,nonce,now)]);return await database.prepare('SELECT payload FROM provider_cache WHERE key=?').bind('member:'+i).first<{payload:string}>();}));
+ assert.equal(attempts.filter(Boolean).length,2);for(const row of attempts.filter(Boolean))assert.equal(JSON.parse(row!.payload).expiresAt,'2026-01-31T00:00:00.000Z');
+ const campaign=await database.prepare('SELECT payload FROM provider_cache WHERE key=?').bind(key).first<{payload:string}>();assert.equal(JSON.parse(campaign!.payload).used,2);
+ const quotaSQL="INSERT INTO provider_cache(key,payload,expires_at) VALUES (?,json_object('playerIds',json_array(?)),'2100') ON CONFLICT(key) DO UPDATE SET payload=CASE WHEN EXISTS(SELECT 1 FROM json_each(provider_cache.payload,'$.playerIds') WHERE value=?) THEN provider_cache.payload ELSE json_insert(provider_cache.payload,'$.playerIds[#]',?) END WHERE json_array_length(provider_cache.payload,'$.playerIds')<5 OR EXISTS(SELECT 1 FROM json_each(provider_cache.payload,'$.playerIds') WHERE value=?) RETURNING payload";
+ const openings=await Promise.all(Array.from({length:12},(_,i)=>database.prepare(quotaSQL).bind('quota',String(i),String(i),String(i),String(i)).first()));assert.equal(openings.filter(Boolean).length,5);
+ const before=await database.prepare("SELECT payload FROM provider_cache WHERE key='quota'").first<{payload:string}>(),existing=JSON.parse(before!.payload).playerIds[0];assert.ok(await database.prepare(quotaSQL).bind('quota',existing,existing,existing,existing).first());const after=await database.prepare("SELECT payload FROM provider_cache WHERE key='quota'").first<{payload:string}>();assert.equal(after!.payload,before!.payload);
+ databaseClient().close();
+});
