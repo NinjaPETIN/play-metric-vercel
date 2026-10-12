@@ -5,7 +5,9 @@ const players=[],seen=new Set();
 for(let i=0;i<codes.length;i++){
  const teamId=1610612737+i,team=codes[i],data=await json(`https://content-api-prod.nba.com/public/1/teams/${teamId}/roster`),rows=data.results?.roster;
  if(!Array.isArray(rows)||rows.length<10||rows.length>40)throw Error(`Plantilla incompleta: ${team}. Se conserva la generación anterior.`);
- for(const p of rows){if(p.teamId!==teamId||!Number.isSafeInteger(p.id)||p.id<=0||typeof p.name!=='string'||!p.name.trim()||seen.has(p.id))throw Error(`Plantilla inconsistente: ${team}. Se conserva la generación anterior.`);seen.add(p.id);players.push({id:String(p.id),name:p.name,team,position:p.position??''});}
+ // Membership comes from the team's roster endpoint. Embedded player.teamId can
+ // retain an older team after a signing or be empty for a training-camp player.
+ for(const p of rows){if(!Number.isSafeInteger(p.id)||p.id<=0||typeof p.name!=='string'||!p.name.trim()||seen.has(p.id))throw Error(`Plantilla inconsistente: ${team}. Se conserva la generación anterior.`);seen.add(p.id);players.push({id:String(p.id),name:p.name,team,position:p.position??''});}
 }
 const snapshot={source:'NBA.com',fetchedAt:new Date().toISOString(),players};
 if(process.env.ROSTER_OUTPUT)await writeFile(process.env.ROSTER_OUTPUT,JSON.stringify(snapshot));
