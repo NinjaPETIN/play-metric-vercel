@@ -1,4 +1,5 @@
 import {z} from 'zod';
+export const maxDuration=300;
 import {and,eq,inArray,like,lt,sql} from 'drizzle-orm';
 import {collectorOnly} from '../../../../lib/service-access';
 import {getDb} from '../../../../db';
@@ -15,6 +16,8 @@ export async function POST(req:Request){const denied=await collectorOnly();if(de
   // Immutable manifest/parts make interrupted uploads safely resumable.
   await db.insert(providerCache).values({key,payload:manifest,expiresAt}).onConflictDoNothing();const [existing]=await db.select().from(providerCache).where(eq(providerCache.key,key));if(!existing||existing.payload!==manifest||existing.expiresAt<new Date().toISOString())return Response.json({error:'Carga incompatible o vencida; iniciá otra.'},{status:409});
   if(p.operation==='part'){if(p.index===undefined||p.index>=p.parts||!p.data||!/^[A-Za-z0-9+/]*={0,2}$/.test(p.data))return Response.json({error:'Contenido de lote no válido'},{status:400});const data=Buffer.from(p.data,'base64');if(data.length>UPLOAD_PART_BYTES||data.toString('base64')!==p.data)return Response.json({error:'Codificación o tamaño no válido'},{status:400});const partKey=key+':'+String(p.index).padStart(2,'0');await db.insert(providerCache).values({key:partKey,payload:p.data,expiresAt}).onConflictDoNothing();const [part]=await db.select().from(providerCache).where(eq(providerCache.key,partKey));if(part?.payload!==p.data)return Response.json({error:'El lote ya existe con otro contenido'},{status:409});return Response.json({ok:true,index:p.index},{headers:noStore})}
+  const [receiptRow]=await db.select().from(providerCache).where(eq(providerCache.key,key+':receipt'));
+  if(receiptRow){const receipt=JSON.parse(receiptRow.payload);const [current]=await db.select().from(providerCache).where(eq(providerCache.key,snapshotKey(receipt.season,receipt.competition)));if(current&&JSON.parse(current.payload).fetchedAt===receipt.fetchedAt)return Response.json(receipt,{headers:noStore});return Response.json({error:'Ya existe una carga más reciente.'},{status:409})}
   const rows=await db.select().from(providerCache).where(like(providerCache.key,key+':%')).orderBy(providerCache.key);if(rows.length!==p.parts||rows.some((r,i)=>r.key!==key+':'+String(i).padStart(2,'0')))return Response.json({error:'Faltan lotes; historial anterior conservado'},{status:409});let body;try{body=joinUpload(rows.map(r=>r.payload),p.bytes,p.sha256)}catch(e){return Response.json({error:e instanceof Error?e.message:'Carga inválida'},{status:400})}const result=snapshotSchema.safeParse(JSON.parse(body));if(!result.success)return Response.json({error:'Snapshot no válido'},{status:400});const s=result.data,sKey=snapshotKey(s.season,s.competition);
   // A commit retry after a lost response must not create another generation.
   const [active]=await db.select().from(providerCache).where(eq(providerCache.key,sKey));let response;if(active&&JSON.parse(active.payload).fetchedAt===s.fetchedAt)response=Response.json({ok:true});else response=await importSnapshot(new Request(req.url.replace('/upload','/import'),{method:'POST',body,headers:{'Content-Type':'application/json'}}));if(!response.ok)return response;
@@ -23,6 +26,10 @@ export async function POST(req:Request){const denied=await collectorOnly();if(de
   if(JSON.stringify(meta.teamGames??[])!==JSON.stringify(s.teamGames??[]))throw new Error('Los resultados de equipos no coinciden');
   // TTL is enforced by this route; prune abandoned staging rows opportunistically.
   await db.delete(providerCache).where(and(like(providerCache.key,'nba_upload:%'),lt(providerCache.expiresAt,new Date().toISOString())));
-  return Response.json({ok:true,verified:true,sha256:p.sha256,season:s.season,competition:s.competition,fetchedAt:s.fetchedAt,players:Number(counts.players),totalGames,teamGames:s.teamGames?.length??0},{headers:noStore});
+  const receipt={ok:true,verified:true,sha256:p.sha256,season:s.season,competition:s.competition,fetchedAt:s.fetchedAt,players:Number(counts.players),totalGames,teamGames:s.teamGames?.length??0};
+  await db.insert(providerCache).values({key:key+':receipt',payload:JSON.stringify(receipt),expiresAt}).onConflictDoNothing();
+  // Successful staging buffers no longer need to occupy the database every 15 minutes.
+  await db.delete(providerCache).where(inArray(providerCache.key,rows.map(r=>r.key)));
+  return Response.json(receipt,{headers:noStore});
  }catch(e){console.error('NBA batch upload failed:',e instanceof Error?e.message:'unknown');return Response.json({error:'No se pudo completar o verificar la carga. Reintentá con el mismo identificador.'},{status:503})}
 }

@@ -1,4 +1,5 @@
 import {collectorOnly} from '../../../../lib/service-access';
+import {clearNbaReadCache} from '../../../../lib/read-cache';
 import {getDb} from '../../../../db';
 import {providerCache} from '../../../../db/schema';
 import {snapshotKey} from '../../../../lib/competitions';
@@ -34,7 +35,8 @@ export async function POST(req:Request){const denied=await collectorOnly();if(de
   // New data becomes visible only after all rows have been written.
   const pointer=db.insert(providerCache).values({key,payload,expiresAt:'2099-01-01T00:00:00Z'}).onConflictDoUpdate({target:providerCache.key,set:{payload,expiresAt:'2099-01-01T00:00:00Z'}});
   if(previous){const backupKey='nba_backup:'+snapshot.competition+':'+snapshot.season;const backup=db.insert(providerCache).values({key:backupKey,payload:previous.payload,expiresAt:'2099-01-01T00:00:00Z'}).onConflictDoUpdate({target:providerCache.key,set:{payload:previous.payload,expiresAt:'2099-01-01T00:00:00Z'}});await db.batch([backup,pointer]);}else await pointer;
-  // Bound storage growth from hourly imports, while keeping the active generation.
+  clearNbaReadCache();
+  // Bound storage growth from scheduled imports, while keeping the active generation.
   try{const previousPrefix=previous?JSON.parse(previous.payload).prefix:undefined;await db.delete(providerCache).where(and(gte(providerCache.key,key+':'),lt(providerCache.key,key+':\uffff'),or(lt(providerCache.key,prefix),gte(providerCache.key,prefix+'\uffff')),previousPrefix?or(lt(providerCache.key,previousPrefix),gte(providerCache.key,previousPrefix+'\uffff')):undefined));}catch{/* Cleanup can retry next hour; the new pointer is already committed. */}
   return Response.json({ok:true,players:ids.length,season:snapshot.season,competition:snapshot.competition,fetchedAt:snapshot.fetchedAt,lastGameDate});
  }catch{

@@ -1,0 +1,33 @@
+name: Actualizar NBA de Play Metric
+on:
+  schedule:
+    - cron: '7,22,37,52 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: play-metric-nba-production
+  cancel-in-progress: false
+jobs:
+  synchronize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      PLAY_METRIC_SERVICE_TOKEN: ${{ secrets.COLLECTOR_SECRET }}
+      PLAY_METRIC_URL: https://play-metric-vercel.vercel.app
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+          cache-dependency-path: collector/requirements.txt
+      - name: Validar secreto
+        run: |
+          python -c "import os; assert len(os.environ.get('PLAY_METRIC_SERVICE_TOKEN','')) >= 32, 'Configurar COLLECTOR_SECRET en los secrets de Actions'"
+      - name: Instalar recolector
+        run: python -m pip install -r collector/requirements.txt
+      - name: Sincronizar estadísticas y calendario
+        run: python -u collector/sync_nba.py --season auto --competition all --skip-enrichment --upload "$PLAY_METRIC_URL" --output "$RUNNER_TEMP/pm-snapshot.json"

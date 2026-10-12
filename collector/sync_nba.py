@@ -240,6 +240,7 @@ def main():
     parser.add_argument('--skip-calendar',action='store_true')
     parser.add_argument('--profile-limit',type=int,default=30)
     parser.add_argument('--profiles-only',action='store_true')
+    parser.add_argument('--skip-enrichment',action='store_true',help='Sincronizar historial y calendario sin biografías ni perfiles avanzados')
     args=parser.parse_args()
     if args.season != 'auto' and (not re.fullmatch(r'20\d{2}-\d{2}',args.season) or int(args.season[-2:]) != (int(args.season[:4])+1)%100): parser.error('Use auto o YYYY-YY.')
     if args.upload:
@@ -275,10 +276,10 @@ def main():
             print(f"Calendario: {len(calendar['games'])} partidos, temporada {season}.",flush=True)
             if args.upload: upload_calendar(calendar,args.upload);print('Calendario: importación y lectura verificadas.',flush=True)
         except (RuntimeError,ImportError) as e: failures.append('calendar: '+str(e))
-    if args.upload and profile_ids:
+    if args.upload and profile_ids and not args.skip_enrichment:
         try: sync_profiles(profile_ids,args.upload,args.profile_limit)
         except (RuntimeError,ImportError) as e: failures.append('profiles: '+str(e))
-    if args.upload:
+    if args.upload and not args.skip_enrichment:
         try:
             import requests,importlib.util,tempfile
             r=requests.get(args.upload.rstrip('/')+'/collector/sync_league_traits.py',headers={'Authorization':'Bearer '+os.environ.get('PLAY_METRIC_SERVICE_TOKEN','')},timeout=45,allow_redirects=False);r.raise_for_status()
@@ -286,7 +287,7 @@ def main():
                 path=Path(tmp)/'sync_league_traits.py';path.write_bytes(r.content)
                 spec=importlib.util.spec_from_file_location('pm_league_traits',path);module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module);module.sync_league_traits(args.upload)
         except Exception as e: failures.append('league traits: '+type(e).__name__+'; datos anteriores conservados.')
-    if args.upload:
+    if args.upload and not args.skip_enrichment:
         try:
             # Download the sibling through the same service channel; execute current hosted code.
             import requests,importlib.util,tempfile

@@ -2,6 +2,7 @@
   "version": 2,
   "transport": "POST /api/nba/upload: immutable 500000-byte base64 parts, SHA-256 validation, atomic activation and exact server-side readback with a small receipt. Deploy endpoint before using the new collector.",
   "target": "Vercel",
+  "scheduled_workflow": ".github/workflows/nba-sync.yml: every 15 minutes after repository secret COLLECTOR_SECRET is configured; optional enrichment is excluded from the quick scheduled run.",
   "command": "python collector/sync_nba.py --season auto --competition all --upload https://YOUR-VERCEL-DOMAIN --output /tmp/pm-snapshot.json",
   "authentication": "PLAY_METRIC_SERVICE_TOKEN must equal server COLLECTOR_SECRET; use Authorization: Bearer. Never save credentials in code or logs.",
   "failure_policy": "Preserve each previous competition if its source fails. Verify readback after import. Run the Python collector in an external hourly runner; do not call NBA from interactive web requests."
