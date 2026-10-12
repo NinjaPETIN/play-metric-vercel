@@ -1,10 +1,10 @@
-import {analyze,value,type Game,type Market} from './analytics';
+import {analyze,value,markets,type Game,type Market} from './analytics';
 export function statContext(sample:Game[],history:Game[],market:Market,line:number,side:'over'|'under'='over'){
  const usable=(games:Game[])=>games.filter(g=>g.played&&g.minutes>0&&value(g,market)!==null);
  const recent=usable(sample),all=usable(history),a=analyze(recent,market,line,side),baseline=analyze(all,market,line,side);
  const fmt=(n:number)=>n.toLocaleString('es-AR',{maximumFractionDigits:1});
  const direction=side==='over'?'superó':'quedó por debajo de';
- const highlight=a.n?`${direction[0].toUpperCase()+direction.slice(1)} ${fmt(line)} en ${a.hits} de ${a.n} partidos de la muestra${a.pushes?` (${a.pushes} empates)`:''}.`:'No hay registros suficientes para esta estadística con los filtros elegidos.';
+ const highlight=a.n?`${direction[0].toUpperCase()+direction.slice(1)} ${fmt(line)} ${markets[market].toLowerCase()} en ${a.hits} de ${a.n} partidos de la muestra${a.pushes?` (${a.pushes} empates)`:''}.`:'No hay registros suficientes para esta estadística con los filtros elegidos.';
  const previous=all.filter(g=>!recent.some(r=>r===g||(r.date===g.date&&r.opponent===g.opponent&&r.gameId===g.gameId)));
  const avgMinutes=(games:Game[])=>games.reduce((s,g)=>s+g.minutes,0)/games.length;
  let context='No hay suficientes partidos fuera de la muestra para comparar los minutos.';
@@ -16,6 +16,6 @@ export function statContext(sample:Game[],history:Game[],market:Market,line:numb
  if(missing)warnings.push(`${missing} partidos sin esta estadística quedaron fuera del cálculo.`);
  if(new Set(recent.map(g=>g.team).filter(Boolean)).size>1)warnings.push('La muestra incluye partidos en distintos equipos. El rol puede haber cambiado.');
  if(a.n>=5&&a.average!==null&&a.median!==null&&Math.abs(a.average-a.median)>Math.max(2,Math.abs(a.median)*.25))warnings.push('El promedio se aleja de la mediana: algunos resultados extremos pueden influir.');
- const comparison=baseline.n?`Historial disponible: ${baseline.hits}/${baseline.n} (${Math.round((baseline.rate??0)*100)} %) con la misma línea y dirección, sin filtros de rival, localía ni minutos. Incluye la muestra.`:'Sin historial disponible para comparar.';
+ const comparison=baseline.n?`Historial de ${markets[market].toLowerCase()}: ${baseline.hits}/${baseline.n} (${Math.round((baseline.rate??0)*100)} %) con la misma línea y dirección, sin filtros de rival, localía ni minutos. Incluye la muestra.`:'Sin historial disponible para comparar.';
  return {highlight,context,warnings,comparison,n:a.n};
 }
