@@ -19,7 +19,10 @@ export async function loadDashboard(season?:number,competition:Competition='regu
  const records:{key:string;payload:string;traitsPayload?:string|null}[]=[];let cursor='';
  // Qualify the outer payload explicitly: Drizzle strips column table names in
  // single-table selections, which otherwise resolves payload inside traits.
- while(true){const batch=await db.select({key:providerCache.key,payload:providerCache.payload,traitsPayload:catalog?sql<string|null>`null`:sql<string|null>`(select payload from provider_cache traits where traits.key=${'nba_traits:'+competition+':'+selected+':'} || cast(json_extract(${sql.raw('provider_cache.payload')},'$.id') as text))`}).from(providerCache).where(and(gte(providerCache.key,meta.prefix),lt(providerCache.key,meta.prefix+'\uffff'),cursor?gt(providerCache.key,cursor):undefined)).orderBy(providerCache.key).limit(1000);records.push(...batch);if(batch.length<1000)break;cursor=batch.at(-1)!.key;if(records.length>1000)throw new Error('El historial excede el límite de jugadores.');}
+ // Keep full-season payloads below the database HTTP response limit. The
+ // regular season can exceed 10 MB even though it has fewer than 1,000 players.
+ const pageSize=40;
+ while(true){const batch=await db.select({key:providerCache.key,payload:providerCache.payload,traitsPayload:catalog?sql<string|null>`null`:sql<string|null>`(select payload from provider_cache traits where traits.key=${'nba_traits:'+competition+':'+selected+':'} || cast(json_extract(${sql.raw('provider_cache.payload')},'$.id') as text))`}).from(providerCache).where(and(gte(providerCache.key,meta.prefix),lt(providerCache.key,meta.prefix+'\uffff'),cursor?gt(providerCache.key,cursor):undefined)).orderBy(providerCache.key).limit(pageSize);records.push(...batch);if(records.length>1000)throw new Error('El historial excede el límite de jugadores.');if(batch.length<pageSize)break;cursor=batch.at(-1)!.key;}
  if(!records.length)throw new Error('La temporada no tiene registros disponibles.');
  const result=buildDashboard(records,meta,selected,seasons,competition,profiles,!catalog);
  dashboardCache.set(competition+':'+selected+(catalog?':catalog':''),{prefix:meta.prefix,profileVersion,value:result});if(dashboardCache.size>6)dashboardCache.delete(dashboardCache.keys().next().value!);return result;
