@@ -1,0 +1,47 @@
+name: Probar CDN NBA
+on:
+  push:
+    paths:
+      - '.github/workflows/nba-cdn-probe.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Comprobar JSON de calendario y box score
+        run: |
+          python3 - <<'PY'
+          import json, urllib.request, urllib.error, sys
+          def read(url):
+              try:
+                  with urllib.request.urlopen(url, timeout=20) as response:
+                      data = json.load(response)
+                      print('HTTP', response.status, url, flush=True)
+                      return data
+              except urllib.error.HTTPError as error:
+                  print('HTTP', error.code, url, flush=True)
+              except Exception as error:
+                  print(type(error).__name__, url, flush=True)
+              return None
+          root = 'https://cdn.nba.com/static/json/'
+          schedule = read(root + 'staticData/scheduleLeagueV2.json')
+          game_id = '0022500001'
+          if schedule:
+              league = schedule.get('leagueSchedule', {})
+              games = [game for day in league.get('gameDates', []) for game in day.get('games', [])]
+              print('Temporada:', league.get('seasonYear'), 'Partidos:', len(games), flush=True)
+              completed = [g for g in games if g.get('gameStatus') == 3]
+              if completed:
+                  game_id = str(completed[-1]['gameId'])
+          box = read(root + 'liveData/boxscore/boxscore_' + game_id + '.json')
+          valid = False
+          if box:
+              game = box.get('game', {})
+              players = game.get('homeTeam', {}).get('players', []) + game.get('awayTeam', {}).get('players', [])
+              valid = str(game.get('gameId')) == game_id and bool(players) and any('points' in p.get('statistics', {}) for p in players)
+              print('Partido:', game.get('gameId'), 'Jugadores:', len(players), 'Estadísticas válidas:', valid, flush=True)
+          sys.exit(0 if schedule and valid else 1)
+          PY
