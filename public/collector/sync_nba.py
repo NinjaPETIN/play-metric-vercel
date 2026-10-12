@@ -16,6 +16,20 @@ def season_candidates(now=None):
 
 
 SEASON_TYPES = {"regular": "Regular Season", "preseason": "Pre Season", "playoffs": "Playoffs"}
+def source_failure(error):
+    """Report useful diagnostics without logging credentials or response bodies."""
+    name = type(error).__name__
+    status = getattr(getattr(error, 'response', None), 'status_code', None)
+    if status is not None:
+        return f'HTTP {status}'
+    if 'Timeout' in name:
+        return 'timeout: NBA no respondió dentro del plazo'
+    if 'Connection' in name:
+        return 'error de conexión con NBA'
+    if 'JSON' in name:
+        return 'NBA devolvió una respuesta que no es JSON válido'
+    return name
+
 EXTRA_STATS = {"STL":"steals","BLK":"blocks","TOV":"turnovers","FGA":"fieldGoalsAttempted","FGM":"fieldGoalsMade","FTA":"freeThrowsAttempted","FTM":"freeThrowsMade","OREB":"offensiveRebounds","DREB":"defensiveRebounds","FG3A":"threeAttempts"}
 
 def normalize(rows, season, competition="regular"):
@@ -85,9 +99,10 @@ def fetch_snapshot(season, attempts=3, competition="regular"):
                 snapshot['teamGames']=normalize_team_games(team_data['LeagueGameLog'])
                 if not snapshot['teamGames']: raise ValueError('Missing team results')
             return snapshot
-        except Exception:
+        except Exception as error:
+            print(f'NBA {competition}, {season}, intento {attempt+1}/{attempts}: {source_failure(error)}', flush=True)
             if attempt + 1 == attempts:
-                raise RuntimeError('NBA.com no respondió. Se conservan los datos anteriores.') from None
+                raise RuntimeError(f'NBA.com: {source_failure(error)}. Se conservan los datos anteriores.') from None
             time.sleep(2 ** attempt)
 
 
@@ -167,8 +182,9 @@ def fetch_calendar(season, attempts=3):
             calendar = normalize_calendar(raw, season)
             if not calendar['games']: raise ValueError('Empty calendar')
             return calendar
-        except Exception:
-            if attempt + 1 == attempts: raise RuntimeError('NBA no devolvió un calendario válido.') from None
+        except Exception as error:
+            print(f'NBA calendario, {season}, intento {attempt+1}/{attempts}: {source_failure(error)}', flush=True)
+            if attempt + 1 == attempts: raise RuntimeError(f'NBA calendario: {source_failure(error)}; historial anterior conservado.') from None
             time.sleep(2 ** attempt)
 
 
