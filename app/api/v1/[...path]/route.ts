@@ -7,7 +7,7 @@ import {expandDashboard} from '../../../../lib/compact-dashboard';
 export async function GET(req:Request,{params}:{params:Promise<{path:string[]}>}){
  try{
   const {path}=await params,user=await getChatGPTUser();
-  const example=path[0]==='players'&&samplePlayer(path[1],new URL(req.url).searchParams.get('competition')??'regular')&&(!path[2]||['profile','games','traits'].includes(path[2]));
+  const example=path[0]==='players'&&samplePlayer(path[1],new URL(req.url).searchParams.get('competition')??'regular');
   if(!user&&!publicRead(path,req.url))throw new PlanError(401,'Creá tu cuenta gratuita para consultar este jugador.');
   const account=user?(example?await accountPlan():path[0]==='players'&&path[1]?await authorizePlayer(path[1]):await accountPlan()):null;
   const data:any=await cachedNbaRead(req.url,()=>internalRead(path,req.url),req.headers.get('cache-control')?.includes('no-cache'));
