@@ -1,7 +1,6 @@
 name: Actualizar NBA de Play Metric
 on:
-  schedule:
-    - cron: '7,22,37,52 * * * *'
+  # Automatic collection runs on the user's Windows connection.
   workflow_dispatch:
 permissions:
   contents: read
