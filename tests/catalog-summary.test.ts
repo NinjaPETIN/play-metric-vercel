@@ -34,3 +34,14 @@ test('invalid market names and sample/filter values fail before reading data',as
  for(const query of ['stat=unknown','stat=__proto__','last=1000','last=NaN','minutes=-1','venue=invalid','opponent=ZZZ','side=invalid'])assert.throws(()=>catalogOptions('https://example.test/?'+query));
  let read=false;await assert.rejects(scopedNbaRead(['players'],'https://example.test/?stat=unknown',{user:async()=>null,plan:async()=>({plan:'free'}),authorize:async()=>({plan:'free'}),read:async()=>{read=true;return {};}}));assert.equal(read,false);
 });
+
+test('home trends contain only complete grouped averages and window frequencies respect filters and direction',()=>{
+ const a=summarizeCatalogPlayer(player,{...defaultCatalogOptions,market:'points',last:5}).points!;
+ assert.equal(a.windows?.['5'].average,19);assert.equal(a.windows?.['10'].average,16.5);assert.equal(a.windows?.season.n,12);
+ assert.deepEqual(a.trend,[{average:14,n:5},{average:19,n:5}]);
+ assert.ok(a.trend!.every(group=>Object.keys(group).sort().join(',')==='average,n'));
+ const under=summarizeCatalogPlayer(player,{...defaultCatalogOptions,market:'points',side:'under'}).points!;
+ assert.equal(under.windows?.['5'].rate,0);assert.equal(a.windows?.['5'].rate,1);
+ const filtered=summarizeCatalogPlayer(player,{...defaultCatalogOptions,market:'points',venue:'home',minutes:25}).points!;
+ assert.equal(filtered.windows?.season.n,3);assert.deepEqual(filtered.trend,[]);
+});
