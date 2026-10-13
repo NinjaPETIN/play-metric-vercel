@@ -8,7 +8,7 @@ export default function EditorialPlayer({player,profile,status,action,season,com
  const [loaded,setLoaded]=useState(false);
  const [failed,setFailed]=useState(false),[lowResolution,setLowResolution]=useState(false);
  const words=player.name.trim().split(' '),first=words.slice(0,-1).join(' ')||words[0],last=words.length>1?words.at(-1):'';
- const currentTeam=player.currentTeam===undefined?player.team:player.currentTeam;
+ const currentTeam=player.currentTeam??null;
  const position=profile?.position?.split('-').map(p=>({Guard:'Base / Escolta',Forward:'Alero',Center:'Pívot'}[p.trim()]??p.trim())).join(' / ');
  return <section className="editorial-player" aria-label={`Ficha de ${player.name}`}>
   <div className="editorial-portrait">{(!loaded||failed)&&<span className="portrait-fallback" aria-hidden="true">{words.map(w=>w[0]).slice(0,2).join('')}</span>}{!failed&&<img src={`https://cdn.nba.com/headshots/nba/latest/${lowResolution?'260x190':'1040x760'}/${player.id}.png`} alt={player.name} fetchPriority="high" width={1040} height={760} decoding="async" onLoad={()=>setLoaded(true)} style={{opacity:loaded?1:0}} onError={()=>{if(!lowResolution)setLowResolution(true);else setFailed(true);}}/>}</div>

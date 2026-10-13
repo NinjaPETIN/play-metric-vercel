@@ -5,7 +5,7 @@ import {markets,type Market} from '../lib/analytics';
 import type {CatalogStat} from '../lib/catalog-summary';
 import TeamLogo from './team-logo';
 type Row={p:Player;m:Market;a:CatalogStat};
-const currentTeam=(p:Player)=>p.currentTeam===undefined?p.team:p.currentTeam??'—';
+const currentTeam=(p:Player)=>p.currentTeam??'—';
 const number=(n:number|null)=>n===null?'—':n.toLocaleString('es-AR',{maximumFractionDigits:1});
 function Photo({p}:{p:Player}){return <span className="avatar"><span>{p.name.split(' ').map(s=>s[0]).slice(0,2).join('')}</span><img src={`https://cdn.nba.com/headshots/nba/latest/260x190/${p.id}.png`} alt="" loading="lazy" onError={e=>{e.currentTarget.style.display='none';}}/></span>;}
 export default function CatalogRadar({rows,market,last,loading,onOpen,opponent}:{rows:Row[];market:Market;last:number;loading:boolean;onOpen:(p:Player,m:Market)=>void;opponent:string}){
