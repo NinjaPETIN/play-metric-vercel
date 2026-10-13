@@ -1,7 +1,7 @@
 import {createServerClient} from '@supabase/ssr';
 import {NextResponse,type NextRequest} from 'next/server';
 import {contentSecurityPolicy} from './lib/content-security';
-const enforce=false;
+const enforce=true;
 export async function proxy(request:NextRequest){
  const nonce=Buffer.from(crypto.randomUUID()).toString('base64'),policy=contentSecurityPolicy(nonce,process.env.NODE_ENV!=='production'),forward=new Headers(request.headers);
  forward.set('x-nonce',nonce);forward.set('content-security-policy',policy);
