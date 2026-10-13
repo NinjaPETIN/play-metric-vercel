@@ -109,3 +109,13 @@
  .app.editorial.compact-catalog .right-panel:not(.is-filters){padding:16px 10px}
  .app.editorial .catalog-selection .props-table{min-width:800px}
 }
+.app.editorial.compact-catalog .freshness-summary{padding:8px 10px;font-size:10px;background:transparent;border:0;margin:0 0 8px}
+.app.editorial.compact-catalog .freshness-summary summary{font-size:10px;line-height:1.5}
+.app.editorial.compact-catalog .catalog-player strong{font-size:16px}
+@media(max-width:620px){
+ .app.editorial.compact-catalog .header-pro{display:inline-flex;font-size:9px;padding:7px 9px}
+ .app.editorial.compact-catalog .header-usage{font-size:9px;padding:7px;gap:5px}
+ .app.editorial.compact-catalog .header-usage-ticks{display:flex;gap:2px}
+ .app.editorial.compact-catalog .header-usage-ticks i{width:3px;height:10px}
+ .app.editorial.compact-catalog .account-menu{gap:6px}
+}
