@@ -20,6 +20,20 @@ test('beta measurement requires consent and origin, deduplicates concurrent acti
  const returning=await database.prepare("SELECT payload FROM provider_cache WHERE key like 'pm:beta:counts:%:return_visit'").first<{payload:string}>();assert.equal(JSON.parse(returning!.payload).count,1);
  assert.equal((await POST(request({name:'share_download',visitor,consent:true}))).status,204);
 });
+test('public popularity uses consenting deduplicated profile events, thresholds and no visitor identifiers',async()=>{
+ const {popularPlayers}=await import('../lib/popular-players');
+ assert.equal((await POST(request({name:'profile_open',visitor:randomUUID(),consent:false,playerId:'2544'}))).status,400);
+ assert.equal((await POST(request({name:'visit',visitor:randomUUID(),consent:true,playerId:'2544'}))).status,400);
+ assert.equal((await POST(request({name:'profile_open',visitor:randomUUID(),consent:true,playerId:'invalid'}))).status,400);
+ const id=randomUUID();const repeat=()=>POST(request({name:'profile_open',visitor:id,consent:true,playerId:'2544'}));
+ assert.ok((await Promise.all([repeat(),repeat(),repeat()])).every(r=>r.status===204));
+ assert.deepEqual(await popularPlayers(),[]);
+ for(let i=0;i<2;i++)assert.equal((await POST(request({name:'profile_open',visitor:randomUUID(),consent:true,playerId:'2544'}))).status,204);
+ assert.deepEqual(await popularPlayers(),['2544']);
+ const count=await database.prepare("select payload from provider_cache where key like 'pm:beta:popular:counts:%'").first<{payload:string}>();assert.deepEqual(JSON.parse(count!.payload),{playerId:'2544',count:3});
+ assert.deepEqual(await popularPlayers(Date.now()+9*86400_000),[]);
+});
+
 test('rotating visitor IDs does not bypass connection limits; global exhaustion prevents new visitor rows',async t=>{
  t.mock.method(Date,'now',()=>1_800_000_000_000);
  const before=process.env.VERCEL;process.env.VERCEL='1';

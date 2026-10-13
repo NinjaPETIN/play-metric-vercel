@@ -35,13 +35,22 @@ test('invalid market names and sample/filter values fail before reading data',as
  let read=false;await assert.rejects(scopedNbaRead(['players'],'https://example.test/?stat=unknown',{user:async()=>null,plan:async()=>({plan:'free'}),authorize:async()=>({plan:'free'}),read:async()=>{read=true;return {};}}));assert.equal(read,false);
 });
 
-test('home trends contain only complete grouped averages and window frequencies respect filters and direction',()=>{
+test('home previews follow each selected window and keep individual game records private',()=>{
  const a=summarizeCatalogPlayer(player,{...defaultCatalogOptions,market:'points',last:5}).points!;
  assert.equal(a.windows?.['5'].average,19);assert.equal(a.windows?.['10'].average,16.5);assert.equal(a.windows?.season.n,12);
- assert.deepEqual(a.trend,[{average:14,n:5},{average:19,n:5}]);
- assert.ok(a.trend!.every(group=>Object.keys(group).sort().join(',')==='average,n'));
+ assert.deepEqual(a.recent,[17,18,19,20,21]);
+ assert.ok(a.recent!.every(v=>typeof v==='number'));assert.equal(a.rival?.opponent,'ATL');assert.equal(a.rival?.n,5);
  const under=summarizeCatalogPlayer(player,{...defaultCatalogOptions,market:'points',side:'under'}).points!;
  assert.equal(under.windows?.['5'].rate,0);assert.equal(a.windows?.['5'].rate,1);
  const filtered=summarizeCatalogPlayer(player,{...defaultCatalogOptions,market:'points',venue:'home',minutes:25}).points!;
- assert.equal(filtered.windows?.season.n,3);assert.deepEqual(filtered.trend,[]);
+ assert.equal(filtered.windows?.season.n,3);assert.deepEqual(filtered.recent,[16,18,20]);
+});
+
+
+test('preview bars are chronological, bounded to 30 and preserve missing values; rivals follow selected opponent',()=>{
+ const more={...player,games:Array.from({length:50},(_,i)=>({...games[i%12],date:`2026-02-${String(i).padStart(3,'0')}`,points:i,steals:i===49?undefined:i%3}))} as Player;
+ for(const last of [5,10,20,30]){const a=summarizeCatalogPlayer(more,{...defaultCatalogOptions,last}).points!;assert.equal(a.recent!.length,last);assert.equal(a.recent![0],50-last);assert.equal(a.recent!.at(-1),49);}
+ const all=summarizeCatalogPlayer(more,{...defaultCatalogOptions,last:0}).points!;assert.equal(all.n,50);assert.equal(all.recent!.length,30);
+ const missing=summarizeCatalogPlayer(more,{...defaultCatalogOptions,market:'steals'}).steals!;assert.equal(missing.recent!.at(-1),null);
+ const rival=summarizeCatalogPlayer(player,{...defaultCatalogOptions,opponent:'BOS'}).points!;assert.equal(rival.rival?.opponent,'BOS');assert.equal(rival.rival?.n,6);
 });
