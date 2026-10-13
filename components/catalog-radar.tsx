@@ -1,0 +1,13 @@
+import type {Player} from '../lib/data';
+import {markets,type Market} from '../lib/analytics';
+import type {CatalogStat} from '../lib/catalog-summary';
+import TeamLogo from './team-logo';
+type Row={p:Player;m:Market;a:CatalogStat};
+const currentTeam=(p:Player)=>p.currentTeam===undefined?p.team:p.currentTeam??'—';
+const number=(n:number|null)=>n===null?'—':n.toLocaleString('es-AR',{maximumFractionDigits:1});
+function Photo({p}:{p:Player}){return <span className="avatar"><span>{p.name.split(' ').map(s=>s[0]).slice(0,2).join('')}</span><img src={`https://cdn.nba.com/headshots/nba/latest/260x190/${p.id}.png`} alt="" loading="lazy" onError={e=>{e.currentTarget.style.display='none';}}/></span>;}
+export default function CatalogRadar({rows,market,last,loading,onOpen}:{rows:Row[];market:Market;last:number;loading:boolean;onOpen:(p:Player,m:Market)=>void}){
+ const leaders=[...rows].sort((a,b)=>(b.a.average??-1)-(a.a.average??-1)||a.p.name.localeCompare(b.p.name,'es')).slice(0,4),frequent=[...rows].filter(r=>r.a.rate!==null).sort((a,b)=>(b.a.rate??0)-(a.a.rate??0)||b.a.n-a.a.n||a.p.name.localeCompare(b.p.name,'es')).slice(0,3),label=markets[market].toLowerCase();
+ const empty=<p className="muted">{loading?`Actualizando ${label}…`:`Sin jugadores con muestra suficiente en ${label}. Probá bajar el mínimo de partidos o quitar filtros.`}</p>;
+ return <><section className="card catalog-radar" aria-label={`Frecuencia en ${label}`}><div className="card-title"><h3>Frecuencia en {label}</h3><span>{last?'L'+last:'Todo'}</span></div><p className="catalog-radar-note">Cumplen la línea de {label} · {last?'hasta '+last+' partidos':'historial disponible'}</p>{loading?empty:<div className="radar-list">{frequent.map(({p,m,a})=><button key={p.id} onClick={()=>onOpen(p,m)} aria-label={`Abrir ${p.name}, ${markets[m]}`}><Photo p={p}/><span><b>{p.name}</b><small>{number(a.line)} {label} · {a.hits}/{a.n}{a.pushes?' · '+a.pushes+' empates':''}</small></span><strong>{Math.round(a.rate!*100)}%</strong></button>)}{!frequent.length&&empty}</div>}</section><section className="card catalog-radar" aria-label={`Líderes en ${label}`}><h3>Líderes en {label}</h3><p className="catalog-radar-note">Promedio por partido · misma muestra y filtros</p>{loading?empty:<div className="radar-list">{leaders.map(({p,m,a})=><button key={p.id} onClick={()=>onOpen(p,m)} aria-label={`Abrir ${p.name}, ${markets[m]}`}><Photo p={p}/><span><b>{p.name}</b><small className="team-label"><TeamLogo team={currentTeam(p)} size={16}/>{currentTeam(p)==='—'?'Sin confirmar':currentTeam(p)} · {a.n} partidos</small></span><strong>{number(a.average)}<small>{markets[market]}</small></strong></button>)}{!leaders.length&&empty}</div>}</section></>;
+}

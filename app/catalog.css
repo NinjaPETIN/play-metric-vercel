@@ -1,0 +1,20 @@
+.app.editorial .catalog-selection{max-width:100%;min-width:0}
+.app.editorial .catalog-selection .props-table{min-width:760px;width:100%;font-size:12px}
+.app.editorial .catalog-selection .props-table th,.app.editorial .catalog-selection .props-table td{display:table-cell;text-align:left;white-space:nowrap;padding:12px 10px}
+.app.editorial .catalog-selection .props-table th:first-child{width:190px}
+.app.editorial .catalog-selection .props-table th:nth-child(2){width:110px}
+.app.editorial .catalog-selection .props-table th:nth-child(3){width:auto;min-width:100px}
+.app.editorial .catalog-selection .player-button strong{white-space:normal;font-size:12px}
+.app.editorial .catalog-selection .catalog-note{padding:14px 0;font-size:12px;line-height:1.9}
+.app.editorial .catalog-selection .catalog-count{display:block;font-size:10px;color:var(--muted);margin-top:4px}
+.app.editorial .catalog-radar{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px}
+.app.editorial .catalog-radar .catalog-radar-note{font-size:11px;line-height:1.6;color:var(--muted);margin:8px 0 12px}
+.app.editorial .catalog-radar .radar-list button{min-width:0;gap:8px;padding:13px 0}
+.app.editorial .catalog-radar .radar-list button>span:not(.avatar){min-width:0;flex:1}
+.app.editorial .catalog-radar .radar-list b{font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+.app.editorial .catalog-radar .radar-list small{font-size:10px;line-height:1.5;white-space:normal}
+.app.editorial .catalog-radar .radar-list strong{font-size:14px;text-align:right;flex-shrink:0}
+.app.editorial .catalog-radar .radar-list strong small{font-size:9px;display:block;max-width:65px;margin-top:4px;font-weight:400}
+.app.editorial .catalog-radar .avatar{flex:0 0 34px;width:34px;height:34px;min-width:34px}
+.app.editorial .filter-panel input:disabled{opacity:.4}
+@media(max-width:620px){.app.editorial .catalog-selection .props-table{min-width:740px}.app.editorial .catalog-selection .catalog-note{font-size:11px}.app.editorial .catalog-selection .props-table th,.app.editorial .catalog-selection .props-table td{padding:12px 8px}}
