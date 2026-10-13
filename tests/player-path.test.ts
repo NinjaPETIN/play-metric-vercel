@@ -1,0 +1,5 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {playerPath,resolvePlayerPath,createPlayerPaths,playerSlug} from '../lib/player-path';
+test('player URLs resolve names and old numeric links to the same internal identity',()=>{assert.equal(playerPath({id:'2544',name:'LeBron James'}),'/jugadores/lebron-james');assert.equal(playerPath({id:'1629029',name:'Luka Dončić'}),'/jugadores/luka-doncic');assert.equal(resolvePlayerPath('luka-doncic')?.id,'1629029');assert.equal(resolvePlayerPath('1629029')?.id,'1629029');assert.equal(playerSlug('D’Angelo Russell'),'d-angelo-russell');assert.equal(resolvePlayerPath('not-a-player'),null);assert.equal(resolvePlayerPath('../2544'),null);});
+test('duplicate names are unambiguous and new players work without rebuilding the directory',()=>{const p=createPlayerPaths([{id:'1',name:'José Test'},{id:'2',name:'Jose Test'}]);assert.deepEqual(p.map(x=>x.slug),['jose-test-1','jose-test-2']);assert.equal(playerPath({id:'999999999',name:'Nuevo Jugador'}),'/jugadores/nuevo-jugador-999999999');assert.equal(resolvePlayerPath('nuevo-jugador-999999999')?.id,'999999999');});
