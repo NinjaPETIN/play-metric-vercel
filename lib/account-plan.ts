@@ -1,5 +1,6 @@
 import {env} from '@/lib/database-env';
 import {getChatGPTUser} from '../app/chatgpt-auth';
+import {reservePlayerSlot} from './player-usage-store';
 export const DAILY_PLAYER_LIMIT=5;
 export class PlanError extends Error{constructor(public status:number,message:string){super(message);}}
 export function usageDay(now=new Date()){return new Intl.DateTimeFormat('en-CA',{timeZone:'America/Argentina/Buenos_Aires',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);}
@@ -9,7 +10,6 @@ async function membership(userId:string){const row=await env.DB!.prepare('SELECT
 function state(ids:string[],pro:boolean,day:string):AccountPlan{const tomorrow=new Date(day+'T03:00:00Z');tomorrow.setUTCDate(tomorrow.getUTCDate()+1);return {plan:pro?'pro':'free',used:ids.length,limit:pro?null:DAILY_PLAYER_LIMIT,remaining:pro?null:Math.max(0,DAILY_PLAYER_LIMIT-ids.length),playerIds:ids,day,resetsAt:tomorrow.toISOString()};}
 export async function accountPlan(){const u=await identity(),day=usageDay();const [pro,row]=await Promise.all([membership(u.userId),env.DB!.prepare('SELECT payload FROM provider_cache WHERE key=?').bind('pm:usage:'+u.userId+':'+day).first<{payload:string}>()]);return state(row?JSON.parse(row.payload).playerIds:[],pro,day);}
 export async function authorizePlayer(id:string){if(!/^\d{1,10}$/.test(id))throw new PlanError(400,'Jugador no válido.');const u=await identity(),day=usageDay(),pro=await membership(u.userId);if(pro)return state([],true,day);
- const key='pm:usage:'+u.userId+':'+day;
  // One conditional UPSERT is atomic: simultaneous tabs cannot spend a sixth slot.
- const row=await env.DB!.prepare(`INSERT INTO provider_cache(key,payload,expires_at) VALUES (?,json_object('playerIds',json_array(?)),?) ON CONFLICT(key) DO UPDATE SET payload=CASE WHEN EXISTS(SELECT 1 FROM json_each(provider_cache.payload,'$.playerIds') WHERE value=?) THEN provider_cache.payload ELSE json_insert(provider_cache.payload,'$.playerIds[#]',?) END WHERE json_array_length(provider_cache.payload,'$.playerIds')<? OR EXISTS(SELECT 1 FROM json_each(provider_cache.payload,'$.playerIds') WHERE value=?) RETURNING payload`).bind(key,id,new Date(Date.now()+3*86400000).toISOString(),id,id,DAILY_PLAYER_LIMIT,id).first<{payload:string}>();if(!row)throw new PlanError(429,'Alcanzaste los 5 jugadores de hoy. Podés volver a los que ya abriste o consultar nuevos mañana.');return state(JSON.parse(row.payload).playerIds,false,day);}
+ const ids=await reservePlayerSlot(u.userId,id,day,DAILY_PLAYER_LIMIT);if(!ids)throw new PlanError(429,'Alcanzaste los 5 jugadores de hoy. Podés volver a los que ya abriste o consultar nuevos mañana.');return state(ids,false,day);}
 export function basicPlayer<T extends Record<string,any>>(p:T,pro:boolean):T{if(pro)return p;return {...p,leagueContext:null,traits:p.traits?{...p.traits,sources:{...p.traits.sources,shots:null,passes:null,defense:null}}:p.traits};}
