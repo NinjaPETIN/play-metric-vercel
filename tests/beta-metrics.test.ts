@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID,createHash} from 'node:crypto';
 process.env.TURSO_DATABASE_URL='file::memory:';
+process.env.COLLECTOR_SECRET='a'.repeat(64);
 const {database}=await import('../lib/database-env');
 const {POST}=await import('../app/api/beta/events/route');
 const visitor=randomUUID();
