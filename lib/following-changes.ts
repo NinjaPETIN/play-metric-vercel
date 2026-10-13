@@ -1,0 +1,4 @@
+import type {CatalogStat} from './catalog-summary';
+export type FollowPoint={average:number|null;rate:number|null;minutes:number|null;n:number;line:number|null;lastGameDate:string|null};
+export function followPoint(stat:CatalogStat):FollowPoint{return {average:stat.average,rate:stat.rate,minutes:stat.minutesAverage??null,n:stat.n,line:stat.line,lastGameDate:stat.lastGameDate??null};}
+export function followChanges(current:FollowPoint,previous:FollowPoint|null){if(!previous)return null;const delta=(a:number|null,b:number|null)=>a===null||b===null?null:Math.round((a-b)*100)/100;return {average:delta(current.average,previous.average),minutes:delta(current.minutes,previous.minutes),rate:current.line===previous.line?delta(current.rate===null?null:current.rate*100,previous.rate===null?null:previous.rate*100):null,line:delta(current.line,previous.line),newGame:!!current.lastGameDate&&(!previous.lastGameDate||current.lastGameDate>previous.lastGameDate)};}

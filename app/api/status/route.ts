@@ -1,13 +1,11 @@
-import {sql} from 'drizzle-orm';
-import {getDb} from '../../../db';
+import {database} from '../../../lib/database-env';
 import {rosterFreshness} from '../../../lib/roster';
+import {dataFeedHealth} from '../../../lib/data-health';
 export const dynamic='force-dynamic';
-export async function GET(){
- const headers={'Cache-Control':'no-store'};
- try{
- const rows=await getDb().all<{key:string;fetchedAt:string|null}>(sql`select key,json_extract(payload,'$.fetchedAt') as fetchedAt from provider_cache where key in ('nba_roster','nba_calendar') or key glob 'nba_api:20[0-9][0-9]' or key glob 'nba_pre:20[0-9][0-9]' or key glob 'nba_post:20[0-9][0-9]'`);
- const roster=rosterFreshness(rows.find(r=>r.key==='nba_roster')?.fetchedAt??null);
- const feeds=['nba_api','nba_pre','nba_post','nba_calendar'].map(prefix=>{const row=rows.filter(r=>r.key===prefix||r.key.startsWith(prefix+':')).sort((a,b)=>b.key.localeCompare(a.key))[0];const fetchedAt=row?.fetchedAt??null;return {feed:prefix,season:row?.key.includes(':')?Number(row.key.split(':')[1]):null,fetchedAt,status:!fetchedAt?'pending':Date.now()-Date.parse(fetchedAt)>6*3600_000?'stale':'ready'};});
- return Response.json({name:'Play Metric',mode:'historical',liveData:false,version:'2.1.0',provider:'NBA.com',billing:false,checkedAt:new Date().toISOString(),status:roster.status==='ready'&&feeds.every(f=>f.status==='ready')?'ready':'degraded',roster,feeds},{headers});
- }catch{return Response.json({name:'Play Metric',status:'unavailable',checkedAt:new Date().toISOString()},{status:503,headers});}
-}
+export async function GET(){const headers={'Cache-Control':'no-store'};try{
+ const rows=await database.prepare("select key,json_extract(payload,'$.fetchedAt') as fetchedAt,json_extract(payload,'$.lastGameDate') as lastGameDate,coalesce(json_extract(payload,'$.scoreSource'),json_extract(payload,'$.source')) as source,json_extract(payload,'$.season') as season from provider_cache where key in ('nba_roster','nba_calendar') or key glob 'nba_api:20[0-9][0-9]' or key glob 'nba_pre:20[0-9][0-9]' or key glob 'nba_post:20[0-9][0-9]'").all<{key:string;fetchedAt:string|null;lastGameDate:string|null;source:string|null;season:number|null}>();
+ const reports=await database.prepare("select key,payload from provider_cache where key in ('pm:sync:regular','pm:sync:preseason','pm:sync:playoffs','pm:sync:calendar')").all<{key:string;payload:string}>();
+ const currentSeason=rows.results.find(r=>r.key==='nba_calendar')?.season??(new Date().getUTCMonth()>=9?new Date().getUTCFullYear():new Date().getUTCFullYear()-1),roster=rosterFreshness(rows.results.find(r=>r.key==='nba_roster')?.fetchedAt??null);
+ const feeds=['nba_api','nba_pre','nba_post','nba_calendar'].map((feed,i)=>{const r=rows.results.filter(r=>r.key===feed||r.key.startsWith(feed+':')).sort((a,b)=>b.key.localeCompare(a.key))[0],reportRow=reports.results.find(r=>r.key==='pm:sync:'+['regular','preseason','playoffs','calendar'][i]),report=reportRow?JSON.parse(reportRow.payload):null;return {feed,source:r?.source??null,...dataFeedHealth({fetchedAt:r?.fetchedAt??null,lastGameDate:r?.lastGameDate??null,season:r?.season??null,currentSeason,checkedAt:report?.checkedAt,attemptStatus:report?.status}),updatedGames:report?.updated??null,failedGames:report?.failed??null};});
+ return Response.json({name:'Play Metric',mode:'historical',liveData:false,version:'3.0.0',provider:'NBA.com; ESPN como respaldo de partidos terminados',billing:false,checkedAt:new Date().toISOString(),currentSeason,scheduled:{rosters:'cada hora',finishedGames:'cada 6 horas',timingGuaranteed:false},status:roster.status==='ready'&&feeds.every(f=>['ready','archived'].includes(f.status))?'ready':'degraded',roster,feeds},{headers});
+ }catch{return Response.json({name:'Play Metric',status:'unavailable',version:'3.0.0',checkedAt:new Date().toISOString()},{status:503,headers});}}

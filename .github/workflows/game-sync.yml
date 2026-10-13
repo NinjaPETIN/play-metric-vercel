@@ -1,0 +1,37 @@
+name: Actualizar partidos terminados gratis
+on:
+  schedule:
+    - cron: '41 */6 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['collector/free_source.mjs', 'collector/sync_free.mjs', '.github/workflows/game-sync.yml']
+permissions:
+  contents: read
+concurrency:
+  group: play-metric-games
+  cancel-in-progress: false
+jobs:
+  synchronize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      PLAY_METRIC_URL: https://play-metric-vercel.vercel.app
+      PLAY_METRIC_SERVICE_TOKEN: ${{ secrets.COLLECTOR_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Esperar la API de sincronización publicada
+        run: |
+          node --input-type=module <<'NODE'
+          if((process.env.PLAY_METRIC_SERVICE_TOKEN??'').length<32)throw Error('Falta COLLECTOR_SECRET en Actions');
+          for(let i=0;i<20;i++){try{const r=await fetch(process.env.PLAY_METRIC_URL+'/api/status');const d=await r.json();if(d.version==='3.0.0')process.exit(0);}catch{}await new Promise(r=>setTimeout(r,12000));}throw Error('No está publicada la API de sincronización');
+          NODE
+      - name: Verificar plantillas oficiales
+        run: node collector/sync_rosters.mjs --upload
+      - name: Reconciliar partidos NBA y box scores de respaldo
+        run: node collector/sync_free.mjs
