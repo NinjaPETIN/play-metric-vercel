@@ -122,7 +122,7 @@ export default function Dashboard({user,initialMatch=null,initialView='explore',
  const searchedIds=useMemo(()=>new Set(searchedPlayers.map(p=>p.id)),[searchedPlayers]);
  const marketEntries=Object.entries(markets).filter(([k])=>supported.includes(k as Market));
  const setFilter=<K extends keyof FilterState>(key:K,val:FilterState[K])=>{if(!initialPlayer&&!pro&&['market','windowSize','venue','opponent','minMinutes','side'].includes(key))setLoading(true);setF(old=>({...old,[key]:val}));if(['team','venue','opponent','minMinutes'].includes(key))setListPage(1);};
- const collectionParams=!initialPlayer&&!pro?new URLSearchParams({stat:f.market,last:String(f.windowSize),venue:f.venue,opponent:f.opponent,minutes:String(f.minMinutes),side:f.side}).toString():'';
+ const collectionParams=!initialPlayer&&!pro?new URLSearchParams({summary:'windows-v1',stat:f.market,last:String(f.windowSize),venue:f.venue,opponent:f.opponent,minutes:String(f.minMinutes),side:f.side}).toString():'';
  useEffect(()=>{
   if(!stateReady)return;
   if(!user&&initialPlayer&&!samplePlayer(initialPlayer,competition)){setData(null);setLoading(false);setRefreshing(false);setAuthRequired(true);return;}
@@ -225,3 +225,4 @@ export default function Dashboard({user,initialMatch=null,initialView='explore',
   {settings&&<div className="modal-backdrop" onClick={()=>setSettings(false)}><section ref={dialogRef} className="modal" role="dialog" aria-modal="true" aria-labelledby="settings-title" onClick={e=>e.stopPropagation()}><button autoFocus className="icon modal-close" aria-label="Cerrar preferencias" onClick={()=>setSettings(false)}><X size={19}/></button><Logo/><h2 id="settings-title">Cuenta y metodología</h2><p>Estadísticas de temporada regular obtenidas de NBA.com mediante nba_api. Temporada regular, pretemporada y playoffs se analizan por separado.</p><div className="method-row"><span>Consulta NBA</span><b>{formatTime(data?.fetchedAt??'')} ARG</b></div><div className="method-row"><span>Último partido incluido</span><b>{data?.lastGameDate?formatDate(data.lastGameDate):'—'}</b></div><p>La línea inicial se obtiene redondeando el promedio de temporada a un umbral de medio punto. Podés ajustarla en el gráfico. No representa una cuota ni una línea de una casa de apuestas.</p><p>Frecuencia = partidos que cumplen / partidos de la muestra. Los empates cuentan en la muestra; se excluyen partidos sin participación.</p>{user?<div className="account-row"><span>{user.name}</span><a href="/logout?return_to=%2F" target="_top">Cerrar sesión</a></div>:<a className="button" href="/login?return_to=%2F" target="_top">Ingresar</a>}<button className="button modal-done" onClick={()=>setSettings(false)}><Check size={15}/>Entendido</button></section></div>}
  </div>;
 }
+
