@@ -1,0 +1,3 @@
+export const betaEvents=['visit','profile_open','signup_click','favorite_saved','share_download','link_copied'] as const;
+export type BetaEvent=typeof betaEvents[number];
+export function trackBeta(name:BetaEvent){if(typeof window==='undefined')return;try{if(localStorage.getItem('pm:metrics:consent')!=='yes')return;let visitor=localStorage.getItem('pm:metrics:visitor');if(!visitor){visitor=crypto.randomUUID();localStorage.setItem('pm:metrics:visitor',visitor);}void fetch('/api/beta/events',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,visitor,consent:true}),keepalive:true}).catch(()=>{});}catch{}}

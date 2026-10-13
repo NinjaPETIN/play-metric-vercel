@@ -1,0 +1,4 @@
+'use client';
+import {useEffect,useState} from 'react';
+import {trackBeta} from '../lib/beta-events';
+export default function BetaMetrics(){const [enabled,setEnabled]=useState(false);useEffect(()=>{try{setEnabled(localStorage.getItem('pm:metrics:consent')==='yes');trackBeta('visit');}catch{}const click=(e:MouseEvent)=>{const a=(e.target as Element)?.closest?.('a[href]');if(a&&new URL((a as HTMLAnchorElement).href,window.location.origin).pathname==='/login')trackBeta('signup_click');};document.addEventListener('click',click);return()=>document.removeEventListener('click',click);},[]);return <label className="beta-consent"><input type="checkbox" checked={enabled} onChange={e=>{const on=e.target.checked;setEnabled(on);try{localStorage.setItem('pm:metrics:consent',on?'yes':'no');if(on)trackBeta('visit');else localStorage.removeItem('pm:metrics:visitor');}catch{}}}/>Ayudar con métricas opcionales <a href="/privacidad">¿Qué medimos?</a></label>;}

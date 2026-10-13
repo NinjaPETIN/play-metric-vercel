@@ -1,0 +1,21 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {randomUUID,createHash} from 'node:crypto';
+process.env.TURSO_DATABASE_URL='file::memory:';
+const {database}=await import('../lib/database-env');
+const {POST}=await import('../app/api/beta/events/route');
+const visitor=randomUUID();
+const request=(body:unknown,origin='https://example.test')=>new Request('https://example.test/api/beta/events',{method:'POST',headers:{origin,'content-type':'application/json'},body:JSON.stringify(body)});
+test('beta measurement requires consent and origin, deduplicates concurrent actions and recognizes a prior day',async()=>{
+ await database.prepare('CREATE TABLE provider_cache(key TEXT PRIMARY KEY,payload TEXT NOT NULL,expires_at TEXT NOT NULL)').run();
+ assert.equal((await POST(request({name:'visit',visitor,consent:false}))).status,400);
+ assert.equal((await POST(request({name:'visit',visitor,consent:true},'https://other.test'))).status,403);
+ assert.equal((await POST(request({name:'unknown',visitor,consent:true}))).status,400);
+ const replies=await Promise.all(Array.from({length:5},()=>POST(request({name:'visit',visitor,consent:true}))));assert.ok(replies.every(r=>r.status===204));
+ const rows=await database.prepare("SELECT key,payload FROM provider_cache WHERE key like 'pm:beta:counts:%'").all<{key:string;payload:string}>();assert.equal(rows.results.length,1);assert.equal(JSON.parse(rows.results[0].payload).count,1);
+ const hash=createHash('sha256').update('play-metric-beta:'+visitor).digest('hex');
+ await database.prepare("UPDATE provider_cache SET payload=json_object('firstDay','2000-01-01') WHERE key=?").bind('pm:beta:visitor:'+hash).run();
+ assert.equal((await POST(request({name:'visit',visitor,consent:true}))).status,204);
+ const returning=await database.prepare("SELECT payload FROM provider_cache WHERE key like 'pm:beta:counts:%:return_visit'").first<{payload:string}>();assert.equal(JSON.parse(returning!.payload).count,1);
+ assert.equal((await POST(request({name:'share_download',visitor,consent:true}))).status,204);
+});
