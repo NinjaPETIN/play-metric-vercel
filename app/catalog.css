@@ -66,3 +66,25 @@
 @media(max-width:620px){.app.editorial.catalog-workspace .guest-welcome{display:none}.app.editorial.catalog-workspace .heading h1{font-size:21px}.app.editorial .catalog-selection .props-table th:first-child,.app.editorial .catalog-selection .props-table td:first-child{min-width:170px;width:170px}.app.editorial .catalog-player strong{font-size:11px}.app.editorial .catalog-player small{font-size:9px}.app.editorial .catalog-player>img{width:27px;height:27px}}
 .app.editorial.catalog-workspace .freshness-summary{margin:8px 0;padding:8px 10px;font-size:10px}
 .app.editorial.catalog-workspace .freshness-summary summary{font-size:10px}
+.app.editorial.catalog-workspace .heading p{display:none}
+.app.editorial.catalog-workspace .heading{align-items:center;margin-bottom:8px}
+.app.editorial.catalog-workspace .toolbar{margin:8px 0}
+.app.editorial.catalog-workspace .dataset-meta{margin:6px 0;padding:6px 0}
+@media(min-width:1181px){
+ .app.editorial.catalog-workspace .sidebar{width:184px;padding:20px 12px 0}
+ .app.editorial.catalog-workspace .shell,.app.editorial.catalog-workspace .topbar{margin-left:184px}
+ .app.editorial.catalog-workspace .topbar{flex-wrap:nowrap;min-height:62px;padding:10px 20px}
+ .app.editorial.catalog-workspace .search{flex:1;max-width:420px;min-width:120px;width:auto}
+ .app.editorial.catalog-workspace .header-tools{flex-wrap:nowrap;gap:7px;width:auto;flex:none}
+ .app.editorial.catalog-workspace .header-tools select{min-width:100px;font-size:11px;padding:8px}
+ .app.editorial.catalog-workspace .header-pro{font-size:10px;padding:9px 12px}
+ .app.editorial.catalog-workspace .header-usage{font-size:10px;padding:8px}
+ .app.editorial.catalog-workspace .main-grid{grid-template-columns:minmax(0,1fr) 248px;gap:18px}
+ .app.editorial.catalog-workspace main{padding:16px 0 0 20px;min-width:0}
+ .app.editorial.catalog-workspace .right-panel{padding:16px 18px 0 0;min-width:0}
+ .app.editorial.catalog-workspace .right-heading h2{font-size:20px}
+ .app.editorial.catalog-workspace .catalog-radar{padding:14px}
+ .app.editorial.catalog-workspace .catalog-radar h3{font-size:16px}
+ .app.editorial.catalog-workspace .sidebar-brand .logo{font-size:19px;min-width:0}
+ .app.editorial.catalog-workspace .sidebar-brand small{font-size:7px}
+}
