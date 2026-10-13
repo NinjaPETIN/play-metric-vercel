@@ -20,3 +20,16 @@ test('beta measurement requires consent and origin, deduplicates concurrent acti
  const returning=await database.prepare("SELECT payload FROM provider_cache WHERE key like 'pm:beta:counts:%:return_visit'").first<{payload:string}>();assert.equal(JSON.parse(returning!.payload).count,1);
  assert.equal((await POST(request({name:'share_download',visitor,consent:true}))).status,204);
 });
+test('rotating visitor IDs does not bypass connection limits; global exhaustion prevents new visitor rows',async t=>{
+ t.mock.method(Date,'now',()=>1_800_000_000_000);
+ const before=process.env.VERCEL;process.env.VERCEL='1';
+ const send=(id:string)=>POST(new Request('https://example.test/api/beta/events',{method:'POST',headers:{origin:'https://example.test','content-type':'application/json','x-vercel-forwarded-for':'192.0.2.30'},body:JSON.stringify({name:'visit',visitor:id,consent:true})}));
+ try{
+ for(let i=0;i<30;i++)assert.equal((await send(randomUUID())).status,204);
+ const rejected=randomUUID();assert.equal((await send(rejected)).status,429);
+ const rejectedKey='pm:beta:visitor:'+createHash('sha256').update('play-metric-beta:'+rejected).digest('hex');assert.equal(await database.prepare('SELECT key FROM provider_cache WHERE key=?').bind(rejectedKey).first(),null);
+ await database.prepare("UPDATE provider_cache SET payload=json_set(payload,'$.n',10000) WHERE key='pm:limit:metrics:global-day'").run();
+ const exhausted=randomUUID();assert.equal((await send(exhausted)).status,429);
+ const exhaustedKey='pm:beta:visitor:'+createHash('sha256').update('play-metric-beta:'+exhausted).digest('hex');assert.equal(await database.prepare('SELECT key FROM provider_cache WHERE key=?').bind(exhaustedKey).first(),null);
+ }finally{if(before===undefined)delete process.env.VERCEL;else process.env.VERCEL=before;}
+});

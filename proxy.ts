@@ -9,7 +9,7 @@ export async function proxy(request:NextRequest){
  const url=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
  if(url&&key){const client=createServerClient(url,key,{cookies:{getAll:()=>request.cookies.getAll(),setAll(values){values.forEach(({name,value})=>request.cookies.set(name,value));forward.set('cookie',request.headers.get('cookie')??'');response=next();values.forEach(({name,value,options})=>response.cookies.set(name,value,options));}}});await client.auth.getClaims();}
  response.headers.set('Cache-Control','private, no-store');
- response.headers.set('Content-Security-Policy',enforce?policy:"frame-ancestors 'none'; object-src 'none'; base-uri 'self'");
+ if(enforce)response.headers.set('Content-Security-Policy',policy);
  if(!enforce)response.headers.set('Content-Security-Policy-Report-Only',policy);
  return response;
 }
