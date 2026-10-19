@@ -1,0 +1,33 @@
+name: Actualizar titulares NBA gratis
+on:
+  schedule:
+    - cron: '9,39 * * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['lib/news.ts', 'lib/news-store.ts', 'app/api/news/route.ts', '.github/workflows/news-sync.yml']
+permissions:
+  contents: read
+concurrency:
+  group: play-metric-news
+  cancel-in-progress: false
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Consultar el índice compartido de noticias
+        run: |
+          node --input-type=module <<'NODE'
+          for(let i=0;i<15;i++){
+            const r=await fetch('https://play-metric-vercel.vercel.app/api/news',{signal:AbortSignal.timeout(30000)});
+            if(r.status===404){await new Promise(resolve=>setTimeout(resolve,15000));continue;}
+            const d=await r.json();console.log(JSON.stringify({status:d.status,articles:d.articles?.length??0,checkedAt:d.checkedAt,fetchedAt:d.fetchedAt}));
+            if(!r.ok||d.status!=='ready')throw Error('No se pudo actualizar la fuente; la web conserva el último índice y muestra su estado.');
+            process.exit(0);
+          }
+          throw Error('La API de noticias todavía no está publicada');
+          NODE
