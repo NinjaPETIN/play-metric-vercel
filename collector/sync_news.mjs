@@ -1,0 +1,9 @@
+// GitHub's scheduled runner can update the same cache without relying on Vercel's outbound IP.
+const base=(process.env.PLAY_METRIC_URL??'https://play-metric-vercel.vercel.app').replace(/\/$/,''),secret=process.env.PLAY_METRIC_SERVICE_TOKEN;
+if(!secret||secret.length<32)throw Error('Falta el token de servicio existente en Actions');
+const url=new URL('https://api.gdeltproject.org/api/v2/doc/doc');url.search=new URLSearchParams({query:'NBA (domain:nba.com OR domain:espn.com OR domain:cbssports.com OR domain:apnews.com OR domain:sportingnews.com OR domain:as.com OR domain:marca.com)',mode:'artlist',format:'json',timespan:'24h',maxrecords:'50',sort:'datedesc'}).toString();
+let raw;
+for(let attempt=0;attempt<3;attempt++){try{const r=await fetch(url,{signal:AbortSignal.timeout(25000)});if(!r.ok)throw Error('Fuente HTTP '+r.status);const text=await r.text();if(Buffer.byteLength(text)>750_000)throw Error('Índice demasiado grande');const data=JSON.parse(text);if(!Array.isArray(data.articles)||!data.articles.length)throw Error('Índice sin artículos');raw=text;break;}catch{console.log('Consulta al proveedor sin resultado; intento '+(attempt+1)+' de 3.');if(attempt<2)await new Promise(resolve=>setTimeout(resolve,15000));}}
+if(!raw)throw Error('GDELT no disponible; no se reemplazó la caché publicada.');
+for(let attempt=0;attempt<15;attempt++){const r=await fetch(base+'/api/news',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+secret},body:raw,signal:AbortSignal.timeout(30000)});if([404,405].includes(r.status)){await new Promise(resolve=>setTimeout(resolve,15000));continue;}if(!r.ok)throw Error('No se publicó el índice: HTTP '+r.status);const result=await r.json();console.log(JSON.stringify({ok:result.ok,articles:result.articles,fetchedAt:result.fetchedAt}));process.exit(0);}
+throw Error('El receptor de noticias no está publicado.');

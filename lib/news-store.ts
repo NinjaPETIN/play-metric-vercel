@@ -4,6 +4,8 @@ import {normalizeNews,newsFeedStatus,type NewsFeed} from './news';
 const key='pm:news:v1',lease='pm:news:lease:v1';
 type Saved=Omit<NewsFeed,'status'|'provider'>;
 const empty=():Saved=>({articles:[],fetchedAt:null,checkedAt:null,lastAttempt:null});
+async function save(saved:Saved){await database.prepare("insert into provider_cache(key,payload,expires_at) values(?,?,?) on conflict(key) do update set payload=excluded.payload,expires_at=excluded.expires_at where json_extract(provider_cache.payload,'$.checkedAt') is null or json_extract(provider_cache.payload,'$.checkedAt')<=json_extract(excluded.payload,'$.checkedAt')").bind(key,JSON.stringify(saved),'2099-01-01T00:00:00.000Z').run();}
+export async function ingestNews(raw:unknown){const articles=normalizeNews(raw,directory);if(!articles.length)throw Error('Sin titulares verificables');const now=new Date().toISOString();await save({articles,fetchedAt:now,checkedAt:now,lastAttempt:'ready'});await database.prepare('insert into provider_cache(key,payload,expires_at) values(?,?,?) on conflict(key) do update set expires_at=excluded.expires_at').bind(lease,'{}',new Date(Date.now()+15*60_000).toISOString()).run();return {ok:true,articles:articles.length,fetchedAt:now};}
 async function read():Promise<Saved>{const row=await database.prepare('select payload from provider_cache where key=?').bind(key).first<{payload:string}>();if(!row)return empty();try{const d=JSON.parse(row.payload);return Array.isArray(d.articles)?d:empty();}catch{return empty();}}
 // Every visitor and every player shares one persistent refresh budget, across serverless instances.
 export async function readNews():Promise<NewsFeed>{
@@ -20,7 +22,8 @@ export async function readNews():Promise<NewsFeed>{
     if(!articles.length)throw Error('Sin titulares verificables');
     saved={articles,fetchedAt:now,checkedAt:now,lastAttempt:'ready'};
    }catch{saved={...saved,checkedAt:now,lastAttempt:'failed'};}
-   await database.prepare('insert into provider_cache(key,payload,expires_at) values(?,?,?) on conflict(key) do update set payload=excluded.payload,expires_at=excluded.expires_at').bind(key,JSON.stringify(saved),'2099-01-01T00:00:00.000Z').run();
+   // A scheduled upload may have succeeded while this network request was in flight.
+   const latest=await read();if(latest.checkedAt&&Date.parse(latest.checkedAt)>Date.parse(now))saved=latest;else {await save(saved);saved=await read();}
   }
  }
  // Expire individual indexed articles even if the provider remains unavailable.
