@@ -209,3 +209,5 @@
 @media(max-width:1180px){.app.editorial.compact-catalog .right-panel:not(.is-filters)>.news-panel,.app.editorial.compact-catalog .right-panel:not(.is-filters)>.calculated-context{display:block}}
 
 .app.editorial .catalog-page-intro h1{font-weight:800}
+
+.app.editorial .catalog-news-jump{background:none;border:0;padding:0;cursor:pointer;text-align:left}
