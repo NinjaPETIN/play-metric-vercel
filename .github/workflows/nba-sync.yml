@@ -15,7 +15,7 @@ jobs:
       PLAY_METRIC_SERVICE_TOKEN: ${{ secrets.COLLECTOR_SECRET }}
       PLAY_METRIC_URL: https://play-metric-vercel.vercel.app
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - uses: actions/setup-python@v6
