@@ -6,3 +6,13 @@ node_modules/
 *.db-*
 *.tsbuildinfo
 .vercel/
+
+# Datos y resultados locales, nunca artefactos operativos dentro de Git.
+__pycache__/
+*.py[cod]
+.venv/
+coverage/
+*.log
+free-source-probe.json
+*-snapshot.json
+*-backup.json

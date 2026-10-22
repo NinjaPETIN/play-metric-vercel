@@ -1,3 +1,5 @@
+> Registro histórico del 11/10/2026. No describe el estado actual. Consultar README.md y docs/calidad.md para los controles y pendientes vigentes.
+
 # Validación · 11 de octubre de 2026
 
 - `npm run build`: producción Next.js 16.4.0 con webpack, 27 rutas compiladas; sin ignorar errores TypeScript.

@@ -11,7 +11,6 @@ class NormalizationTests(unittest.TestCase):
     def test_away(self):
         row={'PLAYER_ID':1,'GAME_ID':'1','WL':'L','MIN':12,'PTS':0,'REB':0,'AST':0,'FG3M':0,'MATCHUP':'DEN @ NYK','GAME_DATE':'2025-11-05','PLAYER_NAME':'Player'}
         self.assertFalse(normalize([row],2025)['players'][0]['games'][0]['home'])
-if __name__=='__main__': unittest.main()
 
 class SeasonTests(unittest.TestCase):
     def test_rollover_and_offseason(self):
@@ -74,3 +73,5 @@ class TeamResultTests(unittest.TestCase):
         recent={**row,'GAME_ID':'0022500002','GAME_DATE':'2026-02-01','TEAM_ABBREVIATION':'NYK','MATCHUP':'NYK vs. DEN'}
         player=normalize([row,recent],2025)['players'][0]
         self.assertEqual(player['team'],'NYK');self.assertEqual([g['team'] for g in player['games']],['NYK','BOS'])
+
+if __name__=='__main__': unittest.main()

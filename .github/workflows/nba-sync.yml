@@ -1,6 +1,6 @@
 name: Actualizar NBA de Play Metric
 on:
-  # Automatic collection runs on the user's Windows connection.
+  # Recolector completo manual; stats.nba.com puede rechazar conexiones de nube.
   workflow_dispatch:
 permissions:
   contents: read
@@ -15,10 +15,10 @@ jobs:
       PLAY_METRIC_SERVICE_TOKEN: ${{ secrets.COLLECTOR_SECRET }}
       PLAY_METRIC_URL: https://play-metric-vercel.vercel.app
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           persist-credentials: false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
           cache: pip

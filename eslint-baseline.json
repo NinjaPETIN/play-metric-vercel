@@ -1,0 +1,200 @@
+{
+  "description": "Existing lint errors recorded on 2026-10-22. New errors fail CI. This file is technical debt, not a clean lint result.",
+  "entries": [
+    {
+      "fingerprint": "86688eae78a8142babd524bb37ca9b774675e4679f0bf44099a2079b2ae5fbfd",
+      "file": "app/beta/respuestas/page.tsx",
+      "rule": "@next/next/no-html-link-for-pages"
+    },
+    {
+      "fingerprint": "2335c17237d87125af279968358bddc7a876436a8ee7f5e9d541ddd084c125c9",
+      "file": "app/cuenta/page.tsx",
+      "rule": "@next/next/no-html-link-for-pages"
+    },
+    {
+      "fingerprint": "2335c17237d87125af279968358bddc7a876436a8ee7f5e9d541ddd084c125c9",
+      "file": "app/cuenta/page.tsx",
+      "rule": "@next/next/no-html-link-for-pages"
+    },
+    {
+      "fingerprint": "cdbbbf659a84fe3ca75360a0738071d4c967711ff670d10a8aa3f5a1848247e3",
+      "file": "app/dashboard.tsx",
+      "rule": "@next/next/no-html-link-for-pages"
+    },
+    {
+      "fingerprint": "518b9b22e4498d22bf13a4440b42dffea652092bc63268965f8a48545c843c9c",
+      "file": "app/dashboard.tsx",
+      "rule": "react-hooks/set-state-in-effect"
+    },
+    {
+      "fingerprint": "b3254ecfa3e0d459ec43969f71ed4d8e629671b45ff28a12cd201e7a70a41d61",
+      "file": "app/dashboard.tsx",
+      "rule": "react-hooks/set-state-in-effect"
+    },
+    {
+      "fingerprint": "cb1fb4429e0db80185aee2d4da0d26ebf47f0f6c3416643bff9bf8b2fcb71ab6",
+      "file": "app/dashboard.tsx",
+      "rule": "react-hooks/set-state-in-effect"
+    },
+    {
+      "fingerprint": "f9e0713a67b728327385d8a3720c5698d60c2daa325800bb1819aaecba83cce9",
+      "file": "app/dashboard.tsx",
+      "rule": "react-hooks/set-state-in-effect"
+    },
+    {
+      "fingerprint": "9397266e003bcaa7f74aea7e63ce56228cf75ebbb2bb279686c7ea02be6c8acf",
+      "file": "app/dashboard.tsx",
+      "rule": "react-hooks/set-state-in-effect"
+    },
+    {
+      "fingerprint": "f530b5d52cd610d882f0cf6ca75d533c748e396a0d6a49d33d6438b0c44825d3",
+      "file": "app/dashboard.tsx",
+      "rule": "react-hooks/set-state-in-effect"
+    },
+    {
+      "fingerprint": "2f3f3533fb72e22a30c2070cb863bca302c0508ddc6263cb0a6bc1038a6ef1b8",
+      "file": "app/dashboard.tsx",
+      "rule": "react-hooks/set-state-in-effect"
+    },
+    {
+      "fingerprint": "75efa0207aad8ee6706406d31607a11a43730bdbd4738065eb50d17a93b9fa87",
+      "file": "app/dashboard.tsx",
+      "rule": "@next/next/no-html-link-for-pages"
+    },
+    {
+      "fingerprint": "1af0c7e10782c619070c246a6f56be2e64a80f72407cbc23c32a9646e95e9c33",
+      "file": "app/dashboard.tsx",
+      "rule": "@next/next/no-html-link-for-pages"
+    },
+    {
+      "fingerprint": "ed04b176e996f44001d29e91d047c7111843a5bccaca171efb4b0d9e29777a5b",
+      "file": "app/planes/page.tsx",
+      "rule": "@next/next/no-html-link-for-pages"
+    },
+    {
+      "fingerprint": "f9f7e07d8fb03725b4124ff9b44b83951cfe1834706c3cf0c42ac05801ac06ef",
+      "file": "app/privacidad/page.tsx",
+      "rule": "@next/next/no-html-link-for-pages"
+    },
+    {
+      "fingerprint": "57b6a5b8210c68b96ce1a9579d01332e03e66c609be5e1f6bee0ade086ededad",
+      "file": "components/analysis-tools.tsx",
+      "rule": "react-hooks/set-state-in-effect"
+    },
+    {
+      "fingerprint": "9b3768661115e07e9fb8acb81411fe0883014db3a47146eb89daf446f5b4ab57",
+      "file": "components/analysis-tools.tsx",
+      "rule": "@typescript-eslint/no-explicit-any"
+    },
+    {
+      "fingerprint": "9b3768661115e07e9fb8acb81411fe0883014db3a47146eb89daf446f5b4ab57",
+      "file": "components/analysis-tools.tsx",
+      "rule": "@typescript-eslint/no-explicit-any"
+    },
+    {
+      "fingerprint": "be516bd1cd8a345bc9ff28ede58e36640a9bcf71536bc94299568f42a5613bc7",
+      "file": "components/analysis-tools.tsx",
+      "rule": "react-hooks/set-state-in-effect"
+    },
+    {
+      "fingerprint": "478254d9ea9534aeb7437f0ae7ad9fe920322dbd4d13954368ebd512f8b09652",
+      "file": "components/beta-metrics.tsx",
+      "rule": "react-hooks/set-state-in-effect"
+    },
+    {
+      "fingerprint": "72f69e9cf6d34ee39c04b926f2549e944923ebba284932aab61bcf50018b8f51",
+      "file": "components/beta-trial.tsx",
+      "rule": "@next/next/no-html-link-for-pages"
+    },
+    {
+      "fingerprint": "cfb8219b6c44a10609203d2bdb3ba298217ef4883bc1e2653b306417d13a59c4",
+      "file": "components/calendar-panel.tsx",
+      "rule": "react-hooks/set-state-in-effect"
+    },
+    {
+      "fingerprint": "069a564fb9aeea885a09c5bf99a585bdf98fd2d84bc4eab2dcf8e2927cfc53dc",
+      "file": "components/calendar-panel.tsx",
+      "rule": "react-hooks/set-state-in-effect"
+    },
+    {
+      "fingerprint": "09d310d92735fdaa941a8dcfcdc0c9fe53927c0f2116338fe12f1a3cfd4c5b8b",
+      "file": "components/following-changes.tsx",
+      "rule": "react-hooks/set-state-in-effect"
+    },
+    {
+      "fingerprint": "451c0b070bbf06671f0f14c08a02b18cee9dede69a8c516be00a88407480dfff",
+      "file": "components/news-panel.tsx",
+      "rule": "react-hooks/set-state-in-effect"
+    },
+    {
+      "fingerprint": "e5065928d1f44b103e34cfe87e8f4649f031886b45580c4a0f9700b71c6b5db6",
+      "file": "components/player-traits-card.tsx",
+      "rule": "react-hooks/set-state-in-effect"
+    },
+    {
+      "fingerprint": "be72f9b2690af10612a4a381ff178ae31eadc04ef73d56d6dc35fff39d8b8e5a",
+      "file": "components/team-navigation.tsx",
+      "rule": "react-hooks/set-state-in-effect"
+    },
+    {
+      "fingerprint": "89506ceb6159f8d73378b795bb8b9430e6bafc6e593240fd23da3caa9f2ffb76",
+      "file": "components/team-navigation.tsx",
+      "rule": "react-hooks/set-state-in-effect"
+    },
+    {
+      "fingerprint": "bcfb6930fe4ee90b0ef4cd7cbcc8b31da5000db2c23cf289c99e0778be94d562",
+      "file": "components/workspace-theme.tsx",
+      "rule": "react-hooks/set-state-in-effect"
+    },
+    {
+      "fingerprint": "eff81081f1ddc4d6c680fe97be66fa14aa2058109ef96d1e5d90a78663ea2921",
+      "file": "lib/account-plan.ts",
+      "rule": "@typescript-eslint/no-explicit-any"
+    },
+    {
+      "fingerprint": "4a264512605c6d2a588605bd01d7f5e0ce243d1a55a138f9c39c75a2904245a2",
+      "file": "lib/client-data-cache.ts",
+      "rule": "@typescript-eslint/no-explicit-any"
+    },
+    {
+      "fingerprint": "23c021c2dedd33691026b53a07a1d664a6443159d12184d1169e8bcd6c3564a2",
+      "file": "lib/compact-dashboard.ts",
+      "rule": "@typescript-eslint/no-explicit-any"
+    },
+    {
+      "fingerprint": "23c021c2dedd33691026b53a07a1d664a6443159d12184d1169e8bcd6c3564a2",
+      "file": "lib/compact-dashboard.ts",
+      "rule": "@typescript-eslint/no-explicit-any"
+    },
+    {
+      "fingerprint": "93dd8ee2cf6c17e56ed72909f4a11d7f792428f356a14c46265c6460729115ec",
+      "file": "lib/data-entitlements.ts",
+      "rule": "@typescript-eslint/no-explicit-any"
+    },
+    {
+      "fingerprint": "69a731f8932c8adae3a1536a45d986bd22622ec5a8e62f00a92993b463376ae0",
+      "file": "lib/data-entitlements.ts",
+      "rule": "@typescript-eslint/no-explicit-any"
+    },
+    {
+      "fingerprint": "4be489687b7d8d85731796b6916f8f7bc24cf47ab3c45e75afd1c9d6e844a066",
+      "file": "lib/player-traits.ts",
+      "rule": "@typescript-eslint/no-explicit-any"
+    },
+    {
+      "fingerprint": "9bedf7daf69b5f0897e8fbbb5de70d39a44bae76d72ccec7dd55194bde2ead6e",
+      "file": "lib/public-access.ts",
+      "rule": "@typescript-eslint/no-explicit-any"
+    },
+    {
+      "fingerprint": "fb6df8ce07e4085acfd4887beb3e2dfb8be9ed95941c46f1a9caf0db6fc7fcf1",
+      "file": "lib/scoped-nba-read.ts",
+      "rule": "@typescript-eslint/no-explicit-any"
+    },
+    {
+      "fingerprint": "8eacf14888a2f47052665f26054a4dbeab5f5ae1ef8da9cfc9719bd3fd05d928",
+      "file": "lib/traits-store.ts",
+      "rule": "@typescript-eslint/no-explicit-any"
+    }
+  ]
+}
