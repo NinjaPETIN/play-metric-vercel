@@ -18,7 +18,7 @@ El workflow `Calidad del repositorio` ejecuta instalación reproducible, ESLint 
 - Next.js 16.4.0 → 16.4.2, junto con su configuración ESLint. Auditoría de producción sin vulnerabilidades conocidas al comprobarla.
 - Eliminado `drizzle-kit`, herramienta no utilizada que incorporaba dependencias de desarrollo vulnerables. Drizzle ORM y la inicialización SQL se conservan.
 - Verificación de calendario con recibo de base de datos, transacción y rechazo de escrituras antiguas. Reintentos idempotentes.
-- Caché: una recarga forzada no devuelve una lectura vieja en curso ni la vuelve a guardar. Los errores de una lectura forzada no se disimulan con una copia anterior.
+- Caché del servidor y del navegador: una recarga forzada no devuelve una lectura vieja en curso ni la vuelve a guardar. El cliente usa un indicador explícito de recarga y no guarda respuestas privadas. Los errores de una lectura forzada no se disimulan con una copia anterior.
 - Orden de declaración de estado, mutación durante render y reloj del calendario; validación acotada de perfiles oficiales y tipado de importaciones de rasgos.
 - Punto de entrada de pruebas Python al final del archivo: ejecutar el archivo directamente ya no omite las clases definidas después.
 - README, variables de ejemplo, guías, Dependabot y CI.
