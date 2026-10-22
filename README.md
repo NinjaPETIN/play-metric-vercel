@@ -36,6 +36,7 @@ npm run build
 ```sh
 python -m pip install -r collector/requirements.txt
 python -m unittest discover -s collector -p 'test_*.py'
+python -m unittest discover -s tests -p 'test_*.py'
 ```
 
 CI ejecuta controles de tipos, pruebas, auditoría de producción, compilación e importaciones sintéticas locales. No utiliza la base remota ni secretos de producción. ESLint tiene una [base explícita de deuda heredada](docs/calidad.md): no es una declaración de código libre de errores.

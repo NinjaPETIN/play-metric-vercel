@@ -2,10 +2,11 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtemp,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
-import {join} from 'node:path';
+import {join,resolve,sep} from 'node:path';
 
 test('full regular-season history uses bounded database responses without losing games',async()=>{
- const dir=await mkdtemp(join(tmpdir(),'pm-provider-'));
+ const root=resolve(process.env.TEST_TMPDIR??tmpdir()),dir=await mkdtemp(join(root,'pm-provider-'));
+ assert.ok(resolve(dir).startsWith(root+sep),'Test directory must remain inside its temporary root');
  process.env.TURSO_DATABASE_URL='file:'+join(dir,'test.db');
  process.env.TURSO_AUTH_TOKEN='';
  const {databaseClient}=await import('../lib/database-env');
