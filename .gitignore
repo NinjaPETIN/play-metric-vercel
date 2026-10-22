@@ -16,3 +16,6 @@ coverage/
 free-source-probe.json
 *-snapshot.json
 *-backup.json
+
+pm-regular.json
+pm-snapshot*.json

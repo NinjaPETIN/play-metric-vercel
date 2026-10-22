@@ -73,3 +73,5 @@ Los titulares conservan fuente, enlace y hora de detección. GDELT presenta erro
 - [Recolectores](collector/README.md)
 
 El diseño mantiene temas claro/oscuro, uso de cuenta y vistas móviles. La frecuencia histórica no representa una probabilidad futura ni una cuota de una casa de apuestas.
+
+- [Limpieza de archivos obsoletos](docs/limpieza.md)
