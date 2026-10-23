@@ -54,3 +54,13 @@ test('preview bars are chronological, bounded to 30 and preserve missing values;
  const missing=summarizeCatalogPlayer(more,{...defaultCatalogOptions,market:'steals'}).steals!;assert.equal(missing.recent!.at(-1),null);
  const rival=summarizeCatalogPlayer(player,{...defaultCatalogOptions,opponent:'BOS'}).points!;assert.equal(rival.rival?.opponent,'BOS');assert.equal(rival.rival?.n,6);
 });
+
+test('opening-season summaries show real small samples and preserve explicit minimums',()=>{
+ const one={...player,games:games.slice(0,1)};
+ const catalog={...one,catalogStats:summarizeCatalogPlayer(one)};
+ const settings={sort:'average',minGames:1,minRate:0,minLine:0,maxLine:200};
+ assert.equal(catalogRows([catalog],'points',settings).length,1);
+ assert.equal(catalogRows([catalog],'points',{...settings,minGames:5}).length,0);
+ assert.equal(catalog.catalogStats.points?.windows?.['10'].n,1);
+ assert.equal(catalog.catalogStats.points?.recent?.length,1);
+});
