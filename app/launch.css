@@ -3,3 +3,6 @@
 @media(max-width:600px){.player-workspace .topbar{height:auto;min-height:64px;flex-wrap:wrap}.player-workspace .header-tools{flex-wrap:wrap;gap:8px;max-width:100%}.player-workspace .reference-control select,.player-workspace .reference-season select{max-width:140px}.player-workspace .editorial-team small{display:block;line-height:1.6;margin-top:5px}.props-table .player-button{min-height:44px}.line-control input,.filter-panel input,.filter-panel select{font-size:16px}.landing-actions .button{width:100%}.landing-hero p{font-size:15px}.landing-footer{flex-direction:column}.share-actions .button{flex-basis:100%}.info-page{padding-top:28px}}
 @media(max-width:620px){.player-workspace .header-tools{width:100%}.player-workspace .header-tools .reference-control select{display:block;width:100%;max-width:none;min-height:44px}.player-workspace .header-tools .reference-control,.player-workspace .header-tools .reference-season{min-width:0}.player-workspace .header-tools .reference-season select{min-height:44px}.player-workspace .header-tools .reference-rival{flex-basis:100%}}
 
+
+/* Native dialog must retain viewport centering after CSS resets. */
+.signup-prompt{position:fixed;inset:0;margin:auto;width:min(420px,calc(100vw - 32px));max-height:calc(100dvh - 32px);overflow-y:auto;overscroll-behavior:contain}
