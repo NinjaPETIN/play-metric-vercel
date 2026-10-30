@@ -84,3 +84,15 @@ html[data-theme=dark] .app.editorial.arena-workspace .arena-hero p{color:#c4d3eb
 .app.editorial.arena-workspace .catalog-window-rates .catalog-rate .small-sample{display:none}
 .app.editorial.arena-workspace .catalog-window-rates{gap:16px}
 @media(max-width:620px){.app.editorial.arena-workspace .arena-hero{min-height:206px}.app.editorial.arena-workspace .catalog-window-rates .catalog-rate small{display:block;margin:3px 0 0}.arena-hero-links{gap:18px}.arena-hero-content{padding:24px 22px}}
+@media(max-width:760px){
+ .app.editorial.arena-workspace .topbar{display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:10px 7px;padding:12px 14px;height:auto}
+ .app.editorial.arena-workspace .topbar>.logo{min-width:0;font-size:14px;gap:4px}
+ .app.editorial.arena-workspace .topbar>.mobile-toggle{grid-column:1;width:24px;padding:0}
+ .app.editorial.arena-workspace .topbar>.search{grid-row:2;grid-column:1/-1;display:flex;width:100%;max-width:none;margin:0;min-height:42px;padding:0 12px}
+ .app.editorial.arena-workspace .topbar>.search input{font-size:16px;min-width:0}
+ .app.editorial.arena-workspace .topbar>.search kbd{display:none}
+ .app.editorial.arena-workspace .topbar>.header-tools{grid-column:3;grid-row:1;width:auto;flex-wrap:nowrap;gap:6px}
+ .app.editorial.arena-workspace .topbar .reference-season select{max-width:88px;padding:7px;font-size:10px}
+ .app.editorial.arena-workspace .topbar .theme-toggle{width:32px;height:34px}
+ .app.editorial.arena-workspace .topbar .header-tools>.button{padding:8px;font-size:10px}
+}
