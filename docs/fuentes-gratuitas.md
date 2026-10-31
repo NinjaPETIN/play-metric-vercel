@@ -13,6 +13,12 @@
 
 Los puntos en curso no se guardan como estadísticas históricas. Los enlaces a fichas de partido solo se crean si existe una coincidencia única con fecha y equipos del calendario NBA. Un fallo conserva la lectura anterior como atrasada; después de cinco minutos sus marcadores se ocultan. El calendario histórico queda como alternativa, identificado como tal. Una lectura correcta sin partidos es un resultado válido, no una invitación a inventar encuentros.
 
+### Estadísticas individuales del partido
+
+`GET /api/nba/live/[id]` recibe únicamente un ID NBA de diez dígitos, exige un partido del calendario dentro de 48 horas y lo reconcilia con la jornada ESPN. No acepta IDs ESPN arbitrarios, URLs ni filtros. El presupuesto compartido es una consulta de box score por partido cada 25 segundos, con tamaño y tiempo acotados. Se comprueban ID, fecha, equipos, jugadores únicos, tiros válidos y suma de puntos contra el marcador del mismo resumen; no contra una lectura anterior del scoreboard.
+
+La ficha abre una pestaña de estadísticas en vivo, con titulares, suplentes, líderes en puntos y tablas desplazables. La primera lectura se prepara en el servidor para que aparezca sin esperar el historial privado; después consulta cada 30 segundos mientras la pestaña está visible. Los jugadores que no participaron conservan valores nulos y se muestran con guiones. No se deduce quién está en cancha a partir del campo de titular. Las fotos NBA solo se usan cuando el nombre completo coincide de forma única con el directorio; el resto tiene iniciales. Ante un fallo se conserva la lectura anterior como atrasada y caduca después de cinco minutos.
+
 ## Verificación y fallos
 
 El normalizador oficial exige ID, fecha y equipos del calendario, marcador final, identificadores NBA únicos, estadísticas no negativas, consistencia de tiros y suma de puntos de ambas plantillas. Dos intentos oficiales fallidos abren el circuito durante esa ejecución; el respaldo sigue funcionando. Si también falla el respaldo, no se publica ese partido y la sincronización se marca parcial/fallida.

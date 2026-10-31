@@ -37,11 +37,6 @@
       "rule": "react-hooks/set-state-in-effect"
     },
     {
-      "fingerprint": "ce421ac5d65d0db77da7363685b2e37824b5dc158d3a049e002c404e518f8dff",
-      "file": "app/dashboard.tsx",
-      "rule": "react-hooks/set-state-in-effect"
-    },
-    {
       "fingerprint": "9397266e003bcaa7f74aea7e63ce56228cf75ebbb2bb279686c7ea02be6c8acf",
       "file": "app/dashboard.tsx",
       "rule": "react-hooks/set-state-in-effect"
