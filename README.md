@@ -46,7 +46,8 @@ CI ejecuta controles de tipos, pruebas, auditoría de producción, compilación 
 | Datos | Proceso | Frecuencia solicitada |
 |---|---|---|
 | Plantillas actuales | `roster-sync.yml` / NBA.com | Cada hora |
-| Partidos terminados | `game-sync.yml` / respaldo ESPN reconciliado con calendario NBA | Cada 6 horas |
+| Partidos terminados | `game-sync.yml` / NBA CDN con respaldo ESPN reconciliado | Cada 2 horas |
+| Tracking avanzado | `nba-advanced.yml` / stats.nba.com, importación verificada por fuente | Intento diario; puede fallar por restricciones de la fuente |
 | Titulares enlazados | `news-sync.yml` / GDELT | Cada 30 minutos |
 | Recolección NBA completa | `nba-sync.yml` / Python | Manual |
 

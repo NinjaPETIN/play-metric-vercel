@@ -1,0 +1,55 @@
+name: Verificar y actualizar tracking NBA gratis
+on:
+  schedule:
+    - cron: '23 11 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['collector/sync_league_traits.py', '.github/workflows/nba-advanced.yml']
+permissions:
+  contents: read
+concurrency:
+  group: play-metric-advanced
+  cancel-in-progress: false
+jobs:
+  tracking:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      PLAY_METRIC_SERVICE_TOKEN: ${{ secrets.COLLECTOR_SECRET }}
+      PLAY_METRIC_URL: https://play-metric-vercel.vercel.app
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+          cache: pip
+          cache-dependency-path: collector/requirements.txt
+      - run: python -m pip install -r collector/requirements.txt
+      - name: Recopilar zonas, pases y defensa; verificar cada importación
+        run: python -u collector/sync_league_traits.py --upload "$PLAY_METRIC_URL" --competition regular --report "$RUNNER_TEMP/nba-advanced-report.json"
+      - name: Publicar diagnóstico sin credenciales
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: nba-advanced-report
+          path: ${{ runner.temp }}/nba-advanced-report.json
+          retention-days: 14
+          if-no-files-found: warn
+      - name: Resumen de cobertura
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          p=Path(os.environ['RUNNER_TEMP'])/'nba-advanced-report.json'
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as out:
+              out.write('## Tracking NBA gratuito\n\n')
+              if p.exists():
+                  r=json.loads(p.read_text());out.write('Estado: **'+r['status']+'**. Los fallos no borran datos anteriores.\n\n')
+                  out.write('| Fuente | Estado | Jugadores | Diagnóstico |\n|---|---|---:|---|\n')
+                  for s in r.get('sources',[]):out.write(f"| {s['source']} | {s['status']} | {s['players']} | {s.get('reason','—')} |\n")
+              else:out.write('No se generó informe; revisar instalación o ejecución.\n')
+          PY

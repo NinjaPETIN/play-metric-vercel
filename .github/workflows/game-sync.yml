@@ -1,11 +1,11 @@
 name: Actualizar partidos terminados gratis
 on:
   schedule:
-    - cron: '41 */6 * * *'
+    - cron: '41 */2 * * *'
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['collector/free_source.mjs', 'collector/sync_free.mjs', '.github/workflows/game-sync.yml']
+    paths: ['collector/free_source.mjs', 'collector/nba_boxscore.mjs', 'collector/sync_free.mjs', '.github/workflows/game-sync.yml']
 permissions:
   contents: read
 concurrency:
