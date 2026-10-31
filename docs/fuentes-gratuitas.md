@@ -32,3 +32,9 @@ Esto habilita una vía gratuita y medible, no una promesa de actualización cont
 Fuentes técnicas: documentación de `nba_api` para [box scores CDN](https://github.com/swar/nba_api/blob/master/docs/nba_api/live/endpoints/boxscore.md), [tracking](https://github.com/swar/nba_api/blob/master/docs/nba_api/stats/endpoints/leaguedashptstats.md) y los colectores de este repositorio.
 
 El marcador público y su tabla no necesitan comprobar una sesión de Supabase y se consultan sin enviar cookies de cuenta. El resto de las rutas conserva su flujo de autenticación y todas mantienen CSP con nonce. ESPN puede omitir cuarto/reloj en resultados finales; se acepta el resultado final sin fabricar un reloj. Un guion en MIN se conserva como dato no publicado, sin convertir al jugador en DNP ni sus minutos en cero. La tabla ofrece Actualizar ahora además de la consulta periódica.
+
+### Formato y actividad de jugadores
+
+Las tablas se presentan juntas en escritorio y se apilan en pantallas pequeñas, con las mismas fuentes, colores y temas de Arena. Resumen muestra PTS, REB, AST, MIN y FAL; Todas las estadísticas conserva el resto de columnas en una tabla desplazable. El asterisco posterior al nombre siempre significa titular, independientemente de la rotación actual.
+
+El campo ESPN `active` se incorpora como `onCourt` solo con estado `STATUS_IN_PROGRESS`, banderas booleanas para toda la plantilla, exactamente cinco activos y ninguno marcado como no participante. Se comprobó la distinción en una lectura real en juego con suplentes activos y titulares en el banco. Si la lectura es reciente y completa, los grupos son En cancha y Banco; las sustituciones cambian los grupos en la siguiente consulta. Ante ausencia de datos, descanso, final o lectura atrasada se vuelve a Titulares/Suplentes y se ocultan las indicaciones actuales. No se reconstruyen quintetos suponiendo que los titulares siguen jugando.
