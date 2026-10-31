@@ -25,6 +25,6 @@ export default function LiveScoreStrip({children}:{children:ReactNode}){
    </div>
    <Link className="arena-calendar-link" href="/?view=calendar">Ver calendario<ChevronRight size={15}/></Link>
   </section>
-  <p className={'arena-live-source'+(stale?' arena-live-warning':'')} role="status">{stale?'Actualización atrasada · Última lectura':'Fuente: ESPN · Consultado'} {new Date(feed.fetchedAt!).toLocaleTimeString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',hour:'2-digit',minute:'2-digit',second:'2-digit'})} ARG · Consulta cada 30 s con la pestaña visible; puede haber demora del proveedor. El reloj corresponde a esa lectura.</p>
+  <p className={'arena-live-source'+(stale?' arena-live-warning':'')} role="status">{stale?'Actualización atrasada · Última lectura':'Fuente: ESPN · Consultado'} {new Date(feed.fetchedAt!).toLocaleTimeString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',hour:'2-digit',minute:'2-digit',second:'2-digit'})} ARG · Consulta cada 15 s con la pestaña visible; puede haber demora del proveedor. El reloj corresponde a esa lectura.</p>
  </>;
 }

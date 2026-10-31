@@ -26,6 +26,19 @@ test('old player statistics expire and failures never refresh the data timestamp
  const {raw,game}=fixture(),now=Date.now(),saved={data:normalizeLiveBoxscore(raw,game),checkedAt:new Date(now).toISOString(),fetchedAt:new Date(now-10000).toISOString(),failed:false};
  assert.equal(boxFeed(saved,now).status,'ready');assert.equal(boxFeed({...saved,failed:true},now).status,'stale');assert.equal(boxFeed({...saved,fetchedAt:new Date(now-300001).toISOString()},now).data,null);
 });
+test('final summaries without a clock complete the live-to-final transition; live summaries still require timing',()=>{
+ const {raw,game}=fixture();
+ const finalRaw={...raw,header:{...raw.header,competitions:[{...raw.header.competitions[0],status:{type:{name:'STATUS_FINAL',state:'post',completed:true}}}]}};
+ const final=normalizeLiveBoxscore(finalRaw,game);assert.equal(final.game.state,'final');assert.equal(final.game.detail,'Final');assert.equal(final.game.clock,'');assert.equal(final.teams[1].score,100);
+ const overtime=normalizeLiveBoxscore(finalRaw,{...game,state:'final',period:6});assert.equal(overtime.game.period,6);
+ const liveRaw={...finalRaw,header:{...finalRaw.header,competitions:[{...finalRaw.header.competitions[0],status:{type:{name:'STATUS_IN_PROGRESS',state:'in',completed:false}}}]}};
+ assert.throws(()=>normalizeLiveBoxscore(liveRaw,game));
+});
+test('unpublished minutes remain null without discarding a player who did participate',()=>{
+ const {raw,game}=fixture();raw.boxscore.players[0].statistics[0].athletes[0].stats[0]='-';
+ const p=normalizeLiveBoxscore(raw,game).teams[0].players[0];assert.equal(p.minutes,null);assert.equal(p.didNotPlay,false);assert.equal(p.assists,3);
+ raw.boxscore.players[0].statistics[0].athletes[0].stats[0]='invalid';assert.throws(()=>normalizeLiveBoxscore(raw,game));
+});
 test('per-game persistent leases share reads; failed refreshes preserve verified players',async()=>{
  await database.prepare('CREATE TABLE provider_cache(key TEXT PRIMARY KEY,payload TEXT NOT NULL,expires_at TEXT NOT NULL)').run();const original=globalThis.fetch;let calls=0;const {raw,game}=fixture();
  try{

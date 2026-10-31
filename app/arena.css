@@ -111,3 +111,5 @@ html[data-theme=dark] .app.editorial.arena-workspace .arena-hero p{color:#c4d3eb
 .live-match-workspace .main-grid{grid-template-columns:minmax(0,1fr)}
 .live-match-workspace .right-panel,.live-match-workspace .shell>.market-navigation,.live-match-workspace main>.competition-switch,.live-match-workspace main>.match-banner,.live-match-workspace main>.toolbar,.live-match-workspace main>.dataset-meta,.live-match-workspace main>.freshness-summary,.live-match-workspace main>.guest-welcome,.live-match-workspace main>.compare-toggle,.live-match-workspace main>.filter-chips{display:none}
 .live-match-workspace main{padding-bottom:28px}.live-match-workspace .match-page-hero{margin:14px 0}.live-match-workspace .match-page-tabs{margin-bottom:22px}.live-match-workspace .live-boxscore{max-width:1250px;margin:0 auto}
+
+.live-box-refresh{margin:6px 0 12px}.live-box-empty small{display:block;margin-top:12px}

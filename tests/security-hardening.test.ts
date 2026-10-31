@@ -5,7 +5,17 @@ import {connectionHash,consumeBudget} from '../lib/metrics-budget';
 import {database,databaseClient} from '../lib/database-env';
 import {NextRequest} from 'next/server';
 import {proxy} from '../proxy';
+import {publicLiveRead} from '../lib/live-refresh';
 process.env.TURSO_DATABASE_URL='file::memory:';
+test('only public live GET reads bypass session refresh and retain the same CSP',async()=>{
+ assert.equal(publicLiveRead('/api/nba/live','GET'),true);assert.equal(publicLiveRead('/api/nba/live/0022600023','GET'),true);
+ for(const path of ['/api/account/usage','/api/nba/live/admin','/api/nba/liveevil','/api/nba/live/../../account','/api/v1/players/2544'])assert.equal(publicLiveRead(path,'GET'),false);
+ assert.equal(publicLiveRead('/api/nba/live','POST'),false);
+ const savedUrl=process.env.NEXT_PUBLIC_SUPABASE_URL,savedKey=process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+ process.env.NEXT_PUBLIC_SUPABASE_URL='not-a-valid-auth-url';process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY='test';
+ try{const response=await proxy(new NextRequest('https://example.test/api/nba/live'));assert.equal(response.status,200);assert.ok(response.headers.get('content-security-policy')?.includes('strict-dynamic'));}
+ finally{if(savedUrl===undefined)delete process.env.NEXT_PUBLIC_SUPABASE_URL;else process.env.NEXT_PUBLIC_SUPABASE_URL=savedUrl;if(savedKey===undefined)delete process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;else process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=savedKey;}
+});
 test('proxy replaces client nonces and forwards the same fresh policy used by the browser',async()=>{
  const url=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
  delete process.env.NEXT_PUBLIC_SUPABASE_URL;delete process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
