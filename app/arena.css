@@ -96,3 +96,13 @@ html[data-theme=dark] .app.editorial.arena-workspace .arena-hero p{color:#c4d3eb
  .app.editorial.arena-workspace .topbar .theme-toggle{width:32px;height:34px}
  .app.editorial.arena-workspace .topbar .header-tools>.button{padding:8px;font-size:10px}
 }
+/* Live scores share Arena's existing cards and both color themes. */
+.arena-live .arena-match{min-width:164px}
+.arena-live .arena-match-state{min-width:82px}
+.arena-live .arena-match-state strong{font-size:18px;font-variant-numeric:tabular-nums}
+.arena-live .arena-match-state small{display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap}
+.arena-live .arena-match-state i{width:6px;height:6px;border-radius:50%;background:#1abf95;display:inline-block}
+.arena-live .arena-match-live{border-color:color-mix(in srgb,#1abf95 45%,transparent)}
+.arena-live-source{font-size:10px;color:var(--muted);margin:4px 0 8px;line-height:1.6}
+.arena-live-warning{color:#b67b22}
+.arena-live-stale .arena-match-live{border-color:color-mix(in srgb,#b67b22 45%,transparent)}

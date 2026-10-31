@@ -7,6 +7,12 @@
 - Tracking: intento diario independiente de zonas de tiro, pases y defensa desde stats.nba.com para la temporada regular seleccionada por el catálogo. Solo se reemplaza la fuente importada, nunca las demás. Las temporadas y competiciones no se mezclan.
 - Vercel lee los datos almacenados; no depende de contactar NBA durante una visita.
 
+## Marcadores en vivo
+
+`GET /api/nba/live` consulta el scoreboard ESPN con un plazo de 8 segundos y valida liga, equipos, marcadores, fechas y estados. Todos los visitantes comparten un presupuesto persistente de una consulta cada 25 segundos. La barra del inicio consulta nuestra API cada 30 segundos solo con la pestaña visible; no consulta ESPN desde el navegador. El reloj muestra la lectura del proveedor, sin simular un cronómetro ni prometer latencia cero.
+
+Los puntos en curso no se guardan como estadísticas históricas. Los enlaces a fichas de partido solo se crean si existe una coincidencia única con fecha y equipos del calendario NBA. Un fallo conserva la lectura anterior como atrasada; después de cinco minutos sus marcadores se ocultan. El calendario histórico queda como alternativa, identificado como tal. Una lectura correcta sin partidos es un resultado válido, no una invitación a inventar encuentros.
+
 ## Verificación y fallos
 
 El normalizador oficial exige ID, fecha y equipos del calendario, marcador final, identificadores NBA únicos, estadísticas no negativas, consistencia de tiros y suma de puntos de ambas plantillas. Dos intentos oficiales fallidos abren el circuito durante esa ejecución; el respaldo sigue funcionando. Si también falla el respaldo, no se publica ese partido y la sincronización se marca parcial/fallida.
