@@ -9,7 +9,7 @@
 
 ## Marcadores en vivo
 
-`GET /api/nba/live` consulta el scoreboard ESPN con un plazo de 8 segundos y valida liga, equipos, marcadores, fechas y estados. Todos los visitantes comparten un presupuesto persistente de una consulta cada 10 segundos. La barra del inicio consulta nuestra API cada 15 segundos solo con la pestaña visible; no consulta ESPN desde el navegador. El reloj muestra la lectura del proveedor, sin simular un cronómetro ni prometer latencia cero.
+`GET /api/nba/live` consulta el scoreboard ESPN con un plazo de 8 segundos y valida liga, equipos, marcadores, fechas y estados. Todos los visitantes comparten un presupuesto persistente de una consulta cada 5 segundos. La barra del inicio consulta nuestra API cada 5 segundos solo con la pestaña visible; no consulta ESPN desde el navegador. El reloj muestra la lectura del proveedor, sin simular un cronómetro ni prometer latencia cero.
 
 Los puntos en curso no se guardan como estadísticas históricas. Los enlaces a fichas de partido solo se crean si existe una coincidencia única con fecha y equipos del calendario NBA. Un fallo conserva la lectura anterior como atrasada; después de cinco minutos sus marcadores se ocultan. El calendario histórico queda como alternativa, identificado como tal. Una lectura correcta sin partidos es un resultado válido, no una invitación a inventar encuentros.
 
@@ -17,7 +17,7 @@ Los puntos en curso no se guardan como estadísticas históricas. Los enlaces a 
 
 `GET /api/nba/live/[id]` recibe únicamente un ID NBA de diez dígitos, exige un partido del calendario dentro de 48 horas y lo reconcilia con la jornada ESPN. No acepta IDs ESPN arbitrarios, URLs ni filtros. El presupuesto compartido es una consulta de box score por partido cada 10 segundos, con tamaño y tiempo acotados. Se comprueban ID, fecha, equipos, jugadores únicos, tiros válidos y suma de puntos contra el marcador del mismo resumen; no contra una lectura anterior del scoreboard.
 
-La ficha abre una pestaña de estadísticas en vivo, con titulares, suplentes, líderes en puntos y tablas desplazables. La primera lectura se prepara en el servidor para que aparezca sin esperar el historial privado; después consulta cada 15 segundos mientras la pestaña está visible. Los jugadores que no participaron conservan valores nulos y se muestran con guiones. No se deduce quién está en cancha a partir del campo de titular. Las fotos NBA solo se usan cuando el nombre completo coincide de forma única con el directorio; el resto tiene iniciales. Ante un fallo se conserva la lectura anterior como atrasada y caduca después de cinco minutos.
+La ficha abre una pestaña de estadísticas en vivo, con titulares, suplentes, líderes en puntos y tablas desplazables. La primera lectura se prepara en el servidor para que aparezca sin esperar el historial privado; después consulta cada 5 segundos mientras la pestaña está visible. Los jugadores que no participaron conservan valores nulos y se muestran con guiones. No se deduce quién está en cancha a partir del campo de titular. Las fotos NBA solo se usan cuando el nombre completo coincide de forma única con el directorio; el resto tiene iniciales. Ante un fallo se conserva la lectura anterior como atrasada y caduca después de cinco minutos.
 
 ## Verificación y fallos
 
@@ -38,3 +38,5 @@ El marcador público y su tabla no necesitan comprobar una sesión de Supabase y
 Las tablas se presentan juntas en escritorio y se apilan en pantallas pequeñas, con las mismas fuentes, colores y temas de Arena. Resumen muestra PTS, REB, AST, MIN y FAL; Todas las estadísticas conserva el resto de columnas en una tabla desplazable. El asterisco posterior al nombre siempre significa titular, independientemente de la rotación actual.
 
 El campo ESPN `active` se incorpora como `onCourt` solo con estado `STATUS_IN_PROGRESS`, banderas booleanas para toda la plantilla, exactamente cinco activos y ninguno marcado como no participante. Se comprobó la distinción en una lectura real en juego con suplentes activos y titulares en el banco. Si la lectura es reciente y completa, los grupos son En cancha y Banco; las sustituciones cambian los grupos en la siguiente consulta. Ante ausencia de datos, descanso, final o lectura atrasada se vuelve a Titulares/Suplentes y se ocultan las indicaciones actuales. No se reconstruyen quintetos suponiendo que los titulares siguen jugando.
+
+La frescura de la caché en vivo es de 5 segundos. El bloqueo compartido de consultas en curso conserva 10 segundos para cubrir el plazo de 8 segundos de ESPN y evitar solicitudes solapadas.

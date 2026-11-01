@@ -24,6 +24,6 @@ export default function MatchHero({match,initialFeed=null}:{match:ScheduledGame;
   <div className="match-page-team"><TeamLogo team={match.away} size={80}/><div><small>Visitante · {match.away}</small><h2>{match.awayName}</h2></div></div>
   <div className="match-page-center"><small>{competitions[match.competition].label}</small><strong className="broadcast-score">{score}</strong><span className={`broadcast-status${playing?' is-live':''}`}>{playing&&<i aria-hidden="true"/>}{label}</span></div>
   <div className="match-page-team home"><TeamLogo team={match.home} size={80}/><div><small>Local · {match.home}</small><h2>{match.homeName}</h2></div></div>
-  <footer className="broadcast-meta"><span>{when} · ARG</span>{live&&<span>ESPN · Lectura {new Date(fetchedAt!).toLocaleTimeString('es-AR',{timeZone:'America/Argentina/Buenos_Aires'})} ARG · Consulta cada 15 s</span>}</footer>
+  <footer className="broadcast-meta"><span>{when} · ARG</span>{live&&<span>ESPN · Lectura {new Date(fetchedAt!).toLocaleTimeString('es-AR',{timeZone:'America/Argentina/Buenos_Aires'})} ARG · Consulta cada 5 s</span>}</footer>
  </section></>;
 }
