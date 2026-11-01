@@ -1,9 +1,10 @@
 import {z} from 'zod';
+import {liveContextSchema,normalizeLiveContext} from './live-context';
 import {normalizeLiveScores,liveGameSchema,type LiveGame} from './live-scores';
 const count=z.number().int().min(0).max(300);
 export const boxPlayerSchema=z.object({id:z.string().regex(/^\d{1,12}$/),name:z.string().min(1).max(100),starter:z.boolean(),onCourt:z.boolean().nullable().default(null),didNotPlay:z.boolean(),minutes:z.string().max(12).nullable(),points:count.nullable(),rebounds:count.nullable(),assists:count.nullable(),steals:count.nullable(),blocks:count.nullable(),turnovers:count.nullable(),fouls:count.nullable(),fieldGoals:z.string().max(12).nullable(),threes:z.string().max(12).nullable(),freeThrows:z.string().max(12).nullable(),plusMinus:z.number().int().min(-200).max(200).nullable()});
 export const boxTeamSchema=z.object({code:z.string(),name:z.string(),score:count,players:z.array(boxPlayerSchema).max(25)});
-export const boxDataSchema=z.object({game:liveGameSchema,teams:z.array(boxTeamSchema).length(2)});
+export const boxDataSchema=z.object({game:liveGameSchema,teams:z.array(boxTeamSchema).length(2),context:liveContextSchema.optional()});
 export const boxFeedSchema=z.object({provider:z.literal('ESPN'),status:z.enum(['ready','stale','unavailable','pending']),fetchedAt:z.string().datetime().nullable(),data:boxDataSchema.nullable()});
 export type BoxData=z.infer<typeof boxDataSchema>;
 export type BoxFeed=z.infer<typeof boxFeedSchema>;
@@ -38,7 +39,7 @@ export function normalizeLiveBoxscore(raw:unknown,expected:LiveGame,now=Date.now
   if(score===null||players.filter(p=>!p.didNotPlay).length<5||players.reduce((n,p)=>n+(p.points??0),0)!==score)throw Error('Box score incompleto');
   return {code:team,name:t.team.displayName,score,players};
  });
- return boxDataSchema.parse({game,teams});
+ return boxDataSchema.parse({game,teams,context:normalizeLiveContext(raw,game.away,game.home)});
 }
 export function boxFeed(saved:{data:BoxData|null;fetchedAt:string|null;checkedAt:string|null;failed:boolean},now=Date.now()):BoxFeed{
  const age=saved.fetchedAt?now-Date.parse(saved.fetchedAt):Infinity,usable=!!saved.data&&age>=-5000&&age<300000;
