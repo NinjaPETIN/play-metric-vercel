@@ -133,3 +133,6 @@ html[data-theme=dark] .app.editorial.arena-workspace .arena-hero p{color:#c4d3eb
 @media(max-width:520px){.match-page-hero.match-broadcast{grid-template-columns:minmax(0,1fr) 132px minmax(0,1fr);padding:22px 10px 0;gap:18px 5px}.match-broadcast .match-page-team h2{font-size:13px}.match-broadcast .match-page-team small{font-size:9px;letter-spacing:.4px}.match-broadcast .match-page-team>.team-logo{width:48px!important;height:48px!important}.match-broadcast .match-page-center .broadcast-score{font-size:32px}.match-broadcast .match-page-center>small{font-size:8px;letter-spacing:.5px}.match-broadcast .broadcast-status{font-size:9px;padding:5px 7px}.match-broadcast .broadcast-meta{justify-content:center;text-align:center;font-size:9px}.match-broadcast .match-watermark{opacity:.05}}
 
 .live-box-court-label.is-inactive{color:var(--muted);font-weight:400}
+.arena-workspace .team-box-score{background:var(--panel);border-color:var(--border);color:var(--text)}
+.arena-workspace .box-score-table th,.arena-workspace .box-score-table td{border-color:var(--border);color:var(--text)}
+.arena-workspace .box-score-table caption,.arena-workspace .box-score-note{color:var(--muted)}

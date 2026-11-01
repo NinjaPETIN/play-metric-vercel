@@ -120,7 +120,7 @@ export default function Dashboard({user,initialLiveBox=null,initialMatch=null,in
  useEffect(()=>{const restore=()=>window.location.reload();window.addEventListener('popstate',restore);return()=>window.removeEventListener('popstate',restore);},[]);
  const [selectedTeamGame,setSelectedTeamGame]=useState<string|null>(null);
  const teamGames=useMemo(()=>(data?.teamGames??[]).filter(g=>g.home===f.team||g.away===f.team).sort((a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id)),[data?.teamGames,f.team]);
- const currentTeamGame=teamGames.find(g=>g.id===selectedTeamGame)??teamGames[0];
+ const currentTeamGame=match?teamGames.find(g=>g.id===match.id&&g.home===match.home&&g.away===match.away):teamGames.find(g=>g.id===selectedTeamGame)??teamGames[0];
  const searchRef=useRef<HTMLInputElement>(null),mainRef=useRef<HTMLElement>(null),dialogRef=useRef<HTMLElement>(null),pendingRef=useRef(new Set<string>()),deferredQuery=useDeferredValue(searchKey(query.trim()));
  const players=data?.players??emptyPlayers,supported=data?.supportedMarkets??allMarkets;
  const searchIndex=useMemo(()=>createPlayerSearchIndex(players),[players]);
