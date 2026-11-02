@@ -133,11 +133,11 @@
 .following-change-grid>button{display:grid;gap:5px;text-align:left;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--bg);color:var(--text);font-size:12px}
 .following-change-grid small{font-size:10px;color:var(--muted)}
 .beta-trial ol{list-style:decimal;padding-left:24px}
-.beta-trial li{padding:18px 0;border-bottom:1px solid #d9e2f0}
+.beta-trial li{padding:18px 0;border-bottom:1px solid #dce2ee}
 .beta-trial li h2{font-size:18px}
 .beta-trial label{display:block;margin:12px 0;line-height:1.6}
-.beta-trial textarea{width:100%;min-height:100px;border:1px solid #d9e2f0;border-radius:8px;padding:12px;background:#fff;color:#132f58}
-.beta-trial select{border:1px solid #d9e2f0;border-radius:8px;padding:8px}
+.beta-trial textarea{width:100%;min-height:100px;border:1px solid #dce2ee;border-radius:8px;padding:12px;background:#fff;color:#172239}
+.beta-trial select{border:1px solid #dce2ee;border-radius:8px;padding:8px}
 @media(max-width:620px){.following-change-grid{grid-template-columns:1fr}.following-changes .card-title{flex-wrap:wrap}.identity-provenance{font-size:9px}}
 .app.editorial.player-workspace .player-card>.line-note{display:flex;align-items:flex-start;gap:8px;margin-top:14px;padding-top:12px;font-size:11px;line-height:1.7;color:var(--muted);border-top:1px solid var(--border)}
 .app.editorial.player-workspace .player-card>.line-note>span{flex:1;min-width:180px}

@@ -1,0 +1,78 @@
+/* Statlane identity. Color and brand treatments only; Arena layout stays intact. */
+:root {
+  --brand: #6574ff;
+  --brand-action: #5361df;
+  --brand-hover: #4350c2;
+  --brand-link: #4d59cc;
+  --brand-soft: #e9edff;
+  --bg: #f4f7fc;
+  --panel: #ffffff;
+  --soft: #edf0fa;
+  --border: #dce2ee;
+  --text: #172239;
+  --ink: #172239;
+  --muted: #5b6680;
+  /* Legacy --green is the interface accent; chart/status colors remain semantic. */
+  --green: var(--brand-link);
+  --red: #b34456;
+  --chart-hit: #087f65;
+  --chart-miss: #cf4762;
+}
+html[data-theme=dark] {
+  --bg: #101827;
+  --panel: #172235;
+  --soft: #212e44;
+  --border: #32415a;
+  --text: #f4f7fc;
+  --ink: #f4f7fc;
+  --muted: #a9b7ce;
+  --brand-link: #a4adff;
+  --brand-soft: #252e4c;
+  --green: var(--brand-link);
+  --red: #ff8ca3;
+  --chart-hit: #45d6b0;
+  --chart-miss: #ef7994;
+}
+.app.editorial.arena-workspace {
+  --arena-blue: var(--brand-action);
+  --arena-mint: var(--chart-hit);
+  --arena-violet: #9c96dd;
+}
+.app.editorial.arena-workspace .logo svg {
+  display: inline-block;
+  width: 20px;
+  height: 26px;
+  flex-shrink: 0;
+  color: var(--brand);
+}
+.app.editorial.arena-workspace .logo { gap: 7px; }
+.pm-auth-logo img { display: inline-block; vertical-align: middle; margin-right: 8px; }
+.app.editorial .button:not(.subtle):not(.highlight),
+.app.editorial .header-pro,
+.pm-auth-primary { background: var(--brand-action); color: #fff; border-color: var(--brand-action); }
+.app.editorial .button:not(.subtle):not(.highlight):hover:not(:disabled),
+.app.editorial .header-pro:hover,
+.pm-auth-primary:hover { background: var(--brand-hover); color: #fff; }
+.app.editorial.arena-workspace .market-nav button.selected,
+.app.editorial.arena-workspace .segmented button.selected { background: var(--brand-soft); color: var(--brand-link); }
+html[data-theme=dark] .app.editorial.arena-workspace .market-nav button.selected,
+html[data-theme=dark] .app.editorial.arena-workspace .segmented button.selected { background: var(--brand-action); color: #fff; }
+.app.editorial.arena-workspace .sidebar .nav.active { background: var(--brand-action); color: #fff; }
+.app.editorial .header-usage { border-color: var(--border); }
+.app.editorial .header-usage i { background: var(--brand); }
+.app.editorial .positive, .app.editorial .lime { color: var(--chart-hit); }
+html[data-theme=dark] .app.editorial :is(.positive,.lime,.context-columns .positive) { color: var(--chart-hit); }
+.app.editorial .negative, .app.editorial .coral { color: var(--red); }
+.app.editorial.arena-workspace .arena-hero { background-color: #101827; }
+.arena-hero:before { background: linear-gradient(90deg,#101827f2 0%,#101827b0 48%,#10182718 100%); }
+.arena-hero h1 span { color: #45d6b0; }
+.arena-eyebrow { color: #b0b8ff; }
+.app.editorial.arena-workspace .arena-calendar-link { color: var(--brand-link); }
+.pm-auth { background: #f4f7fc; color: #172239; }
+.pm-auth-brand { background: linear-gradient(140deg,#101827,#252e4c); }
+.pm-auth-pitch h1 span,.pm-auth-logo span { color: #a4adff; }
+.pm-auth-pitch i { background: #6574ff; }
+.pm-auth-court { color: #6574ff; }
+.pm-auth-secondary { border-color: var(--brand-action); color: var(--brand-action); }
+.pm-auth-secondary:hover { background: #e9edff; }
+.pm-auth-back { color: var(--brand-action); }

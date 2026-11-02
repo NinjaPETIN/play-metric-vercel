@@ -5,7 +5,7 @@ import {getChatGPTUser} from '../../chatgpt-auth';
 import {isCompetition} from '../../../lib/competitions';
 import {markets,type Market} from '../../../lib/analytics';
 import {teamNames} from '../../../lib/team-overview';
-export async function generateMetadata({params}:{params:Promise<{id:string}>}){const {id}=await params,p=resolvePlayerPath(id);return {title:p?.player?`${p.player.name}: estadísticas y tendencias · Play Metric`:'Perfil NBA · Play Metric',description:'Consultá tendencias, minutos y rendimiento histórico con una muestra y filtros claros.',robots:{index:p?.id==='2544',follow:true},alternates:{canonical:p?.player?playerPath(p.player):'/jugadores/'+id}};}
+export async function generateMetadata({params}:{params:Promise<{id:string}>}){const {id}=await params,p=resolvePlayerPath(id);return {title:p?.player?`${p.player.name}: estadísticas y tendencias · Statlane`:'Perfil NBA · Statlane',description:'Consultá tendencias, minutos y rendimiento histórico con una muestra y filtros claros.',robots:{index:p?.id==='2544',follow:true},alternates:{canonical:p?.player?playerPath(p.player):'/jugadores/'+id}};}
 export const dynamic='force-dynamic';
 export default async function Page({params,searchParams}:{params:Promise<{id:string}>;searchParams:Promise<Record<string,string|string[]|undefined>>}){
  const [{id:segment},q,user]=await Promise.all([params,searchParams,getChatGPTUser()]);const resolved=resolvePlayerPath(segment);if(!resolved)notFound();

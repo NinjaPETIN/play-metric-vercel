@@ -7,17 +7,17 @@
       "rule": "@next/next/no-html-link-for-pages"
     },
     {
-      "fingerprint": "2335c17237d87125af279968358bddc7a876436a8ee7f5e9d541ddd084c125c9",
+      "fingerprint": "1df746387debdd99300b785dd4db823a25b4f51a976a759dbd02072c3c9bdd53",
       "file": "app/cuenta/page.tsx",
       "rule": "@next/next/no-html-link-for-pages"
     },
     {
-      "fingerprint": "2335c17237d87125af279968358bddc7a876436a8ee7f5e9d541ddd084c125c9",
+      "fingerprint": "1df746387debdd99300b785dd4db823a25b4f51a976a759dbd02072c3c9bdd53",
       "file": "app/cuenta/page.tsx",
       "rule": "@next/next/no-html-link-for-pages"
     },
     {
-      "fingerprint": "cdbbbf659a84fe3ca75360a0738071d4c967711ff670d10a8aa3f5a1848247e3",
+      "fingerprint": "9945dfa2a92596be1fcd1f05b3052160aa09df644f8ad98044edd888c24fbebe",
       "file": "app/dashboard.tsx",
       "rule": "@next/next/no-html-link-for-pages"
     },
@@ -62,12 +62,12 @@
       "rule": "@next/next/no-html-link-for-pages"
     },
     {
-      "fingerprint": "ed04b176e996f44001d29e91d047c7111843a5bccaca171efb4b0d9e29777a5b",
+      "fingerprint": "8c9cd00a260eced0b9b0a6b7f7e4451efd779115ba5d056fe0c102918a4f4ff0",
       "file": "app/planes/page.tsx",
       "rule": "@next/next/no-html-link-for-pages"
     },
     {
-      "fingerprint": "f9f7e07d8fb03725b4124ff9b44b83951cfe1834706c3cf0c42ac05801ac06ef",
+      "fingerprint": "cd5309807bba281c6f813c328d71d97b476d55edc7a5d31950d4717efa529231",
       "file": "app/privacidad/page.tsx",
       "rule": "@next/next/no-html-link-for-pages"
     },
@@ -97,7 +97,7 @@
       "rule": "react-hooks/set-state-in-effect"
     },
     {
-      "fingerprint": "72f69e9cf6d34ee39c04b926f2549e944923ebba284932aab61bcf50018b8f51",
+      "fingerprint": "c0d91a2197930d56c46e697d0331147632fc947128aa2c87769f34ab3344b22e",
       "file": "components/beta-trial.tsx",
       "rule": "@next/next/no-html-link-for-pages"
     },
