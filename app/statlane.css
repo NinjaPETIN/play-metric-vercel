@@ -462,7 +462,7 @@ html[data-theme=dark] .app.editorial :is(.positive,.lime,.context-columns .posit
 /* Keep the compact score inside the same content column as the match. */
 .match-score-anchor{position:sticky;top:0;height:0;z-index:60;width:100%;pointer-events:none}
 .match-score-anchor .match-sticky-score{position:relative;inset:auto;width:100%;box-sizing:border-box;pointer-events:auto;border:1px solid var(--border);border-radius:0 0 12px 12px;min-height:62px}
-.live-boxscore .live-tracking-tabs button.selected,.live-boxscore .live-tracking-tabs button[aria-pressed="true"]{background:#5361df;color:#fff;border-color:#6574ff;font-weight:700}
+html[data-theme] .app.editorial .live-boxscore .live-tracking-tabs button.selected,html[data-theme] .app.editorial .live-boxscore .live-tracking-tabs button[aria-pressed="true"]{background:#5361df;color:#fff;border-color:#6574ff;font-weight:700}
 .live-boxscore .live-tracking-tabs button:disabled{opacity:1;color:var(--muted);background:var(--panel);cursor:not-allowed;border-color:var(--border)}
 .live-boxscore .live-tracking-tabs button:not(:disabled):not(.selected):hover{background:var(--soft);color:var(--text)}
 .live-boxscore .live-tracking-tabs button:focus-visible{outline:3px solid #8995ff;outline-offset:3px}
