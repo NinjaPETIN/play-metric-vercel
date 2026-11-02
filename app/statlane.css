@@ -38,14 +38,14 @@ html[data-theme=dark] {
   --arena-mint: var(--chart-hit);
   --arena-violet: #9c96dd;
 }
-.app.editorial.arena-workspace .logo svg {
+.app.editorial .logo svg {
   display: inline-block;
   width: 20px;
   height: 1em;
   flex-shrink: 0;
   color: var(--brand);
 }
-.app.editorial.arena-workspace .logo { gap: 7px; }
+.app.editorial .logo { gap: 7px; }
 .pm-auth-logo img { display: inline-block; vertical-align: middle; margin-right: 8px; }
 .app.editorial .button:not(.subtle):not(.highlight),
 .app.editorial .header-pro,
@@ -76,3 +76,32 @@ html[data-theme=dark] .app.editorial :is(.positive,.lime,.context-columns .posit
 .pm-auth-secondary { border-color: var(--brand-action); color: var(--brand-action); }
 .pm-auth-secondary:hover { background: #e9edff; }
 .pm-auth-back { color: var(--brand-action); }
+
+/* The calendar has its own controls; player analysis stays in the player views. */
+.app.editorial.calendar-workspace .main-grid { grid-template-columns: minmax(0,1fr); }
+.app.editorial.calendar-workspace .calendar-heading { margin-bottom: 24px; }
+.app.editorial.calendar-workspace .reference-season { display: none; }
+
+/* Theme-aware interaction surfaces, including legacy calendar/table rules. */
+.app.editorial .schedule-card:hover,
+.app.editorial .schedule-card:focus-visible {
+  background: var(--soft);
+  border-color: var(--brand-link);
+  color: var(--text);
+}
+.app.editorial .schedule-card:is(:hover,:focus-visible) :is(b,strong) { color: var(--text); }
+.app.editorial .schedule-card:is(:hover,:focus-visible) :is(small,.schedule-bottom,.schedule-top) { color: var(--muted); }
+.app.editorial .market-nav button:not(.selected):hover:not(:disabled),
+.app.editorial .segmented button:not(.selected):hover:not(:disabled) {
+  background: var(--soft);
+  color: var(--text);
+}
+.app.editorial .account-menu-panel :is(a,button):not(.account-menu-upgrade):hover {
+  background: var(--soft);
+  color: var(--text);
+}
+.app.editorial .props-table tbody tr:hover td,
+.app.editorial .box-score-table tbody tr:hover {
+  background: var(--soft);
+  color: var(--text);
+}
