@@ -105,3 +105,5 @@ html[data-theme=dark] .app.editorial :is(.positive,.lime,.context-columns .posit
   background: var(--soft);
   color: var(--text);
 }
+.calendar-live-meta { color: var(--muted); font-size: 11px; line-height: 1.7; margin: 0 0 18px; }
+.app.editorial .schedule-card:is(:hover,:focus-visible) .schedule-top .positive { color: var(--chart-hit); }
