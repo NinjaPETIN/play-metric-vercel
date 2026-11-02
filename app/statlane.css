@@ -249,6 +249,11 @@ html[data-theme=dark] .app.editorial :is(.positive,.lime,.context-columns .posit
 @media(max-width:760px){.calendar-board{grid-template-columns:1fr}.calendar-insight{position:static}.calendar-match-score>strong{font-size:30px}.statlane-calendar .calendar-controls .segmented{flex-wrap:nowrap;overflow-x:auto;max-width:100%}.statlane-calendar .segmented button{white-space:nowrap;font-size:12px}.live-game-main .live-box-leaders{grid-template-columns:1fr}.live-recent-panel .recent-feature{grid-template-columns:38px 42px minmax(0,1fr);gap:8px;padding:12px 6px}.live-recent-panel .recent-feature .live-box-portrait{width:42px;height:50px}.live-recent-panel .recent-feature p{font-size:16px}.live-recent-panel .recent-action-list li{grid-template-columns:38px 36px minmax(0,1fr);gap:8px;font-size:15px}.live-recent-panel .recent-action-list .live-box-portrait{width:36px;height:44px}.recent-panel-heading h3{font-size:20px}.live-boxscore .live-tracking-tabs button{font-size:12px;padding:11px 8px}.live-boxscore .live-play-feed li{font-size:14px;padding:14px 10px;grid-template-columns:38px 24px minmax(0,1fr) 46px;gap:7px}.live-boxscore .live-play-feed li strong{font-size:11px}.live-summary .history th,.live-summary .history td{font-size:12px;padding:10px 5px}}
 
 /* Match the approved detail composition rather than stacking legacy controls. */
+.recent-court{position:relative}
+.recent-court.is-timeout>svg{opacity:.22}
+.court-timeout{position:absolute;inset:0 0 24px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;color:var(--text);padding:10px;background:color-mix(in srgb,var(--panel) 60%,transparent);border-radius:6px}
+.court-timeout>strong{font-size:27px;letter-spacing:3px;line-height:1.1;color:var(--brand-link)}
+.court-timeout>span{font-size:11px;line-height:1.4;font-weight:600}
 .live-match-workspace .match-page-hero.match-broadcast{padding:8px 8px 0;gap:6px 14px}
 .live-match-workspace .match-page-center{gap:2px}
 .live-match-workspace .match-page-center .broadcast-score{margin:0;font-size:64px;line-height:1.05}
