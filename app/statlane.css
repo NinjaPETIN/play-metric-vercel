@@ -458,3 +458,12 @@ html[data-theme=dark] .app.editorial :is(.positive,.lime,.context-columns .posit
 @container(max-width:999px){.live-game-main .live-box-paired.is-stats{grid-template-columns:1fr}}
 @media(max-width:1100px){.live-game-main .live-box-paired.is-stats{grid-template-columns:1fr}.live-game-layout.is-overview{grid-template-columns:1fr}.live-game-top>.live-box-leaders{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:760px){.live-match-workspace .match-page-hero.match-broadcast{min-height:150px;padding:14px 10px 8px;grid-template-columns:minmax(0,1fr) 130px minmax(0,1fr)}.live-match-workspace .match-broadcast .match-page-team h2{font-size:13px}.live-match-workspace .match-page-center .broadcast-score{font-size:38px}.live-match-workspace .match-broadcast .match-page-team>.team-logo{width:44px!important;height:44px!important}.live-match-workspace .match-broadcast .match-watermark{opacity:.1}.live-game-top>.live-box-leaders{grid-template-columns:1fr}.live-game-main .is-stats .live-box-team-title h3{font-size:17px}.live-game-main .is-stats .live-box-team-title>strong{font-size:32px}.is-stats .live-leader-copy{display:flex}.live-game-main .is-stats .live-box-team>.live-leader-card{padding:14px}.live-leader-numbers{max-width:240px}.live-recent-panel .recent-event-score{font-size:10px}}
+
+/* Keep the compact score inside the same content column as the match. */
+.match-score-anchor{position:sticky;top:0;height:0;z-index:60;width:100%;pointer-events:none}
+.match-score-anchor .match-sticky-score{position:relative;inset:auto;width:100%;box-sizing:border-box;pointer-events:auto;border:1px solid var(--border);border-radius:0 0 12px 12px;min-height:62px}
+.live-boxscore .live-tracking-tabs button.selected,.live-boxscore .live-tracking-tabs button[aria-pressed="true"]{background:#5361df;color:#fff;border-color:#6574ff;font-weight:700}
+.live-boxscore .live-tracking-tabs button:disabled{opacity:1;color:var(--muted);background:var(--panel);cursor:not-allowed;border-color:var(--border)}
+.live-boxscore .live-tracking-tabs button:not(:disabled):not(.selected):hover{background:var(--soft);color:var(--text)}
+.live-boxscore .live-tracking-tabs button:focus-visible{outline:3px solid #8995ff;outline-offset:3px}
+@media(max-width:760px){.match-score-anchor .match-sticky-score{gap:8px;padding:8px}.match-score-anchor .match-sticky-score small{font-size:10px}}
