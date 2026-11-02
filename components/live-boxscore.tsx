@@ -18,6 +18,7 @@ const compactFields=['points','rebounds','assists','minutes','fouls'] as const;
 type StatField=typeof fields[number];
 export default function LiveBoxscore({match,initialFeed=null,onHistorical,onPlayers}:{match:ScheduledGame;initialFeed?:BoxFeed|null;onHistorical?:()=>void;onPlayers?:()=>void}){
  const [expanded,setExpanded]=useState(false);
+ const [liveStarted,setLiveStarted]=useState(()=>!!initialFeed?.data&&initialFeed.data.game.nbaId===match.id&&['live','final'].includes(initialFeed.data.game.state));
  const [section,setSection]=useState<'summary'|'stats'|'plays'|'preview'>('summary');
  useEffect(()=>{const requested=new URLSearchParams(window.location.search).get('liveSection');const timer=setTimeout(()=>{if(requested==='plays'||requested==='stats')setSection(requested);},0);return()=>clearTimeout(timer);},[]);
  
@@ -25,7 +26,7 @@ export default function LiveBoxscore({match,initialFeed=null,onHistorical,onPlay
  useEffect(()=>{
   let active=true,busy=false;let controller:AbortController|undefined;
   async function update(){if(document.visibilityState==='hidden'||busy)return;busy=true;controller=new AbortController();const timeout=setTimeout(()=>controller?.abort(),25000);
-   try{const r=await fetch('/api/nba/live/'+match.id,{cache:'no-store',credentials:'omit',signal:controller.signal});if(!r.ok)throw Error();const data=boxFeedSchema.parse(await r.json());if(active){setFeed(data);setFailed(data.status==='unavailable');setNow(Date.now());}}
+   try{const r=await fetch('/api/nba/live/'+match.id,{cache:'no-store',credentials:'omit',signal:controller.signal});if(!r.ok)throw Error();const data=boxFeedSchema.parse(await r.json());if(active){if(data.data?.game.nbaId===match.id&&['live','final'].includes(data.data.game.state))setLiveStarted(true);setFeed(data);setFailed(data.status==='unavailable');setNow(Date.now());}}
    catch{if(active){setFailed(true);setNow(Date.now());}}finally{clearTimeout(timeout);busy=false;}
   }
   const first=setTimeout(()=>void update(),0),timer=setInterval(()=>void update(),LIVE_POLL_MS),resume=()=>{if(document.visibilityState==='visible')void update();};document.addEventListener('visibilitychange',resume);
@@ -33,7 +34,7 @@ export default function LiveBoxscore({match,initialFeed=null,onHistorical,onPlay
  },[match.id]);
  const age=feed?.fetchedAt?now-Date.parse(feed.fetchedAt):Infinity,data=age>=-5000&&age<300000&&feed?.data?.game.nbaId===match.id?feed.data:null,stale=failed||feed?.status!=='ready'||age>90000;
  const navigation=<div className="segmented live-tracking-tabs" aria-label="Seguimiento del partido">{([['summary','Resumen'],['stats','Estadísticas'],['plays','Jugadas'],['preview','Previa']] as const).map(([id,label])=><button key={id} className={section===id?'selected':''} aria-pressed={section===id} onClick={()=>setSection(id)}>{label}</button>)}</div>;
- if(section==='preview')return <section className="live-boxscore">{navigation}<MatchPreview match={match} onHistorical={onHistorical} onPlayers={onPlayers}/></section>;
+ if(section==='preview'||match.status===1&&!liveStarted&&!data)return <section className="live-boxscore prematch-workspace">{navigation}<MatchPreview match={match} pending={match.status===1&&!liveStarted&&!data} onHistorical={onHistorical} onPlayers={onPlayers}/></section>;
  if(!data)return <>{navigation}<section className="card live-box-empty" aria-label="Estadísticas del partido en vivo"><h2>Estadísticas del partido</h2><p role="status">{!feed&&!failed?'Consultando las estadísticas de ambos equipos…':'Todavía no hay estadísticas verificadas disponibles para este partido. Se reintentará automáticamente.'}</p></section></>;
  const game=data.game,columns:readonly StatField[]=section==='summary'?['points','rebounds','assists','minutes']:section==='stats'&&expanded?fields:compactFields;
  const resting=/entretiempo|descanso|fin del/i.test(game.detail);

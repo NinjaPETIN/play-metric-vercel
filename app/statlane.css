@@ -291,6 +291,85 @@ html[data-theme=dark] .app.editorial :is(.positive,.lime,.context-columns .posit
 @media(max-width:760px){.live-match-workspace .match-page-hero.match-broadcast{grid-template-columns:minmax(0,1fr) 110px minmax(0,1fr);padding:10px 0}.live-match-workspace .match-page-center .broadcast-score{font-size:38px}.live-match-workspace .match-broadcast .match-page-team{flex-direction:column;gap:8px;text-align:center}.live-match-workspace .match-broadcast .match-page-team h2{font-size:13px}.live-match-workspace .match-broadcast .match-page-team>.team-logo{width:48px!important;height:48px!important}.live-boxscore .live-tracking-tabs button{padding:10px 5px;font-size:12px}.live-recent-panel .recent-feature{grid-template-columns:36px 40px minmax(0,1fr);gap:8px}.live-recent-panel .recent-feature p{font-size:15px}.live-recent-panel .recent-feature>div{grid-template-columns:26px minmax(0,1fr);gap:5px}.live-recent-panel .recent-action-list li>div{grid-template-columns:24px minmax(0,1fr);gap:6px}.recent-event-mark{width:25px;font-size:16px}.match-preview-grid{gap:12px}.match-preview-grid article{padding:14px}}
 
 /* Approved v2 mockups: team backdrop, metric cards and photo box scores. */
+.live-boxscore.prematch-workspace{width:100%;max-width:1250px;margin:0 auto}
+.prematch-workspace .live-tracking-tabs{display:flex;width:100%;gap:8px;padding:0;background:transparent}
+.prematch-workspace .live-tracking-tabs button{flex:1;border:1px solid var(--border);border-radius:7px;font-size:14px;padding:12px;color:var(--text);background:var(--panel)}
+.prematch-workspace .live-tracking-tabs button.selected{background:var(--brand-action);color:white;border-color:var(--brand-action)}
+.live-match-workspace .match-page-hero.is-pregame .match-page-center{gap:5px}
+.live-match-workspace .match-page-hero.is-pregame{grid-template-columns:minmax(0,1fr) 290px minmax(0,1fr)}
+.is-pregame .prematch-vs{font-size:28px;font-weight:750;color:var(--text)}
+.is-pregame .prematch-start{font-size:25px;line-height:1.25;white-space:nowrap;color:var(--text);font-variant-numeric:tabular-nums}
+.is-pregame .prematch-start-note{font-size:11px;color:var(--muted);margin-top:4px}
+.live-match-workspace .is-pregame .broadcast-meta{display:none}
+.prematch-notice{display:flex;align-items:center;gap:16px;padding:14px 18px;background:var(--panel);border:1px solid var(--border);border-radius:9px;font-size:13px;margin-bottom:16px;line-height:1.5}
+.prematch-notice>svg{color:var(--muted);flex-shrink:0}
+.prematch-notice>b{white-space:nowrap}
+.prematch-notice>span{color:var(--muted);border-left:1px solid var(--border);padding-left:16px}
+.prematch-board{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(0,1fr);gap:16px;align-items:start}
+.prematch-main,.prematch-side{min-width:0;display:grid;gap:16px}
+.prematch-preview .card{padding:18px;border:1px solid var(--border);border-radius:10px;background:var(--panel);margin:0;box-shadow:none}
+.prematch-preview h2{font-size:19px;margin:0 0 20px;line-height:1.35}
+.prematch-team-form{display:grid;grid-template-columns:1fr 1fr;margin:10px 0 24px}
+.prematch-team-form>article{display:flex;gap:14px;justify-content:center;align-items:flex-start;padding:0 14px}
+.prematch-team-form>article+article{border-left:1px solid var(--border)}
+.prematch-team-form h3{font-size:18px;margin:0 0 4px}
+.prematch-team-form small{font-size:11px;color:var(--muted)}
+.prematch-team-form p{font-size:12px;margin:10px 0}
+.prematch-team-form .calendar-form{margin-top:9px}
+.prematch-placeholder{font-size:12px;color:var(--muted)}
+.prematch-comparisons{display:grid;gap:12px}
+.prematch-comparisons>div{display:grid;grid-template-columns:62px minmax(0,1fr) 62px;gap:12px;align-items:end}
+.prematch-comparisons>div>b{font-size:19px;font-variant-numeric:tabular-nums}
+.prematch-comparisons>div>b:first-child{color:var(--chart-hit)}
+.prematch-comparisons>div>b:last-child{text-align:right}
+.prematch-comparisons>div>div>span{display:block;text-align:center;font-size:12px;margin-bottom:8px}
+.prematch-paired-bars{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.prematch-paired-bars meter{width:100%;height:9px;border:0;appearance:none;background:var(--soft);border-radius:20px;overflow:hidden}
+.prematch-paired-bars meter:first-child{transform:scaleX(-1)}
+.prematch-paired-bars meter::-webkit-meter-bar{border:0;background:var(--soft);border-radius:20px}
+.prematch-paired-bars meter::-webkit-meter-optimum-value{background:var(--brand-link)}
+.prematch-paired-bars meter:last-child::-webkit-meter-optimum-value{background:var(--chart-hit)}
+.prematch-data-note{font-size:11px;color:var(--muted);line-height:1.6}
+.prematch-form>p.prematch-data-note{text-align:center;margin:16px 0 3px}
+.prematch-form>small.prematch-data-note{display:block;text-align:center;font-size:10px}
+.prematch-meetings{border-top:1px solid var(--border);margin-top:16px;padding-top:12px}
+.prematch-meetings h3{font-size:13px;margin:0 0 10px}
+.prematch-meetings>div{display:flex;gap:8px;align-items:center;border:1px solid var(--border);border-radius:6px;padding:8px 12px;margin-top:7px;background:var(--soft);font-size:12px}
+.prematch-meetings strong{color:var(--chart-hit)}
+.prematch-meetings time{margin-left:auto;color:var(--muted);font-size:11px}
+.prematch-meetings>p{font-size:12px;color:var(--muted)}
+.prematch-players>header{display:flex;justify-content:space-between;gap:12px;align-items:baseline;margin-bottom:14px}
+.prematch-players>header h2{margin:0}
+.prematch-players>header small{font-size:10px;color:var(--muted)}
+.prematch-players>div{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.prematch-players article{display:flex;gap:12px;padding:14px;border:1px solid var(--border);border-radius:8px;align-items:center;min-width:0}
+.prematch-players article>div{min-width:0;flex:1}
+.prematch-players .live-box-portrait{width:90px;height:130px;background:transparent;border-radius:0}
+.prematch-player-name{display:flex;align-items:center;gap:7px;margin-bottom:8px;font-size:13px;line-height:1.35}
+.prematch-players article small{font-size:10px;color:var(--muted)}
+.prematch-player-numbers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:8px 0}
+.prematch-player-numbers>span{border:1px solid var(--border);border-radius:6px;padding:7px 3px;display:grid;text-align:center;gap:4px}
+.prematch-player-numbers b{color:var(--chart-hit);font-size:18px;line-height:1.1;font-variant-numeric:tabular-nums}
+.prematch-players a{font-size:11px;color:var(--brand-link);text-decoration:none}
+.prematch-players article p{font-size:12px;color:var(--muted);line-height:1.5}
+.prematch-info>p{display:flex;align-items:center;gap:10px;font-size:13px}
+.prematch-info dl{margin:16px 0 0}
+.prematch-info dl>div{display:flex;justify-content:space-between;align-items:center;gap:12px;border-top:1px solid var(--border);padding:14px 0;font-size:12px}
+.prematch-info dt{display:flex;align-items:center;gap:12px;white-space:nowrap}
+.prematch-info dd{margin:0;text-align:right;font-weight:600}
+.prematch-lineups>div{display:flex;justify-content:center;gap:30px;margin:24px 0}
+.prematch-lineups>div>span{display:flex;align-items:center;gap:10px;font-size:17px}
+.prematch-lineups>strong{display:block;width:fit-content;margin:0 auto;border:1px solid var(--border);background:var(--soft);border-radius:6px;padding:8px 14px;font-size:13px}
+.prematch-lineups>p{font-size:12px;color:var(--muted);text-align:center;line-height:1.6;margin:14px 0 0}
+.prematch-preview .prematch-court{position:relative;min-height:240px;padding:14px}
+.prematch-court>svg{display:block;width:100%;height:auto;color:var(--muted);opacity:.6}
+.prematch-court>div{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:10px;text-align:center;padding:20px}
+.prematch-court b{font-size:16px;background:var(--panel);padding:3px 8px}
+.prematch-court small{font-size:11px;color:var(--muted);background:var(--panel);padding:2px 7px}
+.prematch-court i{width:10px;height:10px;border-radius:50%;background:var(--chart-hit)}
+@media(max-width:1200px){.prematch-players .live-box-portrait{width:65px;height:100px}.prematch-players article{padding:10px;gap:8px}.prematch-board{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)}.prematch-player-numbers b{font-size:16px}}
+@media(max-width:1000px){.prematch-board{grid-template-columns:1fr}.prematch-side{grid-template-columns:1fr 1fr}.prematch-court{grid-column:1/-1}.prematch-preview .prematch-court{min-height:200px;max-height:240px;overflow:hidden}.prematch-notice{flex-wrap:wrap}.prematch-notice>span{border-left:0;padding-left:0;flex-basis:100%}}
+@media(max-width:760px){.live-match-workspace .match-page-hero.is-pregame{grid-template-columns:minmax(0,1fr) 160px minmax(0,1fr)}.is-pregame .prematch-start{font-size:17px}.is-pregame .prematch-vs{font-size:21px}.is-pregame .prematch-start-note{font-size:9px}.prematch-notice{font-size:12px;padding:12px}.prematch-preview .card{padding:15px}.prematch-preview h2{font-size:17px}.prematch-team-form>article{flex-direction:column;align-items:center;padding:0 8px;text-align:center}.prematch-team-form .calendar-form span{justify-content:center}.prematch-team-form .calendar-form i{padding:4px 5px;font-size:10px}.prematch-players>div,.prematch-side{grid-template-columns:1fr}.prematch-players .live-box-portrait{width:80px;height:110px}.prematch-players>header{flex-wrap:wrap}.prematch-court{grid-column:auto}.prematch-comparisons>div{grid-template-columns:48px minmax(0,1fr) 48px;gap:8px}.prematch-comparisons>div>b{font-size:17px}.prematch-workspace .live-tracking-tabs button{font-size:12px;padding:10px 5px}}
 .live-stat-legend{font-size:11px;color:var(--muted);margin:12px 0;line-height:1.5}
 .live-match-workspace .match-page-hero.match-broadcast{background:linear-gradient(105deg,color-mix(in srgb,var(--away-color) 40%,var(--panel)),var(--bg) 43%,var(--bg) 57%,color-mix(in srgb,var(--home-color) 40%,var(--panel)));border-radius:12px;min-height:170px;padding:18px 24px 10px;gap:6px 14px;margin-bottom:16px}
 .live-match-workspace .match-broadcast .match-watermark{display:block;opacity:.16;z-index:-1;pointer-events:none;top:50%;transform:translateY(-50%);width:250px;height:250px}
