@@ -109,6 +109,27 @@ html[data-theme=dark] .app.editorial :is(.positive,.lime,.context-columns .posit
 .app.editorial .schedule-card:is(:hover,:focus-visible) .schedule-top .positive { color: var(--chart-hit); }
 
 /* Approved match workspace: readable action feed and a focused calendar. */
+/* A single match navigation and the proportions of the approved mockup. */
+.live-match-workspace .match-page-hero.match-broadcast{background:transparent;border:0;border-radius:0;box-shadow:none;padding:18px 8px 10px;min-height:156px;margin:0 0 14px;grid-template-columns:minmax(0,1fr) 250px minmax(0,1fr)}
+.live-match-workspace .match-broadcast:before,.live-match-workspace .match-broadcast .match-watermark{display:none}
+.live-match-workspace .match-broadcast .match-page-team{gap:18px}
+.live-match-workspace .match-broadcast .match-page-team h2{font-size:25px;line-height:1.25}
+.live-match-workspace .match-broadcast .match-page-team small{display:none}
+.live-match-workspace .match-broadcast .match-page-team>.team-logo{width:86px!important;height:86px!important}
+.live-match-workspace .match-page-center .broadcast-score{font-size:72px;font-weight:750;line-height:1.1;letter-spacing:-2px;margin:10px 0}
+.live-match-workspace .match-page-center>small{font-size:10px}
+.live-match-workspace .broadcast-meta{border:0;justify-content:center;padding:8px 0 0}
+.live-match-workspace .broadcast-meta>span:first-child{display:none}
+.live-match-workspace .broadcast-meta>span{font-size:11px}
+.live-boxscore .live-tracking-tabs{margin-top:0!important}
+.live-delayed-notice{font-size:12px;color:var(--muted);margin:0 0 14px}
+.live-match-workspace .reference-season{display:none}
+.match-preview{padding:24px}.match-preview h2{font-size:22px;margin:0 0 10px}
+.match-preview p,.match-preview small{color:var(--muted);line-height:1.7}
+.match-preview-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin:24px 0}
+.match-preview-grid article{border:1px solid var(--border);border-radius:10px;padding:20px}
+.match-preview-grid h3{font-size:20px}.match-preview-grid h4{font-size:14px}
+.match-preview-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}
 .statlane-calendar .calendar-controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:18px}
 .statlane-calendar .calendar-controls .segmented{display:flex;flex-wrap:wrap;gap:5px;background:transparent;padding:0}
 .statlane-calendar .calendar-controls button{min-height:42px;font-size:13px}
@@ -226,3 +247,36 @@ html[data-theme=dark] .app.editorial :is(.positive,.lime,.context-columns .posit
 @media(max-width:1200px){.calendar-board{grid-template-columns:minmax(0,1fr) 280px}.statlane-calendar .calendar-games{grid-template-columns:1fr}.live-game-layout.is-overview{grid-template-columns:minmax(320px,.9fr) minmax(0,1fr)}.live-game-main .live-box-leaders{grid-template-columns:1fr}}
 @media(max-width:1000px){.live-game-layout.is-overview{grid-template-columns:1fr}.live-game-timeline{grid-row:1}.live-game-main .live-box-leaders{grid-template-columns:repeat(2,minmax(0,1fr))}.live-recent-panel .recent-action-list{max-height:500px}}
 @media(max-width:760px){.calendar-board{grid-template-columns:1fr}.calendar-insight{position:static}.calendar-match-score>strong{font-size:30px}.statlane-calendar .calendar-controls .segmented{flex-wrap:nowrap;overflow-x:auto;max-width:100%}.statlane-calendar .segmented button{white-space:nowrap;font-size:12px}.live-game-main .live-box-leaders{grid-template-columns:1fr}.live-recent-panel .recent-feature{grid-template-columns:38px 42px minmax(0,1fr);gap:8px;padding:12px 6px}.live-recent-panel .recent-feature .live-box-portrait{width:42px;height:50px}.live-recent-panel .recent-feature p{font-size:16px}.live-recent-panel .recent-action-list li{grid-template-columns:38px 36px minmax(0,1fr);gap:8px;font-size:15px}.live-recent-panel .recent-action-list .live-box-portrait{width:36px;height:44px}.recent-panel-heading h3{font-size:20px}.live-boxscore .live-tracking-tabs button{font-size:12px;padding:11px 8px}.live-boxscore .live-play-feed li{font-size:14px;padding:14px 10px;grid-template-columns:38px 24px minmax(0,1fr) 46px;gap:7px}.live-boxscore .live-play-feed li strong{font-size:11px}.live-summary .history th,.live-summary .history td{font-size:12px;padding:10px 5px}}
+
+/* Match the approved detail composition rather than stacking legacy controls. */
+.live-game-layout.is-overview{grid-template-columns:minmax(0,.88fr) minmax(0,1.12fr)}
+.live-game-top,.is-overview .live-game-top{display:flex;flex-direction:column;gap:14px}
+.live-game-top>.live-summary{order:1;width:100%}
+.live-game-top>.live-box-leaders{order:2;width:100%;grid-template-columns:repeat(2,minmax(0,1fr))}
+.live-game-top>.live-comparison{order:3;width:100%;padding:18px;background:var(--panel);border:1px solid var(--border);border-radius:12px}
+.live-comparison h3{font-size:19px;margin:0 0 14px}
+.live-comparison .live-rate-comparison{margin:0;gap:10px}
+.live-comparison .live-rate-comparison>div{padding:3px 0;background:transparent;font-size:12px}
+.live-game-main{container-type:inline-size}
+.live-game-main .live-box-leaders article{padding:14px;gap:10px;flex-wrap:nowrap;min-width:0}
+.live-game-main .live-box-leaders article>.team-logo{display:none}
+.live-game-main .live-box-leaders article>div{min-width:0}
+.live-game-main .live-box-leaders strong{font-size:15px}
+.live-game-main .live-box-leaders .live-box-portrait{width:60px;height:66px}
+.live-game-main .live-box-paired.is-compact table{min-width:310px}
+.live-recent-panel .recent-switch{display:none}
+.live-recent-panel .recent-action-list{max-height:430px}
+.live-recent-panel .recent-feature{grid-template-columns:42px 56px minmax(0,1fr);padding:14px 8px}
+.live-recent-panel .recent-feature>div{display:grid;grid-template-columns:32px minmax(0,1fr);gap:6px 8px}
+.live-recent-panel .recent-feature p{grid-column:2;margin:0;line-height:1.55}
+.live-recent-panel .recent-feature>div>small{grid-column:2}
+.live-recent-panel .recent-feature .recent-event-mark{grid-column:1;grid-row:1}
+.live-recent-panel .recent-action-list li{padding:16px 4px;min-height:98px}
+.live-recent-panel .recent-action-list li>div{display:grid;grid-template-columns:30px minmax(0,1fr);gap:8px}
+.live-recent-panel .recent-action-list li>div>.recent-event-mark{grid-column:1;grid-row:1}
+.live-recent-panel .recent-action-list li>div>span:not(.recent-event-mark){grid-column:2}
+.live-recent-panel .recent-court svg{border:1px solid var(--border)}
+@container(min-width:640px){.live-game-main .live-box-paired.is-compact{grid-template-columns:repeat(2,minmax(0,1fr))}.live-game-main .live-box-paired.is-compact th,.live-game-main .live-box-paired.is-compact td{padding:12px 6px}.live-game-main .live-box-paired.is-compact th:first-child{min-width:110px}}
+@container(max-width:480px){.live-game-top>.live-box-leaders{grid-template-columns:1fr}}
+@media(max-width:1000px){.live-game-layout.is-overview{grid-template-columns:1fr}.live-game-timeline{grid-row:1}.live-match-workspace .match-page-hero.match-broadcast{grid-template-columns:minmax(0,1fr) 180px minmax(0,1fr)}.live-match-workspace .match-page-center .broadcast-score{font-size:56px}.live-match-workspace .match-broadcast .match-page-team h2{font-size:19px}}
+@media(max-width:760px){.live-match-workspace .match-page-hero.match-broadcast{grid-template-columns:minmax(0,1fr) 110px minmax(0,1fr);padding:10px 0}.live-match-workspace .match-page-center .broadcast-score{font-size:38px}.live-match-workspace .match-broadcast .match-page-team{flex-direction:column;gap:8px;text-align:center}.live-match-workspace .match-broadcast .match-page-team h2{font-size:13px}.live-match-workspace .match-broadcast .match-page-team>.team-logo{width:48px!important;height:48px!important}.live-boxscore .live-tracking-tabs button{padding:10px 5px;font-size:12px}.live-recent-panel .recent-feature{grid-template-columns:36px 40px minmax(0,1fr);gap:8px}.live-recent-panel .recent-feature p{font-size:15px}.live-recent-panel .recent-feature>div{grid-template-columns:26px minmax(0,1fr);gap:5px}.live-recent-panel .recent-action-list li>div{grid-template-columns:24px minmax(0,1fr);gap:6px}.recent-event-mark{width:25px;font-size:16px}.match-preview-grid{gap:12px}.match-preview-grid article{padding:14px}}
