@@ -17,3 +17,17 @@
 .sl-hub .account-menu-panel{background:var(--panel);color:var(--text);border-color:var(--border)}
 .sl-hub .account-menu-panel a,.sl-hub .account-menu-panel button{color:var(--text)}
 .sl-hub .account-menu-panel .account-menu-upgrade{background:var(--brand-action);color:#fff}
+
+/* Personalization belongs inside Players and Games, without a separate home. */
+.sl-inline-following,.sl-calendar-teams{margin:0 0 20px;padding:16px;min-width:0}
+.sl-inline-following>summary,.sl-calendar-teams>summary{cursor:pointer;font-size:16px;font-weight:700;padding:4px;list-style-position:inside}
+.sl-inline-following>summary span,.sl-calendar-teams>summary span{font-size:13px;opacity:.7;margin-left:8px}
+.sl-inline-following[open]>summary,.sl-calendar-teams[open]>summary{margin-bottom:16px}
+.sl-inline-saved{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-bottom:18px}
+.sl-inline-saved>div,.sl-calendar-teams>div>div{display:flex;align-items:center;gap:10px;min-width:0;padding:8px}
+.sl-inline-saved>div>span,.sl-calendar-teams>div>div>span{flex:1;min-width:0}
+.sl-inline-saved .live-box-portrait{flex:0 0 54px;width:54px;height:54px;object-fit:contain}
+.sl-inline-saved small{display:block;font-size:12px;opacity:.7}
+.sl-calendar-teams>div{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px;max-height:330px;overflow:auto}
+.sl-inline-following .sl-following{margin-top:16px}
+.catalog-card-actions{flex-wrap:wrap}

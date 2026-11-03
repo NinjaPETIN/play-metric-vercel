@@ -10,7 +10,8 @@ import {competitions,type Competition} from '../lib/competitions';
 import type {Calendar} from '../lib/nba-snapshot';
 import TeamLogo from './team-logo';
 import Portrait from './match-player-portrait';
-import {useWatchlist} from './watchlist-provider';
+import {useWatchlist,FollowButton} from './watchlist-provider';
+import {teamNames} from '../lib/team-overview';
 export type ScheduledGame=Calendar['games'][number];
 const zone='America/Argentina/Buenos_Aires';
 const localDay=(s:string)=>new Date(s).toLocaleDateString('en-CA',{timeZone:zone});
@@ -40,6 +41,7 @@ export default function CalendarPanel({reload}:{reload:number}){
  const toggle=(team:string)=>{if(authenticated){void toggleWatch('teams',team);return;}setFavorites(prev=>prev.includes(team)?prev.filter(t=>t!==team):[...prev,team]);};
  const grouped=Object.groupBy(games,gameDay);
  return <section className="calendar-panel statlane-calendar">
+  {authenticated&&<details className="card sl-calendar-teams"><summary>Elegir mis equipos <span>{watch.teams.length}</span></summary><div>{Object.entries(teamNames).map(([team,name])=><div key={team}><TeamLogo team={team} size={28}/><span>{name}</span><FollowButton kind="teams" item={team} name={name}/></div>)}</div></details>}
   <div className="calendar-controls"><div className="segmented">{[['today','Hoy'],['live','En vivo · '+liveCount],['week','Próximos'],['finished','Resultados'],['favorites','Mis equipos']].map(([k,v])=><button key={k} aria-pressed={mode===k} className={mode===k?'selected':''} onClick={()=>{setMode(k);setSelected(null);setOffset(0);}}>{k==='live'&&<i className="calendar-live-dot"/>}{v}</button>)}</div>
   <div className="calendar-date"><button className="icon" aria-label="Día anterior" onClick={()=>{setMode('today');setOffset(n=>n-1);setSelected(null);}}><ChevronLeft size={18}/></button><span><CalendarDays size={16}/>{new Date(day+'T12:00:00Z').toLocaleDateString('es-AR',{day:'numeric',month:'short'})}</span><button className="icon" aria-label="Día siguiente" onClick={()=>{setMode('today');setOffset(n=>n+1);setSelected(null);}}><ChevronRight size={18}/></button></div>
   <select aria-label="Competición del calendario" value={competition} onChange={e=>setCompetition(e.target.value as Competition|'all')}><option value="all">NBA · Todas</option>{Object.entries(competitions).map(([k,v])=><option key={k} value={k}>{v.label}</option>)}</select><input aria-label="Buscar equipo en calendario" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar equipo"/><button className="icon" aria-label="Recargar calendario" onClick={()=>setRetry(n=>n+1)}><RefreshCw size={16}/></button></div>
