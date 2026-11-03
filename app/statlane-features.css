@@ -135,3 +135,4 @@
  .app.editorial.arena-workspace .header-tools .league-badge{grid-row:2;grid-column:3;justify-self:end}
  .app.editorial.arena-workspace .topbar>.sl-global-search{grid-row:3;grid-column:1/-1}
 }
+.app.editorial.arena-workspace .topbar .header-tools .reference-season select{width:100%;min-width:0;max-width:100%;font-size:13px;}
