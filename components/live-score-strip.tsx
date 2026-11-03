@@ -25,6 +25,6 @@ export default function LiveScoreStrip({children}:{children:ReactNode}){
    </div>
    <Link className="arena-calendar-link" href="/?view=calendar">Ver calendario<ChevronRight size={15}/></Link>
   </section>
-  {stale&&<p className="arena-live-warning" role="status">Actualización atrasada</p>}
+  
  </>;
 }

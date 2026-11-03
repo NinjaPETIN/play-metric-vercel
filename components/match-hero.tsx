@@ -17,7 +17,7 @@ export default function MatchHero({match,initialFeed=null}:{match:ScheduledGame;
  const startsAt=live?.startsAt??match.startsAt,zone='America/Argentina/Buenos_Aires';
  const startLabel=startsAt?((new Date(startsAt).toLocaleDateString('en-CA',{timeZone:zone})===new Date(now).toLocaleDateString('en-CA',{timeZone:zone})?'HOY · ':new Date(startsAt).toLocaleDateString('es-AR',{timeZone:zone,day:'numeric',month:'short'})+' · ')+new Date(startsAt).toLocaleTimeString('es-AR',{timeZone:zone,hour:'2-digit',minute:'2-digit',hour12:false})+' ARG'):'Horario a confirmar';
  const score=live&&live.homeScore!==null?`${live.awayScore} - ${live.homeScore}`:match.status===1?'VS':`${match.awayScore??'—'} - ${match.homeScore??'—'}`;
- const label=live?`${live.detail}${stale?' · Lectura atrasada':live.state==='live'?' · En vivo':''}`:match.status===3?'Final · historial importado':'Calendario · sin lectura en vivo';
+ const label=live?`${live.detail}${!stale&&live.state==='live'?' · En vivo':''}`:match.status===3?'Final · historial importado':'Calendario · sin lectura en vivo';
  const when=new Date(match.startsAt??match.date+'T12:00:00Z').toLocaleString('es-AR',{weekday:'long',day:'numeric',month:'long',...(match.startsAt?{hour:'2-digit',minute:'2-digit'}:{}),timeZone:'America/Argentina/Buenos_Aires'});
  const heroRef=useRef<HTMLElement>(null),[compact,setCompact]=useState(false);
  useEffect(()=>{const el=heroRef.current;if(!el)return;const observer=new IntersectionObserver(([entry])=>setCompact(!entry.isIntersecting&&entry.boundingClientRect.bottom<=0));observer.observe(el);return()=>observer.disconnect();},[]);

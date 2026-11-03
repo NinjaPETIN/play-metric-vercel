@@ -42,7 +42,7 @@ export default function LiveBoxscore({match,initialFeed=null,onHistorical,onPlay
  const unavailableCourt=game.state==='final'?'Finalizado':stale?'Sin confirmar':resting?'En descanso':'Sin confirmar';
  return <section className="live-boxscore" aria-label="Estadísticas del partido en vivo">
   {navigation}
-  {stale&&<p className="live-delayed-notice" role="status">Datos demorados · Última lectura {new Date(feed!.fetchedAt!).toLocaleTimeString('es-AR',{timeZone:'America/Argentina/Buenos_Aires'})} ARG</p>}
+  
   {section==='plays'?<LivePlays data={data}/>:<div className={'live-game-layout '+(section==='summary'?'is-overview':'is-boxscore')}>
    {section==='summary'&&<aside className="live-game-timeline"><LiveRecent data={data} onFull={()=>setSection('plays')}/></aside>}
    <div className="live-game-main">{section==='summary'&&<div className="live-game-top"><LiveSummary data={data} compact/><div className="live-box-leaders">{data.teams.map(t=><LiveLeader key={t.code} team={t}/>)}</div></div>}
