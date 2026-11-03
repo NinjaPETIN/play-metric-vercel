@@ -9,7 +9,7 @@ test('evolution preserves same-clock source order, ties and overtime without inv
  const plays=[{id:'a',period:1,clock:'11:50',awayScore:2,homeScore:0},{id:'b',period:1,clock:'11:50',awayScore:2,homeScore:3},{id:'c',period:1,clock:'11:40',awayScore:3,homeScore:3},{id:'d',period:1,clock:'11:20',awayScore:5,homeScore:3},{id:'d',period:1,clock:'11:20',awayScore:5,homeScore:3},{id:'bad',period:1,clock:'99:00',awayScore:99,homeScore:99},{id:'e',period:5,clock:'4:30',awayScore:100,homeScore:101}];
  const result=gameEvolution({context:{plays}} as unknown as BoxData);
  assert.deepEqual(result.points.map(p=>p.id),['a','b','c','d','e']);assert.equal(result.changes,3);assert.equal(result.awayLead,2);assert.equal(result.homeLead,1);assert.equal(result.points.at(-1)!.seconds,2910);
- assert.equal(elapsedSeconds(4,'0.0'),2880);assert.equal(elapsedSeconds(6,'5:00'),3180);assert.equal(elapsedSeconds(1,'junk'),null);
+ assert.equal(elapsedSeconds(4,'0.0'),2880);assert.equal(elapsedSeconds(6,'5:00'),3180);assert.equal(elapsedSeconds(1,'junk'),null);assert.equal(elapsedSeconds(1,''),null);assert.equal(elapsedSeconds(1,'1:99'),null);
 });
 test('live context excludes the current game, future games and DNP and reports the actual sample size',()=>{
  const g=(date:string,points:number,gameId:string,played=true)=>({date,points,gameId,played,minutes:30,rebounds:4,assists:5,threes:1,opponent:'CLE',home:true}) as Game;

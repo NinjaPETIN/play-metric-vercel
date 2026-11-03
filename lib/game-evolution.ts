@@ -1,6 +1,8 @@
 import type {BoxData} from './live-boxscore';
 export function elapsedSeconds(period:number,clock:string){
+ if(!/^(?:\d{1,2}:\d{2}(?:\.\d+)?|\d{1,2}(?:\.\d+)?)$/.test(clock))return null;
  const duration=period<=4?720:300,parts=clock.split(':'),remaining=parts.length===2?Number(parts[0])*60+Number(parts[1]):Number(clock);
+ if(parts.length===2&&Number(parts[1])>=60)return null;
  if(!Number.isFinite(remaining)||remaining<0||remaining>duration||period<1)return null;
  return (period<=4?(period-1)*720:2880+(period-5)*300)+duration-remaining;
 }
