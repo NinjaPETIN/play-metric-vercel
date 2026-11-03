@@ -467,3 +467,6 @@ html[data-theme] .app.editorial .live-boxscore .live-tracking-tabs button.select
 .live-boxscore .live-tracking-tabs button:not(:disabled):not(.selected):hover{background:var(--soft);color:var(--text)}
 .live-boxscore .live-tracking-tabs button:focus-visible{outline:3px solid #8995ff;outline-offset:3px}
 @media(max-width:760px){.match-score-anchor .match-sticky-score{gap:8px;padding:8px}.match-score-anchor .match-sticky-score small{font-size:10px}}
+
+/* Full box scores use the available match width instead of clipping two wide tables. */
+.live-game-main .live-box-paired.is-stats.is-expanded{grid-template-columns:minmax(0,1fr)}

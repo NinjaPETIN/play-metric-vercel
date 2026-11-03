@@ -12,12 +12,12 @@ import {recentCourt} from '../lib/recent-court';
 import {teamColors} from '../lib/team-colors';
 import type {CSSProperties} from 'react';
 type Person=BoxData['teams'][number]['players'][number];
-const fields=['minutes','points','rebounds','assists','fieldGoals','threes','freeThrows','steals','blocks','turnovers','fouls','plusMinus'] as const;
-const headings=['MIN','PTS','REB','AST','TC','3P','TL','ROB','BLQ','PÉR','FAL','+/−'];
+const fields=['points','rebounds','assists','fieldGoals','threes','freeThrows','fouls','minutes','steals','blocks','turnovers','plusMinus'] as const;
+const headings=['PTS','REB','AST','TC','3P','TL','FAL','MIN','ROB','BLQ','PÉR','+/−'];
 const compactFields=['points','rebounds','assists','minutes','fouls'] as const;
 type StatField=typeof fields[number];
 export default function LiveBoxscore({match,initialFeed=null,onHistorical,onPlayers}:{match:ScheduledGame;initialFeed?:BoxFeed|null;onHistorical?:()=>void;onPlayers?:()=>void}){
- const [expanded,setExpanded]=useState(false);
+ const [expanded,setExpanded]=useState(true);
  const [liveStarted,setLiveStarted]=useState(()=>!!initialFeed?.data&&initialFeed.data.game.nbaId===match.id&&['live','final'].includes(initialFeed.data.game.state));
  const [section,setSection]=useState<'summary'|'stats'|'plays'|'preview'>('summary');
  useEffect(()=>{const requested=new URLSearchParams(window.location.search).get('liveSection');const timer=setTimeout(()=>{if(requested==='plays'||requested==='stats')setSection(requested);},0);return()=>clearTimeout(timer);},[]);
@@ -58,7 +58,7 @@ function LiveLeader({team}:{team:BoxData['teams'][number]}){
 }
 function Group({players,title,columns,showCourt,unavailableCourt,photos=false}:{players:Person[];title:string;columns:readonly StatField[];showCourt:boolean;unavailableCourt:string;photos?:boolean}){
  if(!players.length)return null;
- return <><tr className="live-box-group"><th colSpan={columns.length+1} scope="colgroup">{title}</th></tr>{players.map(p=><tr key={p.id} className={(p.didNotPlay?'live-box-dnp':'')+(showCourt&&p.onCourt?' live-box-on-court':'')}><th scope="row"><div className="live-player-cell">{photos&&<Portrait person={p}/>}<div><span className="live-box-identity"><span className="live-box-name" title={p.name}>{p.name}</span>{p.starter&&<span className="live-box-starter" aria-label="Titular" title="Titular">*</span>}</span><small className={"live-box-court-label"+(showCourt&&p.onCourt?"":" is-inactive")}>{showCourt&&p.onCourt?<><i aria-hidden="true"/>En cancha</>:showCourt?"Banco":unavailableCourt}</small>{p.didNotPlay&&<small>No participó</small>}</div></div></th>{columns.map(f=><td className={(['points','rebounds','assists'].includes(f)?'live-box-primary ':'')+(f==='points'?'live-stat-points':'')} key={f}>{p[f]??'—'}</td>)}</tr>)}</>;
+ return <><tr className="live-box-group"><th colSpan={columns.length+1} scope="colgroup">{title}</th></tr>{players.map(p=><tr key={p.id} className={(p.didNotPlay?'live-box-dnp':'')+(showCourt&&p.onCourt?' live-box-on-court':'')}><th scope="row"><div className="live-player-cell">{photos&&<Portrait person={p}/>}<div><span className="live-box-identity"><span className="live-box-name" title={p.name}>{p.name}</span>{p.starter&&<span className="live-box-starter" aria-label="Titular" title="Titular">*</span>}</span><small className={"live-box-court-label"+(showCourt&&p.onCourt?"":" is-inactive")}>{showCourt&&p.onCourt?<><i aria-hidden="true"/>En cancha</>:showCourt?"Banco":unavailableCourt}</small>{p.didNotPlay&&<small>No participó</small>}</div></div></th>{columns.map(f=><td className={(['points','rebounds','assists'].includes(f)?'live-box-primary ':'')+(f==='points'?'live-stat-points':'')} key={f}>{f==='plusMinus'&&p.plusMinus!==null?(p.plusMinus>0?'+':'')+p.plusMinus:['fieldGoals','threes','freeThrows'].includes(f)?String(p[f]??'—').replace('-','/'):(p[f]??'—')}</td>)}</tr>)}</>;
 }
 
 function LiveSummary({data,compact=false}:{data:BoxData;compact?:boolean}){
