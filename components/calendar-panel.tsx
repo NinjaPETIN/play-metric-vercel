@@ -10,6 +10,7 @@ import {competitions,type Competition} from '../lib/competitions';
 import type {Calendar} from '../lib/nba-snapshot';
 import TeamLogo from './team-logo';
 import Portrait from './match-player-portrait';
+import {useWatchlist} from './watchlist-provider';
 export type ScheduledGame=Calendar['games'][number];
 const zone='America/Argentina/Buenos_Aires';
 const localDay=(s:string)=>new Date(s).toLocaleDateString('en-CA',{timeZone:zone});
@@ -17,11 +18,13 @@ const gameDay=(g:ScheduledGame)=>localDay(g.startsAt??g.date+'T12:00:00Z');
 export default function CalendarPanel({reload}:{reload:number}){
  const [now,setNow]=useState(()=>Date.now()),live=useLiveScores(),clock=Math.max(now,live.now);
  const [data,setData]=useState<Calendar|null>(null),[error,setError]=useState(''),[loading,setLoading]=useState(true),[mode,setMode]=useState('today'),[competition,setCompetition]=useState<Competition|'all'>('all'),[query,setQuery]=useState(''),[retry,setRetry]=useState(0),[offset,setOffset]=useState(0);
- const [favorites,setFavorites]=useState<string[]>([]),[ready,setReady]=useState(false),[selected,setSelected]=useState<string|null>(null);
+ const {watch,authenticated,toggle:toggleWatch}=useWatchlist();
+ const [localFavorites,setFavorites]=useState<string[]>([]),[ready,setReady]=useState(false),[selected,setSelected]=useState<string|null>(null);
  useEffect(()=>{const timer=setInterval(()=>setNow(Date.now()),60000);return()=>clearInterval(timer);},[]);
  useEffect(()=>{let active=true;setLoading(true);setError('');loadCachedData<Calendar>('/api/nba/calendar',reload>0||retry>0).then(d=>{if(active)setData(d);}).catch(e=>{if(active)setError(e.message);}).finally(()=>{if(active)setLoading(false);});return()=>{active=false;};},[reload,retry]);
  useEffect(()=>{const timer=setTimeout(()=>{try{const raw=sessionStorage.getItem('playmetric:calendar:v1');if(raw){const r=JSON.parse(raw);if(['week','today','finished','live','favorites'].includes(r.mode))setMode(r.mode);if(['all','regular','preseason','playoffs'].includes(r.competition))setCompetition(r.competition);if(typeof r.query==='string')setQuery(r.query.slice(0,200));}const saved=JSON.parse(localStorage.getItem('statlane:favorite-teams:v1')??'[]');if(Array.isArray(saved))setFavorites(saved.filter((v:unknown)=>typeof v==='string'&&/^[A-Z]{2,4}$/.test(v)).slice(0,30));}catch{}setReady(true);},0);return()=>clearTimeout(timer);},[]);
- useEffect(()=>{if(ready)try{sessionStorage.setItem('playmetric:calendar:v1',JSON.stringify({mode,competition,query}));localStorage.setItem('statlane:favorite-teams:v1',JSON.stringify(favorites));}catch{}},[ready,mode,competition,query,favorites]);
+ useEffect(()=>{if(ready)try{sessionStorage.setItem('playmetric:calendar:v1',JSON.stringify({mode,competition,query}));localStorage.setItem('statlane:favorite-teams:v1',JSON.stringify(localFavorites));}catch{}},[ready,mode,competition,query,localFavorites]);
+ const favorites=authenticated?watch.teams:localFavorites;
  const updated=useMemo(()=>calendarWithLive(data,live.feed,clock,live.failed),[data,live.feed,clock,live.failed]);
  const day=localDay(new Date(clock+offset*86400000).toISOString());
  const games=useMemo(()=>updated.filter(g=>{
@@ -34,7 +37,7 @@ export default function CalendarPanel({reload}:{reload:number}){
   return mode==='today'?gameDay(g)===day:g.status!==3&&time>=clock-3*3600000&&time<=clock+7*86400000;
  }).sort((a,b)=>{const favored=(g:ScheduledGame)=>Number(favorites.includes(g.home)||favorites.includes(g.away));return favored(b)-favored(a)||(mode==='finished'?(b.startsAt??b.date).localeCompare(a.startsAt??a.date):(a.startsAt??a.date).localeCompare(b.startsAt??b.date));}),[updated,mode,competition,query,clock,day,favorites]);
  const match=games.find(g=>g.id===selected)??games[0],liveCount=updated.filter(g=>g.live?.state==='live'&&!g.live.stale).length;
- const toggle=(team:string)=>setFavorites(prev=>prev.includes(team)?prev.filter(t=>t!==team):[...prev,team]);
+ const toggle=(team:string)=>{if(authenticated){void toggleWatch('teams',team);return;}setFavorites(prev=>prev.includes(team)?prev.filter(t=>t!==team):[...prev,team]);};
  const grouped=Object.groupBy(games,gameDay);
  return <section className="calendar-panel statlane-calendar">
   <div className="calendar-controls"><div className="segmented">{[['today','Hoy'],['live','En vivo · '+liveCount],['week','Próximos'],['finished','Resultados'],['favorites','Mis equipos']].map(([k,v])=><button key={k} aria-pressed={mode===k} className={mode===k?'selected':''} onClick={()=>{setMode(k);setSelected(null);setOffset(0);}}>{k==='live'&&<i className="calendar-live-dot"/>}{v}</button>)}</div>

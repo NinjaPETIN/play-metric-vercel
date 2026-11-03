@@ -28,3 +28,9 @@ test('future and other-competition games never enter the preview; traded players
  const empty=buildMatchPreview({...calendar,games:[match]},match,[],null);
  assert.deepEqual(empty.teams.map(t=>[t.points,t.rebounds,t.assists,t.leader]),[[null,null,null,null],[null,null,null,null]]);
 });
+test('venue preview compares the visitor away and the home team at home under the same cutoff',()=>{
+ const reversed={...final,id:'0022600099',date:'2026-11-01',startsAt:'2026-11-02T00:00:00Z',away:'CLE',home:'OKC',awayScore:70,homeScore:80};
+ const source={...calendar,games:[reversed,...calendar.games]};
+ const general=buildMatchPreview(source,match,players(),null),split=buildMatchPreview(source,match,players(),null,'split');
+ assert.deepEqual(general.teams.map(t=>t.points),[65,55]);assert.deepEqual(split.teams.map(t=>t.points),[50,40]);assert.deepEqual(split.teams.map(t=>t.n),[1,1]);assert.equal(split.venue,'split');
+});
