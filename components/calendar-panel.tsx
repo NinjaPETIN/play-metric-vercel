@@ -12,6 +12,7 @@ import TeamLogo from './team-logo';
 import Portrait from './match-player-portrait';
 import {useWatchlist,FollowButton} from './watchlist-provider';
 import {teamNames} from '../lib/team-overview';
+import {scoreboardPriority} from '../lib/scoreboard-order';
 export type ScheduledGame=Calendar['games'][number];
 const zone='America/Argentina/Buenos_Aires';
 const localDay=(s:string)=>new Date(s).toLocaleDateString('en-CA',{timeZone:zone});
@@ -36,7 +37,7 @@ export default function CalendarPanel({reload}:{reload:number}){
   if(mode==='favorites')return (favorites.includes(g.home)||favorites.includes(g.away))&&time>=clock-86400000&&time<=clock+7*86400000;
   if(mode==='finished')return g.status===3&&time>=clock-7*86400000&&time<=clock;
   return mode==='today'?gameDay(g)===day:g.status!==3&&time>=clock-3*3600000&&time<=clock+7*86400000;
- }).sort((a,b)=>{const favored=(g:ScheduledGame)=>Number(favorites.includes(g.home)||favorites.includes(g.away));return favored(b)-favored(a)||(mode==='finished'?(b.startsAt??b.date).localeCompare(a.startsAt??a.date):(a.startsAt??a.date).localeCompare(b.startsAt??b.date));}),[updated,mode,competition,query,clock,day,favorites]);
+ }).sort((a,b)=>{const favored=(g:ScheduledGame)=>Number(favorites.includes(g.home)||favorites.includes(g.away));return (mode==='finished'?0:scoreboardPriority(a.live?.state??a.status)-scoreboardPriority(b.live?.state??b.status))||favored(b)-favored(a)||(mode==='finished'?(b.startsAt??b.date).localeCompare(a.startsAt??a.date):(a.startsAt??a.date).localeCompare(b.startsAt??b.date));}),[updated,mode,competition,query,clock,day,favorites]);
  const match=games.find(g=>g.id===selected)??games[0],liveCount=updated.filter(g=>g.live?.state==='live'&&!g.live.stale).length;
  const toggle=(team:string)=>{if(authenticated){void toggleWatch('teams',team);return;}setFavorites(prev=>prev.includes(team)?prev.filter(t=>t!==team):[...prev,team]);};
  const grouped=Object.groupBy(games,gameDay);

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import {Radio,ChevronRight} from 'lucide-react';
 import {useLiveScores} from '../lib/use-live-scores';
 import TeamLogo from './team-logo';
+import {orderScoreboardGames} from '../lib/scoreboard-order';
 export default function LiveScoreStrip({children}:{children:ReactNode}){
  const {feed,failed,now}=useLiveScores();
  const age=feed?.fetchedAt?now-Date.parse(feed.fetchedAt):Infinity;
@@ -16,7 +17,7 @@ export default function LiveScoreStrip({children}:{children:ReactNode}){
   <section className={'arena-schedule arena-live'+(stale?' arena-live-stale':'')} aria-label="Marcadores NBA en vivo">
    <div className="arena-schedule-label"><Radio size={17}/><strong>{stale?'Última lectura':inProgress?'NBA en vivo':'Jornada NBA'}</strong><small>{day}</small></div>
    <div className="arena-match-strip" tabIndex={0} aria-label="Deslizar para ver marcadores">
-    {feed.games.map(g=>{
+    {orderScoreboardGames(feed.games).map(g=>{
      const label=`${g.awayName} contra ${g.homeName}, ${g.homeScore!==null?`${g.awayScore} a ${g.homeScore}, `:''}${g.detail}${stale?', lectura atrasada':''}`;
      const body=<><span><TeamLogo team={g.away} size={28}/><b>{g.away}</b></span><span className="arena-match-state"><strong>{g.homeScore!==null?`${g.awayScore} – ${g.homeScore}`:new Date(g.startsAt).toLocaleTimeString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',hour:'2-digit',minute:'2-digit'})}</strong><small>{g.state==='live'&&!stale&&<i aria-hidden="true"/>}{g.state==='scheduled'?'ARG':g.detail}</small></span><span><TeamLogo team={g.home} size={28}/><b>{g.home}</b></span></>;
      const cls='arena-match'+(g.state==='live'?' arena-match-live':'');
