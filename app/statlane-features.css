@@ -31,3 +31,47 @@
 .sl-calendar-teams>div{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px;max-height:330px;overflow:auto}
 .sl-inline-following .sl-following{margin-top:16px}
 .catalog-card-actions{flex-wrap:wrap}
+
+/* A single favorites action, grouped search, and readable interactive cards. */
+.sl-save-menu{position:relative;display:inline-flex;vertical-align:middle}
+.sl-save-options{position:absolute;right:0;top:calc(100% + 8px);width:285px;max-width:calc(100vw - 36px);padding:14px;background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:12px;box-shadow:0 14px 40px #0003;z-index:80;text-align:left}
+.sl-save-options header,.sl-save-options>div{display:flex;gap:12px;align-items:center;justify-content:space-between}
+.sl-save-options header{padding-bottom:8px;border-bottom:1px solid var(--border)}
+.sl-save-options>div{padding-top:14px;font-size:13px}
+.sl-save-options small{display:block;font-size:11px;line-height:1.5;color:var(--muted);margin-top:4px}
+.sl-save-options button{flex-shrink:0}
+.sl-global-search{position:relative;flex:1;max-width:600px;min-width:160px}
+.sl-global-search .search{width:100%;max-width:none;margin:0}
+.sl-search-results{position:absolute;top:calc(100% + 8px);left:0;right:0;max-height:480px;overflow:auto;background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:12px;box-shadow:0 18px 45px #0003;padding:8px;z-index:100}
+.sl-search-group{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:10px}
+.sl-search-results button{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:10px;border:1px solid transparent;background:transparent;color:var(--text);border-radius:8px;cursor:pointer}
+.sl-search-results button.active,.sl-search-results button:hover{background:var(--soft);border-color:var(--border)}
+.sl-search-results b{display:block;font-size:14px}.sl-search-results small{display:block;color:var(--muted);font-size:11px;margin-top:4px}
+.sl-search-results .live-box-portrait{width:42px;height:42px;flex:0 0 42px;object-fit:contain}
+.sl-search-results>p{padding:12px;font-size:13px}
+.sl-guide-wrap{margin-bottom:16px}.sl-guide.card{display:flex;align-items:center;gap:20px;justify-content:space-between;padding:20px;border:1px solid var(--border);border-left:3px solid var(--brand);border-radius:12px;background:var(--panel)}
+.sl-guide h2{font-size:19px;margin:7px 0}.sl-guide p{font-size:13px;line-height:1.7;color:var(--muted);margin:0;max-width:620px}.sl-guide small{font-size:10px;letter-spacing:.07em;color:var(--brand-link)}
+.sl-guide-actions{display:flex;flex-wrap:wrap;gap:8px;flex-shrink:0;max-width:240px}.sl-guide-reopen{background:none;border:0;padding:3px 0;color:var(--muted);text-decoration:underline;text-underline-offset:3px;font-size:12px;cursor:pointer}
+.app.editorial.arena-workspace .catalog-secondary{grid-column:2/4;grid-row:2;align-self:stretch;min-width:0}
+.catalog-details-toggle,.catalog-mobile-reference{display:none}
+.app.editorial.arena-workspace .catalog-secondary .catalog-window-rates{margin:0;grid-column:auto;grid-row:auto}
+.sl-catalog-baseline{font-size:10px;line-height:1.6;color:var(--muted);max-width:150px}.sl-catalog-baseline small{display:block;font-size:10px}.sl-catalog-baseline b{color:var(--text);font-weight:600}
+.sl-interactive-trend g[role=button]{cursor:pointer;outline:none}.sl-trend-hit{fill:transparent;stroke:none}.sl-trend-hit.selected,.sl-interactive-trend g:focus-visible .sl-trend-hit{fill:var(--brand);fill-opacity:.08;stroke:var(--brand);stroke-width:1}
+.app.editorial .catalog-player-card .sl-trend-readout{min-height:40px;font-size:11px;line-height:1.5;padding-top:6px;color:var(--muted);overflow-wrap:anywhere}
+.sl-trend-readout b,.sl-trend-readout span,.sl-trend-readout small{display:block}.sl-trend-readout b{color:var(--text);font-size:12px}.sl-trend-readout a{color:var(--brand-link)}
+.sl-trend-retry{font:inherit;border:0;background:none;color:var(--brand-link);text-decoration:underline;cursor:pointer;padding:3px 0}
+@media(max-width:760px){
+ .sl-guide.card{align-items:stretch;flex-direction:column;gap:14px;padding:16px}.sl-guide-actions{max-width:none}.sl-guide p{font-size:13px}
+ .sl-global-search{max-width:none;min-width:0;width:100%}.sl-search-results{max-height:65vh;min-width:260px}
+ .app.editorial.arena-workspace .catalog-secondary{grid-column:1/4;grid-row:3}
+ .catalog-details-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;background:transparent;color:var(--text);padding:10px 0;border:0;border-top:1px solid var(--border);font-size:12px;cursor:pointer}
+ .catalog-secondary-content{display:none}.catalog-secondary.is-expanded .catalog-secondary-content{display:block}
+ .catalog-mobile-reference{display:block;font-size:12px;margin:6px 0 12px;color:var(--muted)}.catalog-mobile-reference small{display:block;margin-top:4px}
+ .app.editorial.arena-workspace .catalog-player-card .catalog-historic-team,.app.editorial.arena-workspace .catalog-player-card .catalog-reference{display:none}
+ .app.editorial.arena-workspace .catalog-average-cell{align-self:start;padding-top:10px}
+ .app.editorial.arena-workspace .catalog-player-card .catalog-average{font-size:38px}
+ .app.editorial.arena-workspace .catalog-player-card .catalog-photo img{object-fit:contain}
+ .app.editorial.arena-workspace .catalog-player-card{grid-template-columns:minmax(0,1fr) 88px 30px}
+ .sl-catalog-baseline{font-size:10px}.sl-save-options{width:275px}
+}
+@media(prefers-reduced-motion:reduce){.sl-search-results *,.sl-trend-hit{transition:none!important}}

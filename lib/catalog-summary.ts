@@ -6,8 +6,9 @@ export type CatalogComparison={recentN:number;previousN:number;averageDelta:numb
 export type CatalogStat={n:number;average:number|null;rate:number|null;hits:number|null;pushes:number|null;line:number|null;minutesAverage?:number|null;lastGameDate?:string|null;comparison?:CatalogComparison|null;windows?:Record<string,CatalogWindow>;recent?:Array<number|null>;rival?:{opponent:string;n:number;rate:number|null;average:number|null}|null};
 export type CatalogOptions={market:Market|'all';last:number;venue:string;opponent:string;minutes:number;side:'over'|'under'};
 export const defaultCatalogOptions:CatalogOptions={market:'points',last:10,venue:'all',opponent:'all',minutes:0,side:'over'};
+export function catalogHistory(p:Player,options:CatalogOptions){return p.games.filter(g=>g.played&&g.minutes>0&&(options.venue==='all'||g.home===(options.venue==='home'))&&(options.opponent==='all'||g.opponent===options.opponent)&&g.minutes>=options.minutes).sort((a,b)=>String(b.date??'').localeCompare(String(a.date??'')));}
 export function summarizeCatalogPlayer(p:Player,options=defaultCatalogOptions):Partial<Record<Market,CatalogStat>>{
- const history=p.games.filter(g=>g.played&&g.minutes>0&&(options.venue==='all'||g.home===(options.venue==='home'))&&(options.opponent==='all'||g.opponent===options.opponent)&&g.minutes>=options.minutes).sort((a,b)=>String(b.date??'').localeCompare(String(a.date??'')));
+ const history=catalogHistory(p,options);
  const games=history.slice(0,options.last||undefined);
  return Object.fromEntries((options.market==='all'?overviewMarkets:[options.market]).map(m=>{
   const line=Number.isFinite(p.lines?.[m])?p.lines[m]:null,a=analyze(games,m,line??0,options.side);

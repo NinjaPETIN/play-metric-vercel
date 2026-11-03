@@ -1,0 +1,9 @@
+'use client';
+import {useEffect,useRef,useState,type ReactNode} from 'react';
+import {Star,X} from 'lucide-react';
+import {FollowButton,useWatchlist} from './watchlist-provider';
+export default function SaveMenu({id,name,lineSaved,lineControl}:{id:string;name:string;lineSaved:boolean;lineControl:ReactNode}){
+ const {watch}=useWatchlist(),[open,setOpen]=useState(false),root=useRef<HTMLDivElement>(null),trigger=useRef<HTMLButtonElement>(null),saved=lineSaved||watch.players.includes('nba:'+id);
+ useEffect(()=>{if(!open)return;const outside=(e:PointerEvent)=>{if(!root.current?.contains(e.target as Node))setOpen(false);},escape=(e:KeyboardEvent)=>{if(e.key==='Escape'){setOpen(false);trigger.current?.focus();}};document.addEventListener('pointerdown',outside);document.addEventListener('keydown',escape);return()=>{document.removeEventListener('pointerdown',outside);document.removeEventListener('keydown',escape);};},[open]);
+ return <div ref={root} className="sl-save-menu" onBlur={e=>{if(!e.currentTarget.contains(e.relatedTarget as Node|null))setOpen(false);}}><button ref={trigger} className={'icon favorite '+(saved?'saved':'')} aria-label={'Opciones de favoritos de '+name} aria-expanded={open} onClick={()=>setOpen(v=>!v)} title="Guardar o seguir"><Star size={20} fill={saved?'currentColor':'none'}/></button>{open&&<section className="sl-save-options" aria-label={'Guardar a '+name}><header><b>Favoritos</b><button className="icon" aria-label="Cerrar opciones de favoritos" onClick={()=>{setOpen(false);trigger.current?.focus();}}><X size={16}/></button></header><div><span>Seguir jugador<small>Su actuación en todos los partidos</small></span><FollowButton item={'nba:'+id} name={name}/></div><div><span>{lineSaved?'Línea guardada':'Guardar esta línea'}<small>Esta estadística en tu lista</small></span>{lineControl}</div></section>}</div>;
+}
