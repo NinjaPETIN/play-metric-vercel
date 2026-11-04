@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {normalizeNews,newsSource,newsFeedStatus} from '../lib/news';
+import {normalizeNews,newsSource,newsFeedStatus,newsImageUrl} from '../lib/news';
 import {summarizeCatalogPlayer,defaultCatalogOptions} from '../lib/catalog-summary';
 import type {Player} from '../lib/data';
 import {database,databaseClient} from '../lib/database-env';
@@ -31,4 +31,11 @@ test('persistent shared refresh lease bounds concurrent requests; failures retai
  globalThis.fetch=async()=>{calls++;return new Response('Limited',{status:429});};const failed=await readNews();assert.equal(failed.status,'stale');assert.equal(failed.articles.length,1);assert.equal(failed.fetchedAt,successful.fetchedAt);assert.equal(failed.lastAttempt,'failed');await readNews();assert.equal(calls,2);
  await assert.rejects(()=>ingestNews({articles:[]}));assert.equal((await readNews()).articles.length,1);await ingestNews({articles:[{...article,seendate:timestamp}]});assert.equal((await readNews()).status,'ready');assert.equal(calls,2);
  }finally{globalThis.fetch=original;databaseClient().close();}
+});
+
+test('news images accept only HTTPS publisher CDNs and reject untrusted, credentialed or local URLs',()=>{
+ const image='https://a.espncdn.com/photo/nba.jpg';assert.equal(newsImageUrl(image),image);
+ for(const unsafe of ['http://a.espncdn.com/a.jpg','https://a.espncdn.com.evil.test/a.jpg','https://127.0.0.1/a.jpg','https://user:password@a.espncdn.com/a.jpg','https://a.espncdn.com:8443/a.jpg','data:image/png;base64,abc','None'])assert.equal(newsImageUrl(unsafe),undefined);
+ assert.equal(normalizeNews({articles:[{...article,image}]},directory,now)[0].imageUrl,image);
+ assert.equal(normalizeNews({articles:[{...article,image:'https://evil.test/x'}]},directory,now)[0].imageUrl,undefined);
 });

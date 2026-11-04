@@ -30,5 +30,5 @@ export async function requestCurrents(key:string,language:'es'|'en',now=Date.now
  const raw=await request(url,'Currents',{Authorization:'Bearer '+key},now);
  if(raw.status!=='ok'||!Array.isArray(raw.news))throw new NewsProviderError('Currents','invalid_payload');
  const detected=new Date(now).toISOString().replace(/[-:]/g,'').replace(/\.\d+Z$/,'Z');
- return {articles:raw.news.slice(0,20).flatMap((item:unknown)=>{if(!item||typeof item!=='object')return [];const a=item as Record<string,unknown>,publishedAt=publication(a.published);return publishedAt?[{title:a.title,url:a.url,publishedAt,seendate:detected,language:a.language==='es'?'Spanish':a.language==='en'?'English':a.language}]:[];})};
+ return {articles:raw.news.slice(0,20).flatMap((item:unknown)=>{if(!item||typeof item!=='object')return [];const a=item as Record<string,unknown>,publishedAt=publication(a.published);return publishedAt?[{title:a.title,url:a.url,image:a.image,publishedAt,seendate:detected,language:a.language==='es'?'Spanish':a.language==='en'?'English':a.language}]:[];})};
 }

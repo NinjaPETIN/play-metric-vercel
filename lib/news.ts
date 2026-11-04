@@ -1,6 +1,12 @@
+// Publisher/CDN images load directly in the browser; the server never fetches article URLs.
+export const newsImageHosts=['cdn.nba.com','a.espncdn.com','phantom-marca.unidadeditorial.es','img.asmedia.epimg.net','imagenes.elpais.com','static.eldiario.es','www.infobae.com','images.nbcsports.com','www.si.com','sportshub.cbsistatic.com','dims.apnews.com'];
+export function newsImageUrl(value:unknown):string|undefined{
+ if(typeof value!=='string'||value.length>2000)return;
+ try{const u=new URL(value);if(u.protocol!=='https:'||u.username||u.password||u.port||!newsImageHosts.includes(u.hostname.toLowerCase()))return;return u.toString();}catch{return;}
+}
 export type NewsProvider='GDELT'|'Currents';
 export type NewsCategory='availability'|'rotation'|'roster'|'general';
-export type NewsArticle={id:string;title:string;url:string;source:string;indexedAt:string;publishedAt?:string;language:string;category:NewsCategory;playerIds:string[]};
+export type NewsArticle={id:string;title:string;url:string;source:string;indexedAt:string;publishedAt?:string;imageUrl?:string;language:string;category:NewsCategory;playerIds:string[]};
 export type NewsFeed={articles:NewsArticle[];fetchedAt:string|null;checkedAt:string|null;status:'ready'|'stale'|'unavailable';provider:NewsProvider;lastAttempt:'ready'|'failed'|null};
 export const newsSources=['nba.com','espn.com','espndeportes.espn.com','cbssports.com','apnews.com','sportingnews.com','as.com','marca.com','infobae.com','eldiario.es','espn.com.ar','espn.com.mx','nbcsports.com','si.com','reuters.com'];
 export function newsSource(url:string){try{const u=new URL(url),host=u.hostname.toLowerCase().replace(/^www\./,'');if(u.protocol!=='https:'||u.username||u.password||u.port)return null;return newsSources.find(d=>host===d||host.endsWith('.'+d))?host:null;}catch{return null;}}
@@ -22,7 +28,7 @@ export function normalizeNews(input:unknown,directory:Array<{id:string;name:stri
   if(!playerIds.length&&!/\b(nba|basketball|baloncesto|lakers|celtics|knicks|76ers|warriors|nuggets|thunder|spurs|rockets|bucks|cavaliers|mavericks|timberwolves|hawks|nets|hornets|bulls|pistons|pacers|clippers|grizzlies|heat|pelicans|magic|suns|blazers|kings|raptors|jazz|wizards)\b/.test(normalized))continue;
   const u=new URL(r.url);u.hash='';for(const key of [...u.searchParams.keys()])if(/^(utm_|fbclid|gclid)/i.test(key))u.searchParams.delete(key);
   const url=u.toString(),titleKey=words(title);if(seen.has(url)||titles.has(titleKey))continue;seen.add(url);titles.add(titleKey);
-  out.push({id:url,title,url,source,indexedAt,...(publishedAt?{publishedAt}:{}),language:typeof r.language==='string'?r.language.slice(0,30):'',category:newsCategory(title),playerIds});
+  out.push({id:url,title,url,source,indexedAt,...(newsImageUrl(r.image)?{imageUrl:newsImageUrl(r.image)}:{}),...(publishedAt?{publishedAt}:{}),language:typeof r.language==='string'?r.language.slice(0,30):'',category:newsCategory(title),playerIds});
  }
  return out.sort((a,b)=>(b.publishedAt??b.indexedAt).localeCompare(a.publishedAt??a.indexedAt)).slice(0,60);
 }
