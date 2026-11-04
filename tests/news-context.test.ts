@@ -27,7 +27,7 @@ test('persistent shared refresh lease bounds concurrent requests; failures retai
  const feeds=await Promise.all(Array.from({length:6},()=>readNews()));assert.equal(calls,1);assert.ok(feeds.some(f=>f.status==='ready'&&f.articles.length===1));
  const successful=await readNews();assert.equal(successful.status,'ready');assert.equal(calls,1);
  const prior={articles:successful.articles,fetchedAt:successful.fetchedAt,checkedAt:'2000-01-01T00:00:00.000Z',lastAttempt:'ready'};
- await database.prepare('update provider_cache set payload=? where key=?').bind(JSON.stringify(prior),'pm:news:v1').run();await database.prepare('update provider_cache set expires_at=? where key=?').bind('2000-01-01T00:00:00.000Z','pm:news:lease:v1').run();
+ await database.prepare('update provider_cache set payload=? where key=?').bind(JSON.stringify(prior),'pm:news:v1').run();await database.prepare('update provider_cache set expires_at=? where key=?').bind('2000-01-01T00:00:00.000Z','pm:news:lease:v2:GDELT').run();
  globalThis.fetch=async()=>{calls++;return new Response('Limited',{status:429});};const failed=await readNews();assert.equal(failed.status,'stale');assert.equal(failed.articles.length,1);assert.equal(failed.fetchedAt,successful.fetchedAt);assert.equal(failed.lastAttempt,'failed');await readNews();assert.equal(calls,2);
  await assert.rejects(()=>ingestNews({articles:[]}));assert.equal((await readNews()).articles.length,1);await ingestNews({articles:[{...article,seendate:timestamp}]});assert.equal((await readNews()).status,'ready');assert.equal(calls,2);
  }finally{globalThis.fetch=original;databaseClient().close();}

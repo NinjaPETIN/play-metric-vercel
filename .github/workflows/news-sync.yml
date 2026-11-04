@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['lib/news.ts', 'lib/news-store.ts', 'app/api/news/route.ts', 'collector/sync_news.mjs', '.github/workflows/news-sync.yml']
+    paths: ['lib/news.ts', 'lib/news-store.ts', 'lib/news-providers.ts', 'app/api/news/route.ts', 'collector/sync_news.mjs', '.github/workflows/news-sync.yml']
 permissions:
   contents: read
 concurrency:
@@ -17,7 +17,6 @@ jobs:
     timeout-minutes: 6
     env:
       PLAY_METRIC_URL: https://play-metric-vercel.vercel.app
-      PLAY_METRIC_SERVICE_TOKEN: ${{ secrets.COLLECTOR_SECRET }}
     steps:
       - uses: actions/checkout@v6
         with:

@@ -136,3 +136,5 @@
  .app.editorial.arena-workspace .topbar>.sl-global-search{grid-row:3;grid-column:1/-1}
 }
 .app.editorial.arena-workspace .topbar .header-tools .reference-season select{width:100%;min-width:0;max-width:100%;font-size:13px;}
+
+.news-attribution{display:block;margin-top:14px;font-size:10px;color:var(--muted)}.news-attribution a{color:inherit;text-underline-offset:3px}
