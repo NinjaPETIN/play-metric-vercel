@@ -13,13 +13,13 @@ export default function NewsPanel({playerId,expanded=false}:{playerId?:string;ex
 }
 
 function NewsStory({article:a,featured}:{article:NewsArticle;featured:boolean}){
- const image=newsImageUrl(a.imageUrl),[failed,setFailed]=useState<string|null>(null);
- return <article className={'news-item news-story'+(featured?' news-story-featured':'')}>
-  <a className="news-story-media" href={a.url} target="_blank" rel="noopener noreferrer" aria-label={'Leer: '+a.title} tabIndex={-1}>
-   {image&&failed!==image?// Images are supplied by the news provider; no article scraping or server-side proxy.
-    // eslint-disable-next-line @next/next/no-img-element
-    <img src={image} alt="" width={480} height={270} loading="lazy" decoding="async" referrerPolicy="no-referrer" onError={()=>setFailed(image)}/>:<span className="news-story-placeholder" aria-hidden="true"><Newspaper size={featured?26:19}/><span>NBA</span></span>}
-  </a>
+ const image=newsImageUrl(a.imageUrl),[failed,setFailed]=useState<string|null>(null),showImage=!!image&&failed!==image;
+ return <article className={'news-item news-story'+(featured?' news-story-featured':'')+(showImage?'':' news-story-text-only')}>
+  {showImage&&<a className="news-story-media" href={a.url} target="_blank" rel="noopener noreferrer" aria-label={'Leer: '+a.title} tabIndex={-1}>
+   {/* Images are supplied by the news provider; no article scraping or server-side proxy. */}
+   {/* eslint-disable-next-line @next/next/no-img-element */}
+    <img src={image} alt="" width={480} height={270} loading="lazy" decoding="async" referrerPolicy="no-referrer" onError={()=>setFailed(image)}/>
+  </a>}
   <div className="news-story-copy"><span className={'news-category '+a.category}>{categories[a.category]}</span><a className="news-story-title" href={a.url} target="_blank" rel="noopener noreferrer"><strong>{a.title}</strong><ExternalLink size={12}/></a><small>{a.source} · {a.language==='Spanish'?'ES':a.language==='English'?'EN':a.language}</small><small><time dateTime={a.publishedAt??a.indexedAt}>{date(a.publishedAt??a.indexedAt)} ARG</time></small></div>
  </article>;
 }
