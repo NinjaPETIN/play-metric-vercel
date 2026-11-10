@@ -41,7 +41,8 @@ export default function PublicLanding() {
         <section className={styles.hero}>
           <div className={styles.heroInner}>
             <div>
-              <h1>La NBA, en números y en contexto</h1>
+              <span className={styles.kicker}>ESTADÍSTICAS NBA</span>
+              <h1>La NBA, en números <em>y en contexto</em></h1>
               <p>Consultá estadísticas de jugadores, compará tendencias y seguí partidos en vivo.</p>
               <div className={styles.actions}>
                 <a className={styles.primary} href={explore}>Explorar estadísticas</a>
@@ -56,7 +57,11 @@ export default function PublicLanding() {
                 <div><strong>Luka Dončić</strong><span>Puntos por partido</span><b>{average}</b></div>
               </div>
               <div className={styles.chart} role="img" aria-label={`Puntos por partido en esta muestra: ${exampleGames.join(', ')}`}>
-                {exampleGames.map((points, index) => <span key={index} style={{height: `${points / 52 * 100}%`}} />)}
+                {exampleGames.map((points, index) => (
+                  <span key={index} style={{height: `${points / 60 * 100}%`}}>
+                    <b aria-hidden="true">{points}</b>
+                  </span>
+                ))}
               </div>
               <small>Muestra histórica · 7 partidos</small>
             </figure>
