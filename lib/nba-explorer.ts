@@ -31,13 +31,15 @@ export function parseNbaSearch(query: string) {
   return {name, criteria};
 }
 
-export function lineResults(values: readonly (number | null)[], line: number) {
+export type LineSide = 'over' | 'under';
+
+export function lineResults(values: readonly (number | null)[], line: number, side: LineSide = 'over') {
   let hits = 0, pushes = 0, n = 0, total = 0;
   for (const value of values) {
     if (value === null) continue;
     n++;
     total += value;
-    if (value > line) hits++;
+    if (side === 'over' ? value > line : value < line) hits++;
     if (value === line) pushes++;
   }
   return {hits, pushes, n, average:n ? total / n : null, rate:n ? hits / n : 0};

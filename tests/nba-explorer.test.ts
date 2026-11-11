@@ -18,4 +18,7 @@ test('line ranking counts equal results separately and excludes missing data', (
   assert.deepEqual(lineResults([null,0,6,8],6), {
     n:3,hits:1,pushes:1,average:14/3,rate:1/3,
   });
+  assert.deepEqual(lineResults([null,0,6,8],6,'under'), {
+    n:3,hits:1,pushes:1,average:14/3,rate:1/3,
+  });
 });

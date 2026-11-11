@@ -11,6 +11,17 @@ export type NewsFeed={articles:NewsArticle[];fetchedAt:string|null;checkedAt:str
 export const newsSources=['nba.com','espn.com','espndeportes.espn.com','cbssports.com','apnews.com','sportingnews.com','as.com','marca.com','infobae.com','eldiario.es','espn.com.ar','espn.com.mx','nbcsports.com','si.com','reuters.com'];
 export function newsSource(url:string){try{const u=new URL(url),host=u.hostname.toLowerCase().replace(/^www\./,'');if(u.protocol!=='https:'||u.username||u.password||u.port)return null;return newsSources.find(d=>host===d||host.endsWith('.'+d))?host:null;}catch{return null;}}
 const words=(s:string)=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+export function distinctNewsStories(articles: NewsArticle[]) {
+ const seen = new Set<string>();
+ return articles.filter(article => {
+  const title = words(article.title);
+  const opening = title.split(' ').slice(0, 7).join(' ');
+  const key = article.source + ':' + (opening.length >= 28 ? opening : title);
+  if (seen.has(key)) return false;
+  seen.add(key);
+  return true;
+ });
+}
 export function newsCategory(title:string):NewsCategory{const t=words(title);if(/\b(injury|injuries|injured|questionable|ruled out|lesion|lesiones|lesionado|baja medica)\b/.test(t))return 'availability';if(/\b(trade|traded|signs|signed|waived|traspaso|fichaje|contrato|plantilla)\b/.test(t))return 'roster';if(/\b(rotation|starter|starting|minutes|bench|rotacion|titular|minutos|suplente)\b/.test(t))return 'rotation';return 'general';}
 export function normalizeNews(input:unknown,directory:Array<{id:string;name:string}>,now=Date.now()):NewsArticle[]{
  if(!input||typeof input!=='object'||!Array.isArray((input as {articles?:unknown}).articles))throw Error('Respuesta de noticias no válida');
