@@ -47,5 +47,15 @@
 .sl-tracker-row {padding:.7rem 0;border-top:1px solid var(--border)}
 .sl-tracker-row small {display:block}
 .sl-tracker-game {text-decoration:underline;text-underline-offset:3px;font-size:.8rem;margin-top:.5rem;cursor:pointer}
+.sl-match-availability {padding:clamp(1rem,2vw,1.6rem)}
+.sl-match-availability .sl-explorer-heading {align-items:center}
+.sl-match-availability .sl-explorer-heading a {font-size:.8rem;text-decoration:underline;text-underline-offset:3px}
+.sl-match-availability-grid {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,16rem),1fr));gap:.75rem;margin-top:.75rem}
+.sl-match-availability-grid article {border:1px solid var(--border);border-radius:.7rem;padding:.8rem}
+.sl-match-availability-grid h3 {display:flex;align-items:center;gap:.45rem}
+.sl-match-availability-grid h4 {margin:.65rem 0 .3rem;font-size:.85rem;font-weight:700}
+.sl-match-availability-grid ul {list-style:none;margin:0;padding:0}
+.sl-match-availability-grid li {display:flex;flex-wrap:wrap;justify-content:space-between;gap:.2rem .65rem;padding:.3rem 0;font-size:.8rem}
+.sl-match-availability-grid time {flex-basis:100%;color:var(--muted);font-size:.7rem}
 @media(max-width:850px) {.sl-explorer-content {grid-template-columns:minmax(0,1fr)}}
 @media(max-width:520px) {.sl-explorer-facts {grid-template-columns:1fr}.sl-explorer-table :is(th,td) {padding:.45rem .3rem;font-size:.78rem}.sl-explorer-table button>img {width:26px}}

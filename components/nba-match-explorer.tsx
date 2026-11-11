@@ -12,6 +12,7 @@ import type {Player} from '../lib/data';
 import type {ScheduledGame} from './calendar-panel';
 import type {BoxFeed} from '../lib/live-boxscore';
 import ExplorerLineTracker from './explorer-line-tracker';
+import MatchAvailability from './match-availability';
 import Portrait from './match-player-portrait';
 import TeamLogo from './team-logo';
 import './nba-match-explorer.css';
@@ -138,6 +139,7 @@ export default function NbaMatchExplorer({
           `${latestMeeting.away} ${latestMeeting.awayScore} – ${latestMeeting.homeScore} ${latestMeeting.home}` : 'Sin cruces registrados'}</small></span></div>
       </div>}
     </section>
+    <MatchAvailability key={match.id} id={match.id} away={match.away} home={match.home} reportUrl={injuryReport}/>
     <section className="card sl-explorer-board" aria-labelledby="nba-explorer-title">
       <div className="sl-explorer-heading"><div><h2 id="nba-explorer-title">Explorador del partido</h2>
         <p>Compará a ambos equipos con la misma línea y el historial de la temporada elegida.</p></div>
@@ -214,7 +216,6 @@ export default function NbaMatchExplorer({
             </dl>
             <div className="sl-explorer-links">
               <button className="button" type="button" onClick={() => onOpen(selected.player,market,last,line,side)}>Ver perfil completo</button>
-              <a href={injuryReport} target="_blank" rel="noopener noreferrer">Informe oficial de lesiones ↗</a>
             </div>
           </aside>
         </>}
