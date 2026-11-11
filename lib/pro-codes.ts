@@ -1,8 +1,8 @@
 import {env} from '@/lib/database-env';
 import {getChatGPTUser} from '../app/chatgpt-auth';
-import {PlanError} from './account-plan';
+import {isAccountAdmin,PlanError} from './account-plan';
 // Verified Site owner; granting editor access does not grant promotion administration.
-export async function codeAdmin(){const user=await getChatGPTUser();return !!user&&!!process.env.ADMIN_USER_ID&&user.userId===process.env.ADMIN_USER_ID;}
+export async function codeAdmin(){const user=await getChatGPTUser();return !!user&&isAccountAdmin(user.userId);}
 export async function requireCodeAdmin(){if(!await codeAdmin())throw new PlanError(403,'Sólo el administrador puede gestionar códigos.');}
 export function normalizeCode(input:unknown){if(typeof input!=='string')throw new PlanError(400,'Ingresá un código válido.');const code=input.trim().toUpperCase();if(!/^PM-(?:[A-Z0-9]{8}-[A-Z0-9]{8}|[A-Z0-9]{16}-[A-Z0-9]{16})$/.test(code))throw new PlanError(400,'Código no válido.');return code;}
 async function codeKey(code:string){const hash=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(code));return 'pm:code:'+Array.from(new Uint8Array(hash),b=>b.toString(16).padStart(2,'0')).join('');}
