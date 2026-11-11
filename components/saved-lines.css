@@ -1,0 +1,8 @@
+.sl-explorer-tracker {padding:clamp(1rem,2vw,1.6rem)}
+.sl-live-tracker {margin-bottom:1rem}
+.sl-tracker-header,.sl-tracker-row {display:flex;align-items:center;justify-content:space-between;gap:.65rem;flex-wrap:wrap}
+.sl-tracker-header small,.sl-tracker-row small {display:block;color:var(--muted);font-size:.8rem}
+.sl-tracker-row {padding:.7rem 0;border-top:1px solid var(--border)}
+.sl-live-tracker .sl-tracker-row:first-of-type {margin-top:.55rem}
+.sl-tracker-progress {display:block;margin-top:.25rem;font-size:.8rem;font-weight:700}
+.sl-tracker-game {text-decoration:underline;text-underline-offset:3px;font-size:.8rem;margin-top:.5rem;cursor:pointer}

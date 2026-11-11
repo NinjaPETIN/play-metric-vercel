@@ -1,6 +1,15 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {lineResults, parseNbaSearch} from '../lib/nba-explorer';
+import {describeLineProgress,lineResults, parseNbaSearch} from '../lib/nba-explorer';
+
+test('saved lines respect strict thresholds, integer ties and final results',()=>{
+  assert.equal(describeLineProgress(4,5.5,'over',false),'Faltan 2');
+  assert.equal(describeLineProgress(5,5,'over',false),'Falta 1');
+  assert.equal(describeLineProgress(6,5.5,'over',false),'Superó la línea');
+  assert.equal(describeLineProgress(5,5.5,'under',false),'En el último valor por debajo de la línea');
+  assert.equal(describeLineProgress(5,5,'under',true),'Igualó la línea');
+  assert.equal(describeLineProgress(4,5.5,'over',true),'Quedó por debajo de la línea');
+});
 
 test('match search extracts a player, a market and an accented time window', () => {
   assert.deepEqual(parseNbaSearch('Brunson, asistencias, últimos 10'), {

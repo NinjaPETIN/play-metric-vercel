@@ -33,6 +33,22 @@ export function parseNbaSearch(query: string) {
 
 export type LineSide = 'over' | 'under';
 
+export function describeLineProgress(value:number,line:number,side:LineSide,final:boolean) {
+  if (final) {
+    if (value===line) return 'Igualó la línea';
+    return value>line ? 'Superó la línea' : 'Quedó por debajo de la línea';
+  }
+  if (side==='under') {
+    if (value>line) return 'Superó la línea';
+    if (value===line) return 'Igualó la línea';
+    const margin=Math.ceil(line)-1-value;
+    return margin>0 ? 'Margen de '+margin : 'En el último valor por debajo de la línea';
+  }
+  const remaining=Math.floor(line)+1-value;
+  if (remaining<=0) return 'Superó la línea';
+  return remaining===1 ? 'Falta 1' : 'Faltan '+remaining;
+}
+
 export function lineResults(values: readonly (number | null)[], line: number, side: LineSide = 'over') {
   let hits = 0, pushes = 0, n = 0, total = 0;
   for (const value of values) {

@@ -11,6 +11,7 @@ import MatchPreview from './match-preview';
 import {recentCourt} from '../lib/recent-court';
 import ScoreEvolution from './score-evolution';
 import LiveFollowing from './live-following';
+import ExplorerLineTracker from './explorer-line-tracker';
 import SharePerformance from './share-performance';
 import {FollowButton} from './watchlist-provider';
 import {livePlayerKey} from '../lib/player-identity';
@@ -40,13 +41,15 @@ export default function LiveBoxscore({match,initialFeed=null,onHistorical,onPlay
  const age=feed?.fetchedAt?now-Date.parse(feed.fetchedAt):Infinity,data=age>=-5000&&age<300000&&feed?.data?.game.nbaId===match.id?feed.data:null,stale=failed||feed?.status!=='ready'||age>90000;
  const pending=match.status===1&&!liveStarted&&!data;
  const navigation=pending?<div className="segmented live-tracking-tabs" aria-label="Seguimiento del partido"><button className="selected" aria-pressed="true">Previa</button><button disabled title="Disponibles cuando comience el partido">Estad&iacute;sticas</button><button disabled title="Disponibles cuando comience el partido">Jugadas</button></div>:<div className="segmented live-tracking-tabs" aria-label="Seguimiento del partido">{([['summary','Resumen'],['stats','Estadísticas'],['plays','Jugadas'],['preview','Previa']] as const).map(([id,label])=><button key={id} className={section===id?'selected':''} aria-pressed={section===id} onClick={()=>setSection(id)}>{label}</button>)}</div>;
- if(section==='preview'||match.status===1&&!liveStarted&&!data)return <section className="live-boxscore prematch-workspace">{navigation}<MatchPreview match={match} pending={match.status===1&&!liveStarted&&!data} onHistorical={onHistorical} onPlayers={onPlayers}/></section>;
- if(!data)return <>{navigation}<section className="card live-box-empty" aria-label="Estadísticas del partido en vivo"><h2>Estadísticas del partido</h2><p role="status">{!feed&&!failed?'Consultando las estadísticas de ambos equipos…':'Todavía no hay estadísticas verificadas disponibles para este partido. Se reintentará automáticamente.'}</p></section></>;
+ const tracker=<ExplorerLineTracker match={match} identities={identities} live={{data,stale,fetchedAt:feed?.fetchedAt??null}}/>;
+ if(section==='preview'||match.status===1&&!liveStarted&&!data)return <section className="live-boxscore prematch-workspace">{navigation}{tracker}<MatchPreview match={match} pending={match.status===1&&!liveStarted&&!data} onHistorical={onHistorical} onPlayers={onPlayers}/></section>;
+ if(!data)return <>{navigation}{tracker}<section className="card live-box-empty" aria-label="Estadísticas del partido en vivo"><h2>Estadísticas del partido</h2><p role="status">{!feed&&!failed?'Consultando las estadísticas de ambos equipos…':'Todavía no hay estadísticas verificadas disponibles para este partido. Se reintentará automáticamente.'}</p></section></>;
  const game=data.game,columns:readonly StatField[]=section==='summary'?['points','rebounds','assists','minutes']:section==='stats'&&expanded?fields:compactFields;
  const resting=/entretiempo|descanso|fin del/i.test(game.detail);
  const unavailableCourt=game.state==='final'?'Finalizado':stale?'Sin confirmar':resting?'En descanso':'Sin confirmar';
  return <section className="live-boxscore" aria-label="Estadísticas del partido en vivo">
   {navigation}
+  {tracker}
   
   {section==='summary'&&<LiveFollowing games={[data]} fresh={!stale} competition={match.competition} identities={identities}/>}
   {section==='plays'?<LivePlays data={data}/>:<div className={'live-game-layout '+(section==='summary'?'is-overview':'is-boxscore')}>
