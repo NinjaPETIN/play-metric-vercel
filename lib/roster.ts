@@ -6,9 +6,10 @@ export const rosterSchema=z.object({source:z.literal('NBA.com'),fetchedAt:z.stri
  for(const team of rosterTeams)if(r.players.filter(p=>p.team===team).length<10)c.addIssue({code:'custom',message:'Plantilla incompleta: '+team});
 });
 export type Roster=z.infer<typeof rosterSchema>;
+export const ROSTER_MAX_AGE_MS=2*3600_000;
 export function rosterFreshness(fetchedAt:string|null,now=Date.now()){
  const time=fetchedAt?Date.parse(fetchedAt):NaN;
- return {fetchedAt,status:!Number.isFinite(time)?'pending':now-time>2*3600_000?'stale':'ready'} as {fetchedAt:string|null;status:'pending'|'stale'|'ready'};
+ return {fetchedAt,status:!Number.isFinite(time)?'pending':now-time>ROSTER_MAX_AGE_MS?'stale':'ready'} as {fetchedAt:string|null;status:'pending'|'stale'|'ready'};
 }
 // Current affiliations never overwrite a game's historical team or the selected-season team.
 export function applyRoster(players:Player[],roster:Roster|null,includeMissing=false){

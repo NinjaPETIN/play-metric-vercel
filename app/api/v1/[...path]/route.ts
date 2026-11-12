@@ -3,7 +3,14 @@ import {internalRead,ApiError} from '../../../../lib/internal-api';
 import {accountPlan,authorizePlayer,PlanError} from '../../../../lib/account-plan';
 import {getChatGPTUser} from '../../../chatgpt-auth';
 import {scopedNbaRead} from '../../../../lib/scoped-nba-read';
+import {after} from 'next/server';
+import {refreshRosterIfStale} from '../../../../lib/roster-store';
+export const maxDuration=30;
 export async function GET(req:Request,{params}:{params:Promise<{path:string[]}>}){
- try{const {path}=await params;const result=await scopedNbaRead(path,req.url,{user:getChatGPTUser,plan:accountPlan,authorize:authorizePlayer,read:()=>cachedNbaRead(req.url,()=>internalRead(path,req.url),forceNbaRead(req))});return Response.json(result,{headers:{'Cache-Control':'no-store','X-Play-Metric-API':'1'}});
+ try{const {path}=await params;const result=await scopedNbaRead(path,req.url,{user:getChatGPTUser,plan:accountPlan,authorize:authorizePlayer,read:()=>cachedNbaRead(req.url,()=>internalRead(path,req.url),forceNbaRead(req))});
+  if(path[0]==='players'&&path.length===2&&['stale','pending'].includes(result.roster?.status)){
+   after(async()=>{try{await refreshRosterIfStale();}catch(error){console.warn('Falló la actualización de plantillas:',error instanceof Error?error.message:'Error');}});
+  }
+  return Response.json(result,{headers:{'Cache-Control':'no-store','X-Play-Metric-API':'1'}});
  }catch(e){if(e instanceof ApiError||e instanceof PlanError)return Response.json({error:e.message},{status:e.status,headers:{'Cache-Control':'no-store'}});console.error('Internal NBA API read failed',e instanceof Error?e.message:'Unknown');return Response.json({error:'No se pudo consultar el historial. Los datos guardados se conservan.'},{status:503,headers:{'Cache-Control':'no-store'}});}
 }

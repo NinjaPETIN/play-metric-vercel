@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['collector/sync_rosters.mjs', '.github/workflows/roster-sync.yml']
+    paths: ['collector/sync_rosters.mjs', 'collector/roster-source.mjs', '.github/workflows/roster-sync.yml']
 permissions:
   contents: read
 concurrency:

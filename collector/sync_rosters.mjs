@@ -1,15 +1,8 @@
 import {writeFile} from 'node:fs/promises';
-const codes=['ATL','BOS','CLE','NOP','CHI','DAL','DEN','GSW','HOU','LAC','LAL','MIA','MIL','MIN','BKN','NYK','ORL','IND','PHI','PHX','POR','SAC','SAS','OKC','TOR','UTA','MEM','WAS','DET','CHA'];
+import {collectRoster} from './roster-source.mjs';
 async function json(url,options={}){for(let attempt=0;attempt<3;attempt++){try{const r=await fetch(url,{...options,signal:AbortSignal.timeout(25000),redirect:'error'});if(!r.ok)throw Error(`HTTP ${r.status}`);return await r.json();}catch(e){if(attempt===2)throw e;await new Promise(resolve=>setTimeout(resolve,1000*2**attempt));}}}
-const players=[],seen=new Set();
-for(let i=0;i<codes.length;i++){
- const teamId=1610612737+i,team=codes[i],data=await json(`https://content-api-prod.nba.com/public/1/teams/${teamId}/roster`),rows=data.results?.roster;
- if(!Array.isArray(rows)||rows.length<10||rows.length>40)throw Error(`Plantilla incompleta: ${team}. Se conserva la generación anterior.`);
- // Membership comes from the team's roster endpoint. Embedded player.teamId can
- // retain an older team after a signing or be empty for a training-camp player.
- for(const p of rows){if(!Number.isSafeInteger(p.id)||p.id<=0||typeof p.name!=='string'||!p.name.trim()||seen.has(p.id))throw Error(`Plantilla inconsistente: ${team}. Se conserva la generación anterior.`);seen.add(p.id);players.push({id:String(p.id),name:p.name,team,position:p.position??''});}
-}
-const snapshot={source:'NBA.com',fetchedAt:new Date().toISOString(),players};
+const snapshot=await collectRoster(json);
+const {players}=snapshot;
 if(process.env.ROSTER_OUTPUT)await writeFile(process.env.ROSTER_OUTPUT,JSON.stringify(snapshot));
 if(process.argv.includes('--upload')){
  const origin=new URL(process.env.PLAY_METRIC_URL??''),token=process.env.PLAY_METRIC_SERVICE_TOKEN;
