@@ -166,8 +166,22 @@ export function drawSocialCard(canvas: HTMLCanvasElement, format: CardFormat, li
    if (!leader) return;
    const x = pad + index * (column + 18);
    tile(x, leadersY, column, 102);
-   label(teams[index].code + '  /  LÍDER EN PUNTOS', x + 22, leadersY + 32, 19, muted, 700, column - 112);
-   label(leader.name, x + 22, leadersY + 73, 29, ink, 700, column - 112);
+   const centerX = x + 58;
+   const centerY = leadersY + 51;
+   const radius = 36;
+   ctx.save();
+   ctx.beginPath();
+   ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+   ctx.clip();
+   ctx.fillStyle = border;
+   ctx.fillRect(centerX - radius, centerY - radius, radius * 2, radius * 2);
+   if (!image('leader-' + teams[index].code, centerX - 54, centerY - 38, 108, 79)) {
+    const initials = leader.name.trim().split(/\s+/).slice(0, 2).map(word => Array.from(word)[0]).join('');
+    label(initials, centerX, centerY + 10, 27, ink, 800, 58, 'center');
+   }
+   ctx.restore();
+   label(teams[index].code + '  /  LÍDER EN PUNTOS', x + 108, leadersY + 32, 19, muted, 700, column - 200);
+   label(leader.name, x + 108, leadersY + 73, 29, ink, 700, column - 200);
    label(String(leader.points), x + column - 21, leadersY + 74, 47, highlight, 800, 74, 'right');
   });
  }
