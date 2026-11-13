@@ -4,7 +4,6 @@ import { useCallback, useState } from 'react';
 import { Share2 } from 'lucide-react';
 import type { BoxData } from '../lib/live-boxscore';
 import { drawSocialCard, matchCardLink, matchLeaders, type CardFormat } from '../lib/performance-card';
-import { teamLogoUrl } from '../lib/team-logo-url';
 import ShareCardDialog from './share-card-dialog';
 
 export default function ShareMatchResult({ data }: { data: BoxData }) {
@@ -21,7 +20,7 @@ export default function ShareMatchResult({ data }: { data: BoxData }) {
   {open && <ShareCardDialog title={title} triggerLabel={'Tarjeta de resultado de ' + score}
    text={['Final NBA · ' + score, ...highlights].join('\n')}
    path={matchCardLink(data.game)} filename={'statlane-' + (data.game.nbaId ?? data.game.id) + '-final'}
-   assets={Object.fromEntries(data.teams.map(team => [team.code, teamLogoUrl(team.code)]))}
+   assets={Object.fromEntries(data.teams.map(team => [team.code, '/api/nba/team-logo/' + team.code]))}
    draw={draw} onClose={() => setOpen(false)}/>}
  </div>;
 }
