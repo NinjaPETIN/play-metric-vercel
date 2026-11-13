@@ -160,3 +160,15 @@
 
 .app.editorial .news-story-copy small{font-size:11px;line-height:1.5}
 .app.editorial .news-story-copy small:last-child{font-size:10px}
+
+/* Reserve the actual dock height in the page and its fixed sidebar. */
+.app.has-live-dock { --dock-space: 0px; padding-bottom: var(--dock-space); }
+.app.has-live-dock:has(.live-score-dock) { --dock-space: calc(80px + env(safe-area-inset-bottom)); }
+.app.has-live-dock:has(.live-score-dock.is-collapsed) { --dock-space: calc(40px + env(safe-area-inset-bottom)); }
+.app.has-live-dock:has(.live-score-dock) .sidebar {
+  bottom: var(--dock-space);
+  height: auto;
+  max-height: calc(100dvh - var(--dock-space));
+}
+html:has(.live-score-dock) { scroll-padding-bottom: calc(88px + env(safe-area-inset-bottom)); }
+html:has(.live-score-dock.is-collapsed) { scroll-padding-bottom: calc(48px + env(safe-area-inset-bottom)); }
