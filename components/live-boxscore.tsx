@@ -10,6 +10,8 @@ import {courtKnown,playerGroups} from '../lib/boxscore-display';
 import {matchPeriodCount,periodLabel,periodStats} from '../lib/match-period-stats';
 import MatchLeaders from './match-leaders';
 import ShareMatchResult from './share-match-result';
+import MatchPlayerAlerts from './match-player-alerts';
+import {playerShots} from '../lib/match-player-shots';
 import MatchPreview from './match-preview';
 import {recentCourt} from '../lib/recent-court';
 import ScoreEvolution from './score-evolution';
@@ -28,11 +30,12 @@ const compactFields=['points','rebounds','assists','minutes','fouls'] as const;
 type StatField=typeof fields[number];
 export default function LiveBoxscore({match,initialFeed=null,onHistorical,onPlayers,onCompare,identities=[]}:{identities?:Array<{id:string;name:string}>;match:ScheduledGame;initialFeed?:BoxFeed|null;onHistorical?:()=>void;onPlayers?:()=>void;onCompare?:(id:string)=>void}){
  const [selectedPlayer,setSelectedPlayer]=useState<string|null>(null);
+ const [focusedPlay,setFocusedPlay]=useState<string|null>(null);
  const [period,setPeriod]=useState<number|null>(null);
  const [expanded,setExpanded]=useState(true);
  const [liveStarted,setLiveStarted]=useState(()=>!!initialFeed?.data&&initialFeed.data.game.nbaId===match.id&&['live','final'].includes(initialFeed.data.game.state));
- const [section,setSection]=useState<'summary'|'stats'|'plays'|'preview'>('summary');
- useEffect(()=>{const requested=new URLSearchParams(window.location.search).get('liveSection');const timer=setTimeout(()=>{if(requested==='plays'||requested==='stats')setSection(requested);},0);return()=>clearTimeout(timer);},[]);
+ const [section,setSection]=useState<'summary'|'stats'|'plays'|'preview'|'following'>('summary');
+ useEffect(()=>{const query=new URLSearchParams(window.location.search),requested=query.get('liveSection');const timer=setTimeout(()=>{if(requested==='plays'||requested==='stats'||requested==='following'||requested==='preview')setSection(requested);const player=query.get('player'),quarter=Number(query.get('period'));if(player&&/^\d{1,12}$/.test(player)){setSelectedPlayer(player);setSection('stats');if(Number.isInteger(quarter)&&quarter>=1&&quarter<=20)setPeriod(quarter);}},0);return()=>clearTimeout(timer);},[]);
  
  const [feed,setFeed]=useState<BoxFeed|null>(initialFeed),[failed,setFailed]=useState(false),[now,setNow]=useState(()=>Date.now());
  useEffect(()=>{
@@ -46,7 +49,7 @@ export default function LiveBoxscore({match,initialFeed=null,onHistorical,onPlay
  },[match.id]);
  const age=feed?.fetchedAt?now-Date.parse(feed.fetchedAt):Infinity,data=age>=-5000&&age<300000&&feed?.data?.game.nbaId===match.id?feed.data:null,stale=failed||feed?.status!=='ready'||age>90000;
  const pending=match.status===1&&!liveStarted&&!data;
- const navigation=pending?<div className="segmented live-tracking-tabs" aria-label="Seguimiento del partido"><button className="selected" aria-pressed="true">Previa</button><button disabled title="Disponibles cuando comience el partido">Estad&iacute;sticas</button><button disabled title="Disponibles cuando comience el partido">Jugadas</button></div>:<div className="segmented live-tracking-tabs" aria-label="Seguimiento del partido">{([['summary','Resumen'],['stats','Estadísticas'],['plays','Jugadas'],['preview','Previa']] as const).map(([id,label])=><button key={id} className={section===id?'selected':''} aria-pressed={section===id} onClick={()=>setSection(id)}>{label}</button>)}</div>;
+ const navigation=pending?<div className="segmented live-tracking-tabs" aria-label="Seguimiento del partido"><button className="selected" aria-pressed="true">Previa</button><button disabled title="Disponibles cuando comience el partido">Estad&iacute;sticas</button><button disabled title="Disponibles cuando comience el partido">Jugadas</button></div>:<div className="segmented live-tracking-tabs" aria-label="Seguimiento del partido">{([['summary','Resumen'],['stats','Estadísticas'],['plays','Jugadas'],['following','Mis jugadores'],['preview','Previa']] as const).map(([id,label])=><button key={id} className={section===id?'selected':''} aria-pressed={section===id} onClick={()=>setSection(id)}>{label}</button>)}</div>;
  const tracker=<ExplorerLineTracker match={match} identities={identities} live={{data,stale,fetchedAt:feed?.fetchedAt??null}}/>;
  if(section==='preview'||match.status===1&&!liveStarted&&!data)return <section className="live-boxscore prematch-workspace">{navigation}{tracker}<MatchPreview match={match} pending={match.status===1&&!liveStarted&&!data} onHistorical={onHistorical} onPlayers={onPlayers}/></section>;
  if(!data)return <>{navigation}{tracker}<section className="card live-box-empty" aria-label="Estadísticas del partido en vivo"><h2>Estadísticas del partido</h2><p role="status">{!feed&&!failed?'Consultando las estadísticas de ambos equipos…':'Todavía no hay estadísticas verificadas disponibles para este partido. Se reintentará automáticamente.'}</p></section></>;
@@ -56,16 +59,18 @@ export default function LiveBoxscore({match,initialFeed=null,onHistorical,onPlay
  const columns:readonly StatField[]=tablePeriod!==null?(expanded?['points','rebounds','assists','fieldGoals','threes','freeThrows']:['points','rebounds','assists']):section==='summary'?['points','rebounds','assists','minutes']:section==='stats'&&expanded?fields:compactFields;
  const resting=/entretiempo|descanso|fin del/i.test(game.detail);
  const unavailableCourt=game.state==='final'?'Finalizado':stale?'Sin confirmar':resting?'En descanso':'Sin confirmar';
+ const closePlayer=()=>{setSelectedPlayer(null);const url=new URL(window.location.href);if(url.searchParams.has('player')){url.searchParams.delete('player');url.searchParams.delete('period');window.history.replaceState(window.history.state,'',url);}};
  const selectedTeam=data.teams.find(t=>t.players.some(p=>p.id===selectedPlayer));
  const person=selectedTeam?.players.find(p=>p.id===selectedPlayer);
  return <section className="live-boxscore" aria-label="Estadísticas del partido en vivo">
   {navigation}
   {tracker}
   {game.state==='final'&&<ShareMatchResult data={data}/>}
-  {person&&selectedTeam&&<MatchPlayerSheet key={person.id} data={data} person={person} initialPeriod={tablePeriod} team={selectedTeam.code} status={person.didNotPlay&&game.state==='final'?'No participó':courtKnown(selectedTeam,game.state,stale)?person.onCourt?'En cancha':'Banco':unavailableCourt} profileId={nbaPlayerId(person.name,identities)} followKey={livePlayerKey(person,identities)} onClose={()=>setSelectedPlayer(null)} onCompare={onCompare&&((id)=>{setSelectedPlayer(null);onCompare(id);})}/>}
+  {person&&selectedTeam&&<MatchPlayerSheet key={person.id} data={data} person={person} initialPeriod={period!==null&&period<=matchPeriodCount(data)?period:null} onPlay={id=>{closePlayer();setFocusedPlay(id);setSection('plays');}} team={selectedTeam.code} status={person.didNotPlay&&game.state==='final'?'No participó':courtKnown(selectedTeam,game.state,stale)?person.onCourt?'En cancha':'Banco':unavailableCourt} profileId={nbaPlayerId(person.name,identities)} followKey={livePlayerKey(person,identities)} onClose={closePlayer} onCompare={onCompare&&((id)=>{closePlayer();onCompare(id);})}/>}
   
-  {section==='summary'&&<LiveFollowing games={[data]} fresh={!stale} competition={match.competition} identities={identities}/>}
-  {section==='plays'?<LivePlays data={data}/>:<div className={'live-game-layout '+(section==='summary'?'is-overview':'is-boxscore')}>
+  <MatchPlayerAlerts key={game.id} data={data} fresh={!stale}/>
+  {(section==='summary'||section==='following')&&<LiveFollowing games={[data]} fresh={!stale} competition={match.competition} identities={identities} onOpen={id=>{setPeriod(null);setSelectedPlayer(id);}}/>}
+  {section==='following'?null:section==='plays'?<LivePlays data={data} focusedPlay={focusedPlay} onPlayer={(id,quarter)=>{setPeriod(quarter);setSelectedPlayer(id);}}/>:<div className={'live-game-layout '+(section==='summary'?'is-overview':'is-boxscore')}>
    {section==='summary'&&<aside className="live-game-timeline"><LiveRecent data={data} onFull={()=>setSection('plays')}/></aside>}
    <div className="live-game-main">{section==='summary'&&<div className="live-game-top"><ScoreEvolution data={data}/><LiveSummary data={data} compact/><div className="live-box-leaders">{data.teams.map(t=><LiveLeader key={t.code} team={t}/>)}</div></div>}
   {section==='stats'&&<><div className="segmented match-periods" aria-label="Cuarto de las estadísticas">{[null,...Array.from({length:matchPeriodCount(data)},(_,i)=>i+1)].map(value=><button key={value??'all'} type="button" className={value===period?'selected':''} aria-pressed={value===period} onClick={()=>setPeriod(value)}>{periodLabel(value)}</button>)}</div><MatchLeaders period={tablePeriod} teams={tableTeams} onOpen={setSelectedPlayer}/>{tablePeriod!==null&&<small className="muted">— indica una estadística sin confirmar para este cuarto.</small>}</> }
@@ -90,7 +95,8 @@ function LiveSummary({data,compact=false}:{data:BoxData;compact?:boolean}){
  const totals=data.teams.map(t=>['rebounds','turnovers'].map(key=>t.players.reduce((sum,p)=>sum+(p[key as 'rebounds']??0),0)));
  return <><section className="card live-summary"><h3>Marcador por cuartos</h3>{count>0?<div className="table-scroll"><table className="history"><thead><tr><th>Equipo</th>{Array.from({length:count},(_,i)=><th key={i}>{i<4?'C'+(i+1):'TE'+(i-3)}</th>)}<th>Total</th></tr></thead><tbody>{data.teams.map(t=><tr key={t.code}><th><TeamLogo team={t.code} size={24}/>{t.code}</th>{Array.from({length:count},(_,i)=><td key={i}>{periods.find(p=>p.team===t.code)?.scores[i]??'—'}</td>)}<td>{t.score}</td></tr>)}</tbody></table></div>:<p>Los parciales todavía no están publicados por la fuente.</p>}</section><section className="card live-comparison"><h3 className="live-comparison-title">Comparativa de equipos</h3><div className="live-rate-comparison">{['Tiros de campo','Triples','Tiros libres','Rebotes','Pérdidas'].map((label,i)=>({label,i})).filter(({i})=>!compact||[0,3,4].includes(i)).map(({label,i})=>{const a=i<3?rates[0][i]:totals[0][i-3],b=i<3?rates[1][i]:totals[1][i-3],max=Math.max(a??0,b??0,1);return <div key={label}><strong>{data.teams[0].code} · {a===null?'—':a+(i<3?'%':'')}<meter min={0} max={i<3?100:max} value={a??0} aria-label={data.teams[0].code+' '+label}/></strong><span>{label}</span><strong>{data.teams[1].code} · {b===null?'—':b+(i<3?'%':'')}<meter min={0} max={i<3?100:max} value={b??0} aria-label={data.teams[1].code+' '+label}/></strong></div>;})}</div></section></>;
 }
-function LivePlays({data,compact=false}:{data:BoxData;compact?:boolean}){
+function LivePlays({data,compact=false,focusedPlay,onPlayer}:{data:BoxData;compact?:boolean;focusedPlay:string|null;onPlayer:(id:string,period:number)=>void}){
+ useEffect(()=>{if(!focusedPlay)return;const row=document.getElementById('match-play-'+focusedPlay);row?.scrollIntoView({block:'center'});row?.focus({preventScroll:true});},[focusedPlay]);
  const all=data.context?.plays??[];
  const start=compact?Math.max(0,all.length-12):0;
  const byPeriod=new Map<number,Array<{play:typeof all[number];scoring:boolean}>>();
@@ -101,8 +107,10 @@ function LivePlays({data,compact=false}:{data:BoxData;compact?:boolean}){
   events.push({play,scoring});
   byPeriod.set(play.period,events);
  }
+ const targetPeriod=all.find(p=>p.id===focusedPlay)?.period;
+ const shotIds=new Set(data.teams.flatMap(t=>t.players.flatMap(p=>playerShots(all,p.id,null).map(s=>s.id))));
  const periods=[...byPeriod.keys()].sort((a,b)=>a-b);
- return <section className="card live-play-feed"><h3>{compact?'Últimas jugadas':'Jugada a jugada'}</h3>{!byPeriod.size?<p>La fuente todavía no publicó las jugadas de este partido.</p>:periods.map(period=><details key={period} open={data.game.state==='live'&&period===data.game.period}><summary className="quarter-heading"><svg className="quarter-toggle" width="14" height="18" viewBox="0 0 14 18" fill="none" aria-hidden="true"><path d="m4 6 3-3 3 3m-6 6 3 3 3-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg><span className="quarter-title">{period<=4?'Cuarto '+period:'Tiempo extra '+(period-4)}</span>{data.teams.map(t=><span className="quarter-team" key={t.code}><TeamLogo team={t.code} size={24}/><span className="quarter-team-name">{t.name}</span><span className="quarter-team-code">{t.code}</span><b>{data.context?.periods.find(q=>q.team===t.code)?.scores[period-1]??'—'}</b></span>)}</summary><ol>{byPeriod.get(period)?.map(({play:p,scoring})=><li key={p.id} className={scoring?'is-scoring':''}><time>{p.clock}</time>{p.team?<TeamLogo team={p.team} size={24}/>:<span/>}<span>{p.text}</span><strong>{p.awayScore}–{p.homeScore}</strong></li>)}</ol></details>)}</section>;
+ return <section className="card live-play-feed"><h3>{compact?'Últimas jugadas':'Jugada a jugada'}</h3>{!byPeriod.size?<p>La fuente todavía no publicó las jugadas de este partido.</p>:periods.map(period=><details key={period} open={period===targetPeriod||(data.game.state==='live'&&period===data.game.period)}><summary className="quarter-heading"><svg className="quarter-toggle" width="14" height="18" viewBox="0 0 14 18" fill="none" aria-hidden="true"><path d="m4 6 3-3 3 3m-6 6 3 3 3-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg><span className="quarter-title">{period<=4?'Cuarto '+period:'Tiempo extra '+(period-4)}</span>{data.teams.map(t=><span className="quarter-team" key={t.code}><TeamLogo team={t.code} size={24}/><span className="quarter-team-name">{t.name}</span><span className="quarter-team-code">{t.code}</span><b>{data.context?.periods.find(q=>q.team===t.code)?.scores[period-1]??'—'}</b></span>)}</summary><ol>{byPeriod.get(period)?.map(({play:p,scoring})=><li key={p.id} id={'match-play-'+p.id} tabIndex={p.id===focusedPlay?-1:undefined} className={(scoring?'is-scoring ':'')+(p.id===focusedPlay?'is-focused-play':'')}><time>{p.clock}</time>{p.team?<TeamLogo team={p.team} size={24}/>:<span/>}<span>{p.athleteId&&shotIds.has(p.id)?<button className="match-play-player" type="button" onClick={()=>onPlayer(p.athleteId!,p.period)}>{p.text}</button>:p.text}</span><strong>{p.awayScore}–{p.homeScore}</strong></li>)}</ol></details>)}</section>;
 }
 
 function LiveRecent({data,onFull}:{data:BoxData;onFull:()=>void}){
