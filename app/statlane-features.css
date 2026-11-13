@@ -172,3 +172,19 @@
 }
 html:has(.live-score-dock) { scroll-padding-bottom: calc(88px + env(safe-area-inset-bottom)); }
 html:has(.live-score-dock.is-collapsed) { scroll-padding-bottom: calc(48px + env(safe-area-inset-bottom)); }
+ 
+.sl-share-dialog[open] { align-items: center; }
+.sl-share-preview { background: var(--soft); min-height: 160px; }
+.sl-share-preview canvas[hidden] { display: none; }
+.sl-share-preview canvas { width: auto; height: auto; max-width: 100%; max-height: 76dvh; }
+.sl-share-preview p { color: var(--muted); padding: 18px; }
+.sl-share-setting { display: grid; gap: 6px; margin: 14px 0; font-size: 13px; color: var(--muted); }
+.sl-share-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.sl-share-actions .button { display: flex; align-items: center; justify-content: center; gap: 7px; min-height: 44px; text-align: center; }
+.sl-share-actions .sl-share-download { grid-column: 1 / -1; }
+.sl-share-options .sl-share-message { min-height: 20px; margin: 9px 0 0; }
+.sl-share-options > label { margin: 16px 0; }
+.sl-share-options textarea { min-height: 95px; width: 100%; }
+@media (max-width: 760px) {
+ .sl-share-preview canvas { max-height: 43dvh; }
+}

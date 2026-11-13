@@ -1,17 +1,32 @@
 'use client';
-import {useEffect,useRef,useState} from 'react';
-import {Download,Share2,X,Copy} from 'lucide-react';
-import type {BoxData} from '../lib/live-boxscore';
-import {nbaPlayerId} from '../lib/player-identity';
-import {drawPerformanceCard,type CardFormat,type CardPlayer} from '../lib/performance-card';
-export default function SharePerformance({person,team,data}:{person:CardPlayer;team:string;data:BoxData}){
- const [open,setOpen]=useState(false),[format,setFormat]=useState<CardFormat>('square'),[light,setLight]=useState(false),[message,setMessage]=useState(''),[ready,setReady]=useState(false),canvas=useRef<HTMLCanvasElement>(null),portrait=useRef<{id:string;image:HTMLImageElement}|null>(null),dialog=useRef<HTMLDialogElement>(null),trigger=useRef<HTMLButtonElement>(null);
- const text=person.name+': '+(person.points??'—')+' PTS, '+(person.rebounds??'—')+' REB y '+(person.assists??'—')+' AST. '+data.game.away+' '+data.game.awayScore+' - '+data.game.homeScore+' '+data.game.home+'. '+data.game.detail+'. Statlane.';
- useEffect(()=>{if(!open)return;dialog.current?.showModal();return()=>{dialog.current?.close();trigger.current?.focus();};},[open]);
- useEffect(()=>{if(!open||!canvas.current)return;let active=true;const target=canvas.current;
- const draw=(image?:HTMLImageElement)=>{if(active)drawPerformanceCard(target,format,light,person,team,data.game,image);};
- const id=nbaPlayerId(person.name);draw(portrait.current?.id===id?portrait.current.image:undefined);if(id&&portrait.current?.id!==id){const img=new Image();img.crossOrigin='anonymous';img.onload=()=>{if(active){portrait.current={id,image:img};draw(img);setReady(true);}};img.onerror=()=>{if(active){draw();setReady(true);}};img.src='/api/nba/headshot/'+id;}else queueMicrotask(()=>{if(active)setReady(true);});return()=>{active=false;};
- },[open,format,light,person,data,team]);
- function download(){const c=canvas.current;if(!c)return;try{c.toBlob(blob=>{if(!blob){setMessage('No pudimos crear la imagen.');return;}const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='statlane-'+person.name.toLowerCase().replace(/[^a-z0-9]+/g,'-')+'.png';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);setMessage('Imagen descargada.');},'image/png');}catch{setMessage('No pudimos exportar la imagen. Probá nuevamente.');}}
- return <><button ref={trigger} className="icon sl-share-trigger" title="Compartir actuación" aria-label={'Compartir actuación de '+person.name} onClick={()=>{setReady(false);setMessage('');setOpen(true);}}><Share2 size={19}/></button>{open&&<dialog ref={dialog} className="sl-share-dialog" aria-labelledby="sl-share-title" onCancel={()=>setOpen(false)} onClick={e=>{if(e.target===dialog.current){const r=dialog.current.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)setOpen(false);}}}><button className="icon sl-dialog-close" aria-label="Cerrar tarjeta para compartir" onClick={()=>setOpen(false)}><X/></button><div className="sl-share-preview"><canvas ref={canvas} aria-label={'Tarjeta de estadísticas de '+person.name}/></div><div className="sl-share-options"><h2 id="sl-share-title">Compartir actuación</h2><p>Formato de la imagen</p><div className="segmented">{([['square','Cuadrada'],['vertical','Vertical'],['wide','Horizontal']] as const).map(([key,label])=><button key={key} className={format===key?'selected':''} aria-pressed={format===key} onClick={()=>{if(format!==key){setReady(false);setFormat(key);}}}>{label}</button>)}</div><p>Tema</p><div className="segmented"><button className={!light?'selected':''} aria-pressed={!light} onClick={()=>{if(light){setReady(false);setLight(false);}}}>Oscuro</button><button className={light?'selected':''} aria-pressed={light} onClick={()=>{if(!light){setReady(false);setLight(true);}}}>Claro</button></div><label>Texto del post<textarea readOnly value={text}/></label><button className="button" disabled={!ready} onClick={download}><Download size={18}/>Descargar imagen</button><button className="button subtle" onClick={()=>navigator.clipboard.writeText(text).then(()=>setMessage('Texto copiado.')).catch(()=>setMessage('Seleccioná el texto para copiarlo.'))}><Copy size={18}/>Copiar texto</button><p role="status">{message}</p></div></dialog>}</>;
+
+import { useCallback, useState } from 'react';
+import { Share2 } from 'lucide-react';
+import type { BoxData } from '../lib/live-boxscore';
+import { nbaPlayerId } from '../lib/player-identity';
+import { drawSocialCard, matchCardLink, type CardFormat, type CardPlayer } from '../lib/performance-card';
+import { teamLogoUrl } from '../lib/team-logo-url';
+import ShareCardDialog from './share-card-dialog';
+
+export default function SharePerformance({ person, team, data }: { person: CardPlayer; team: string; data: BoxData }) {
+ const [open, setOpen] = useState(false);
+ const { game } = data;
+ const id = open ? nbaPlayerId(person.name) : null;
+ const draw = useCallback((canvas: HTMLCanvasElement, format: CardFormat, light: boolean, images: Record<string, HTMLImageElement | undefined>) => {
+  drawSocialCard(canvas, format, light, { kind: 'player', player: person, team, game }, images);
+ }, [person, team, game]);
+ const title = 'Compartir actuación';
+ const label = title + ' de ' + person.name;
+ const score = game.away + ' ' + (game.awayScore ?? '—') + ' - ' + (game.homeScore ?? '—') + ' ' + game.home;
+ const stats = person.didNotPlay ? 'No participó' : (person.points ?? '—') + ' PTS · ' + (person.rebounds ?? '—') + ' REB · ' + (person.assists ?? '—') + ' AST';
+ const base = matchCardLink(game);
+
+ return <>
+  <button type="button" className="icon sl-share-trigger" title={title} aria-label={label} aria-haspopup="dialog" onClick={() => setOpen(true)}><Share2 size={19}/></button>
+  {open && <ShareCardDialog title={title} triggerLabel={'Tarjeta de ' + person.name} text={person.name + ' · ' + team + '\n' + stats + '\n' + score + ' · ' + (game.state === 'final' ? 'Final' : game.detail)}
+   path={base ? base + '&liveSection=stats&player=' + person.id : null}
+   filename={'statlane-' + person.name.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().replace(/[^a-z0-9]+/g, '-')}
+   assets={{ portrait: id ? '/api/nba/headshot/' + id : '', [team]: teamLogoUrl(team) }}
+   draw={draw} onClose={() => setOpen(false)}/>}
+ </>;
 }
