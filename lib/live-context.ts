@@ -1,7 +1,8 @@
 import {z} from 'zod';
+import {classifyShot} from './match-player-shots';
 const score=z.number().int().min(0).max(300);
 const athleteId=z.string().regex(/^\d{1,12}$/);
-export const liveContextSchema=z.object({periods:z.array(z.object({team:z.string().max(4),scores:z.array(score).max(20)})).max(2),plays:z.array(z.object({id:z.string().max(40),text:z.string().max(600),period:z.number().int().min(1).max(20),clock:z.string().max(20),awayScore:score,homeScore:score,team:z.string().max(4).nullable(),athleteId:athleteId.nullable().optional(),pointsAdded:z.number().int().min(0).max(4).optional(),shotLocation:z.object({x:z.number().min(0).max(50),y:z.number().min(0).max(40)}).nullable().optional()})).max(1500)});
+export const liveContextSchema=z.object({periods:z.array(z.object({team:z.string().max(4),scores:z.array(score).max(20)})).max(2),plays:z.array(z.object({id:z.string().max(40),text:z.string().max(600),period:z.number().int().min(1).max(20),clock:z.string().max(20),awayScore:score,homeScore:score,team:z.string().max(4).nullable(),athleteId:athleteId.nullable().optional(),pointsAdded:z.number().int().min(0).max(4).optional(),shot:z.object({made:z.boolean(),value:z.union([z.literal(1),z.literal(2),z.literal(3)])}).nullable().optional(),shotLocation:z.object({x:z.number().min(0).max(50),y:z.number().min(0).max(40)}).nullable().optional()})).max(1500)});
 export function normalizeLiveContext(raw:unknown,away:string,home:string){
  const r=raw as {header?:{competitions?:{competitors?:unknown[]}[]};plays?:unknown[]};
  const competitors=z.array(z.object({id:z.string(),team:z.object({abbreviation:z.string()}),linescores:z.array(z.object({displayValue:z.string()})).max(20).optional()})).safeParse(r.header?.competitions?.[0]?.competitors);
@@ -15,7 +16,9 @@ export function normalizeLiveContext(raw:unknown,away:string,home:string){
  const distance=/(\d+)-foot/.exec(q.text);
  // Only publish a shot location when its source coordinates agree with the stated distance from the basket.
  const shotLocation=extras.success&&extras.data.shootingPlay&&coordinate?.success&&distance&&Math.abs(Math.hypot(coordinate.data.x-25,coordinate.data.y)-Number(distance[1]))<=3?coordinate.data:null;
- return [{id:q.id,text:q.text,period:q.period.number,clock:q.clock.displayValue,awayScore:q.awayScore,homeScore:q.homeScore,team:teams.find(t=>t.id===q.team?.id)?.code??null,shotLocation,athleteId:extras.success?extras.data.participants?.[0]?.athlete.id??null:null,pointsAdded:extras.success&&extras.data.scoringPlay?extras.data.scoreValue??0:0}];
+ const pointsAdded=extras.success&&extras.data.scoringPlay?extras.data.scoreValue??0:0;
+ const shot=classifyShot(q.text,extras.success?extras.data.shootingPlay:undefined,pointsAdded);
+ return [{shot,id:q.id,text:q.text,period:q.period.number,clock:q.clock.displayValue,awayScore:q.awayScore,homeScore:q.homeScore,team:teams.find(t=>t.id===q.team?.id)?.code??null,shotLocation,athleteId:extras.success?extras.data.participants?.[0]?.athlete.id??null:null,pointsAdded}];
  });
  const result=liveContextSchema.safeParse({periods,plays:Array.from(new Map(plays.map(p=>[p.id,p])).values())});return result.success?result.data:{periods:[],plays:[]};
 }

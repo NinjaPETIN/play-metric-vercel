@@ -1,0 +1,74 @@
+.live-box-name.match-player-trigger {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: .22em;
+  text-decoration-color: var(--muted);
+}
+.match-player-sheet {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: min(540px, calc(100% - 32px));
+  max-height: 90dvh;
+  padding: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  color: var(--text);
+  background: var(--panel, Canvas);
+}
+html:has(.match-player-sheet[open]) { overflow: hidden; }
+.match-player-sheet::backdrop { background: rgb(5 10 20 / .72); }
+.match-player-sheet-content { padding: 22px; }
+.match-player-sheet header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  gap: 12px;
+  align-items: start;
+}
+.match-player-sheet header .live-box-portrait { width: 66px; height: 66px; }
+.match-player-sheet h2 { margin: 0; font-size: clamp(19px, 4vw, 25px); }
+.match-player-sheet header p {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+.match-player-sheet-actions { display: flex; gap: 8px; margin-top: 12px; }
+.match-player-periods { display: flex; margin: 18px 0 12px; overflow-x: auto; }
+.match-player-periods button { flex: 1 0 auto; min-height: 40px; }
+.match-player-court { margin: 0 0 16px; text-align: center; }
+.match-player-court svg {
+  display: block;
+  width: 100%;
+  height: min(310px, 36dvh);
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--soft);
+}
+.match-player-court-lines { fill: none; stroke: var(--muted); stroke-width: .22; }
+.match-shot-made { fill: var(--arena-mint, #087f65); }
+.match-shot-missed { fill: none; stroke: #df596f; stroke-width: .45; stroke-linecap: round; }
+.match-player-court figcaption { margin-top: 8px; color: var(--muted); font-size: 12px; }
+.match-player-court figcaption span + span { margin-left: 14px; }
+.shot-made-label { color: var(--arena-mint, #087f65); }
+.shot-missed-label { color: #df596f; }
+.match-player-sheet h3 { margin: 0 0 8px; font-size: 17px; }
+.match-player-sheet dl { margin: 0; }
+.match-player-sheet dl div { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.match-player-sheet dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
+@media (max-width: 600px) {
+  .match-player-sheet { inset: auto 0 0; margin: 0; width: 100%; max-width: 100%; border-radius: 22px 22px 0 0; }
+  .match-player-sheet-content { padding: 16px 16px max(16px, env(safe-area-inset-bottom)); }
+  .match-player-sheet header { gap: 7px; }
+}

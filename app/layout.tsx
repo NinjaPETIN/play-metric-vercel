@@ -8,6 +8,7 @@ import './workspace.css';
 import './catalog.css';
 import './arena.css';
 import './statlane.css';
+import './match-player-sheet.css';
 import './statlane-features.css';
 import {WorkspaceTheme} from '../components/workspace-theme';
 export const dynamic='force-dynamic';
