@@ -4,6 +4,7 @@ import {useEffect,useId,useRef,useState} from 'react';
 import Link from 'next/link';
 import {X} from 'lucide-react';
 import type {BoxData} from '../lib/live-boxscore';
+import {matchPeriodCount,periodStats,periodLabel} from '../lib/match-period-stats';
 import {playerShots} from '../lib/match-player-shots';
 import Portrait from './match-player-portrait';
 import TeamLogo from './team-logo';
@@ -23,43 +24,30 @@ function subtract(total: Attempts | null, part: Attempts | null): Attempts | nul
  return made >= 0 && attempted >= made ? [made,attempted] : null;
 }
 
-function tally(shots: ReturnType<typeof playerShots>, value?: number): Attempts {
- const attempts = shots.filter(({shot}) => value === undefined ? shot.value > 1 : shot.value === value);
- return [attempts.filter(({shot}) => shot.made).length, attempts.length];
-}
-
-export default function MatchPlayerSheet({data,person,team,status,profileId,followKey,onCompare,onClose}: {
+export default function MatchPlayerSheet({data,person,team,status,profileId,followKey,onCompare,onClose,initialPeriod=null}: {
  data: BoxData; person: Person; team: string; status: string; profileId: string | null;
- followKey: string; onCompare?: (id: string) => void; onClose: () => void;
+ followKey: string; initialPeriod?:number|null; onCompare?: (id: string) => void; onClose: () => void;
 }) {
  const dialog = useRef<HTMLDialogElement>(null);
  const title = useId();
- const [quarter,setQuarter] = useState<number | null>(null);
+ const [quarter,setQuarter] = useState<number | null>(initialPeriod);
  useEffect(() => {
   const sheet = dialog.current;
   sheet?.showModal();
   return () => {sheet?.close();};
  },[]);
  const plays = data.context?.plays ?? [];
- const periods = Math.max(data.game.period,...plays.map(p=>p.period),...(data.context?.periods??[]).map(p=>p.scores.length));
+ const periods = matchPeriodCount(data);
  const shots = playerShots(plays,person.id,null);
  const selected = quarter === null ? shots : shots.filter(p=>p.period===quarter);
  const marks = selected.filter(p=>p.shot.value>1 && p.shotLocation);
- const periodAvailable = quarter !== null && plays.some(play=>play.period===quarter);
- const confirmedTally = (value: string | null, type?: number) => {
-  const recorded = pair(value);
-  if (quarter === null) return recorded;
-  const observed = tally(shots,type);
-  return periodAvailable && recorded?.[0] === observed[0] && recorded?.[1] === observed[1] ? tally(selected,type) : null;
- };
- const fg = confirmedTally(person.fieldGoals);
- const threes = confirmedTally(person.threes,3);
- const ft = confirmedTally(person.freeThrows,1);
- const scored = (attempts: typeof shots) => attempts.reduce((sum,{shot})=>sum+(shot.made?shot.value:0),0);
- const points = quarter === null ? person.points : periodAvailable && scored(shots) === person.points ? scored(selected) : null;
+ const totals=quarter===null?person:periodStats(plays,person,quarter,team);
+ const fg=pair(totals.fieldGoals),threes=pair(totals.threes),ft=pair(totals.freeThrows);
+ const points=totals.points;
  const stats = [
   ['Puntos',points],
-  ...(quarter === null ? [['Minutos jugados',person.minutes],['Rebotes',person.rebounds],['Asistencias',person.assists]] : []),
+  ...(quarter === null ? [['Minutos jugados',person.minutes]] : []),
+  ['Rebotes',totals.rebounds],['Asistencias',totals.assists],
   ['Tiros de campo',fg?.join('/')],['Tiros de 2 puntos',subtract(fg,threes)?.join('/')],
   ['Triples',threes?.join('/')],['Tiros libres',ft?.join('/')],
  ];
@@ -80,7 +68,7 @@ export default function MatchPlayerSheet({data,person,team,status,profileId,foll
    <div className="segmented match-player-periods" aria-label="Período del partido">
     {[null,...Array.from({length:periods},(_,i)=>i+1)].map(period=><button type="button" key={period??'all'}
      className={quarter===period?'selected':''} aria-pressed={quarter===period} onClick={()=>setQuarter(period)}>
-     {period===null?'Todos':period<=4?'C'+period:'TE'+(period-4)}
+     {periodLabel(period)}
     </button>)}
    </div>
    <figure className="match-player-court">

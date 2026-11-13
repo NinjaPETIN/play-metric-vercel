@@ -42,3 +42,17 @@ html[data-theme] .app.editorial .live-game-main .live-box-compact-rows .live-sta
   .live-game-main .live-box-paired.live-box-compact-rows,
   .live-game-main .live-box-paired.live-box-compact-rows.is-stats.is-expanded { grid-template-columns: minmax(0, 1fr); }
 }
+.match-periods { display:flex; flex-wrap:wrap; width:fit-content; margin:12px 0; }
+.match-leaders { padding:14px; margin:12px 0; }
+.match-leaders header { display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; align-items:center; }
+.match-leaders h3 { margin:0; }
+.match-leaders ol { margin:10px 0 0; padding-left:24px; }
+.match-leaders li { border-top:1px solid var(--border); }
+.match-leaders li button { display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:10px; width:100%; padding:8px; text-align:left; color:inherit; background:transparent; border:0; cursor:pointer; }
+.match-leaders li button:hover { background:var(--soft); }
+.calendar-form .match-form-result { display:inline-flex; flex-direction:column; gap:3px; padding:5px 7px; margin:2px; border:1px solid var(--border); border-radius:6px; color:var(--text); }
+.match-form-result.win b { color:var(--arena-mint,#08765f); }
+.match-share-result { margin:12px 0; }
+.match-share-result summary { display:flex; width:fit-content; align-items:center; gap:8px; cursor:pointer; }
+.match-share-result > div { padding:14px; margin-top:8px; }
+.match-share-result .button { margin:4px; }
