@@ -1,0 +1,44 @@
+.match-team-record {
+  display: inline-block;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+.live-game-main .live-box-paired.live-box-compact-rows,
+.live-game-main .live-box-paired.live-box-compact-rows.is-stats.is-expanded {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+html[data-theme] .app.editorial .live-game-main .live-box-compact-rows.is-expanded table {
+  min-width: 590px;
+}
+html[data-theme] .app.editorial .live-game-main .live-box-compact-rows table :is(th, td) {
+  padding: 6px 7px;
+  font-size: 12px;
+  line-height: 1.3;
+  font-variant-numeric: tabular-nums;
+}
+html[data-theme] .app.editorial .live-game-main .live-box-compact-rows .live-stat-points {
+  font-size: 14px;
+  font-weight: 750;
+}
+.live-game-main .live-box-compact-rows .live-box-identity { white-space: nowrap; }
+.live-game-main .live-box-compact-rows .live-box-name {
+  max-width: 100%;
+  font-size: 13px;
+  text-decoration: none;
+}
+.live-game-main .live-box-compact-rows .live-box-name:hover,
+.live-game-main .live-box-compact-rows .live-box-name:focus-visible { text-decoration: underline; }
+.live-box-compact-rows .live-player-cell { gap: 6px; }
+.live-box-compact-rows .live-player-cell > div:first-of-type { flex: 1 1 auto; }
+.live-box-compact-rows .live-player-cell .live-box-portrait { width: 28px; height: 28px; flex-shrink: 0; }
+.live-box-compact-rows .live-player-cell .sl-player-tools { display: flex; gap: 2px; margin: 0; flex-shrink: 0; }
+.live-box-compact-rows .live-player-cell .sl-player-tools .icon { width: 26px; min-width: 26px; height: 28px; min-height: 28px; padding: 0; }
+.live-box-compact-rows .live-box-group th { background: var(--soft); }
+@media (max-width: 760px) {
+  .live-game-main .live-box-paired.live-box-compact-rows,
+  .live-game-main .live-box-paired.live-box-compact-rows.is-stats.is-expanded { grid-template-columns: minmax(0, 1fr); }
+}
