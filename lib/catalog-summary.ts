@@ -1,4 +1,4 @@
-import {analyze,value,type Market} from './analytics';
+import {summarizeGames,value,type Market} from './analytics';
 import type {Player} from './data';
 export const overviewMarkets=['points','rebounds','assists','threes'] as const;
 export type CatalogWindow={n:number;rate:number|null;average:number|null};
@@ -9,19 +9,25 @@ export const defaultCatalogOptions:CatalogOptions={market:'points',last:10,venue
 export function catalogHistory(p:Player,options:CatalogOptions){return p.games.filter(g=>g.played&&g.minutes>0&&(options.venue==='all'||g.home===(options.venue==='home'))&&(options.opponent==='all'||g.opponent===options.opponent)&&g.minutes>=options.minutes).sort((a,b)=>String(b.date??'').localeCompare(String(a.date??'')));}
 export function summarizeCatalogPlayer(p:Player,options=defaultCatalogOptions):Partial<Record<Market,CatalogStat>>{
  const history=catalogHistory(p,options);
- const games=history.slice(0,options.last||undefined);
+ const games=options.last?history.slice(0,options.last):history;
+ const previous=options.last?history.slice(options.last,options.last*2):[];
+ const opponent=options.opponent==='all'?history[0]?.opponent:options.opponent;
+ const rivalGames=opponent?history.filter(g=>g.opponent===opponent).slice(0,options.last||undefined):null;
+ const meanMinutes=(sample:typeof games)=>sample.reduce((sum,game)=>sum+game.minutes,0)/sample.length;
+ const recentMinutes=games.length?meanMinutes(games):null;
+ const previousMinutes=previous.length?meanMinutes(previous):null;
  return Object.fromEntries((options.market==='all'?overviewMarkets:[options.market]).map(m=>{
-  const line=Number.isFinite(p.lines?.[m])?p.lines[m]:null,a=analyze(games,m,line??0,options.side);
-  const windows=Object.fromEntries([5,10,20,0].map(size=>{const w=analyze(history.slice(0,size||undefined),m,line??0,options.side);return [size||'season',{n:w.n,average:w.average,rate:line===null?null:w.rate}];}));
+  const line=Number.isFinite(p.lines?.[m])?p.lines[m]:null,a=summarizeGames(games,m,line??0,options.side);
+  const windows=Object.fromEntries([5,10,20,0].map(size=>{const w=size===options.last?a:summarizeGames(size?history.slice(0,size):history,m,line??0,options.side);return [size||'season',{n:w.n,average:w.average,rate:line===null?null:w.rate}];}));
   // Public preview: bounded values for this statistic only, without dates or full game records.
   const recent=games.slice(0,30).map(g=>value(g,m)).reverse();
-  const opponent=options.opponent==='all'?history[0]?.opponent:options.opponent;
-  const against=opponent?analyze(history.filter(g=>g.opponent===opponent).slice(0,options.last||undefined),m,line??0,options.side):null;
+
+  const against=rivalGames?summarizeGames(rivalGames,m,line??0,options.side):null;
   const rival=against&&opponent?{opponent,n:against.n,rate:line===null?null:against.rate,average:against.average}:null;
-  const previous=options.last?history.slice(options.last,options.last*2):[],previousAnalysis=analyze(previous,m,line??0,options.side),meanMinutes=(sample:typeof games)=>sample.reduce((s,g)=>s+g.minutes,0)/sample.length;
+  const previousAnalysis=summarizeGames(previous,m,line??0,options.side);
   // Compare disjoint windows under identical filters; never infer the cause of a change.
-  const comparison=options.last&&a.n===options.last&&previousAnalysis.n===options.last&&a.average!==null&&previousAnalysis.average!==null?{recentN:a.n,previousN:previousAnalysis.n,averageDelta:a.average-previousAnalysis.average,minutesDelta:meanMinutes(games)-meanMinutes(previous),recentMinutes:meanMinutes(games),previousMinutes:meanMinutes(previous),from:games[games.length-1]?.date??null,through:games[0]?.date??null}:null;
-  return [m,{n:a.n,average:a.average,rate:line===null?null:a.rate,hits:line===null?null:a.hits,pushes:line===null?null:a.pushes,line,minutesAverage:games.length?meanMinutes(games):null,lastGameDate:history[0]?.date??null,comparison,windows,recent,rival}];
+  const comparison=options.last&&a.n===options.last&&previousAnalysis.n===options.last&&a.average!==null&&previousAnalysis.average!==null&&recentMinutes!==null&&previousMinutes!==null?{recentN:a.n,previousN:previousAnalysis.n,averageDelta:a.average-previousAnalysis.average,minutesDelta:recentMinutes-previousMinutes,recentMinutes,previousMinutes,from:games[games.length-1]?.date??null,through:games[0]?.date??null}:null;
+  return [m,{n:a.n,average:a.average,rate:line===null?null:a.rate,hits:line===null?null:a.hits,pushes:line===null?null:a.pushes,line,minutesAverage:recentMinutes,lastGameDate:history[0]?.date??null,comparison,windows,recent,rival}];
  }));
 }
 export function catalogStat(p:Player,market:Market,last:number,side:'over'|'under',filter:(p:Player)=>Player['games'],line:(p:Player,m:Market)=>number):CatalogStat{

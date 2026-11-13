@@ -3,8 +3,24 @@ export const markets={points:'Puntos',rebounds:'Rebotes',assists:'Asistencias',t
 export type Market=keyof typeof markets;
 export function value(g:Game,m:Market):number|null{if(m==='pa')return g.points+g.assists;if(m==='pr')return g.points+g.rebounds;if(m==='ra')return g.rebounds+g.assists;if(m==='pra')return g.points+g.rebounds+g.assists;if(m==='sb')return g.steals===undefined||g.blocks===undefined?null:g.steals+g.blocks;return g[m]??null;}
 export function analyze(games:Game[],market:Market,line:number,side:'over'|'under'='over'){
- const values=games.filter(g=>g.played&&g.minutes>0).map(g=>value(g,market)).filter((v):v is number=>v!==null);
- const sorted=[...values].sort((a,b)=>a-b),n=values.length;
- const pushes=values.filter(v=>v===line).length,hits=values.filter(v=>side==='over'?v>line:v<line).length;
- return {n,hits,pushes,misses:n-hits-pushes,rate:n?hits/n:null,average:n?values.reduce((a,b)=>a+b,0)/n:null,median:n?(sorted[Math.floor((n-1)/2)]+sorted[Math.floor(n/2)])/2:null};
+ const values:number[]=[];
+ const summary=summarizeGames(games,market,line,side,values);
+ values.sort((a,b)=>a-b);
+ const {n}=summary;
+ return {...summary,median:n?(values[Math.floor((n-1)/2)]+values[Math.floor(n/2)])/2:null};
+}
+
+export function summarizeGames(games:Game[],market:Market,line:number,side:'over'|'under'='over',values?:number[]){
+ let n=0,hits=0,pushes=0,sum=0;
+ for(const game of games){
+  if(!game.played||!(game.minutes>0))continue;
+  const stat=value(game,market);
+  if(stat===null)continue;
+  values?.push(stat);
+  n++;
+  sum+=stat;
+  if(stat===line)pushes++;
+  else if(side==='over'?stat>line:stat<line)hits++;
+ }
+ return {n,hits,pushes,misses:n-hits-pushes,rate:n?hits/n:null,average:n?sum/n:null};
 }
