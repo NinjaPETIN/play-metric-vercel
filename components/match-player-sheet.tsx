@@ -45,15 +45,18 @@ export default function MatchPlayerSheet({data,person,team,status,profileId,foll
  const shots = playerShots(plays,person.id,null);
  const selected = quarter === null ? shots : shots.filter(p=>p.period===quarter);
  const marks = selected.filter(p=>p.shot.value>1 && p.shotLocation);
- const complete = ([person.fieldGoals,person.threes,person.freeThrows] as const).every((value,index)=>{
+ const periodAvailable = quarter !== null && plays.some(play=>play.period===quarter);
+ const confirmedTally = (value: string | null, type?: number) => {
   const recorded = pair(value);
-  const observed = tally(shots,[undefined,3,1][index]);
-  return recorded?.[0] === observed[0] && recorded?.[1] === observed[1];
- });
- const fg = quarter === null ? pair(person.fieldGoals) : complete ? tally(selected) : null;
- const threes = quarter === null ? pair(person.threes) : complete ? tally(selected,3) : null;
- const ft = quarter === null ? pair(person.freeThrows) : complete ? tally(selected,1) : null;
- const points = quarter === null ? person.points : complete ? selected.reduce((sum,{shot})=>sum+(shot.made?shot.value:0),0) : null;
+  if (quarter === null) return recorded;
+  const observed = tally(shots,type);
+  return periodAvailable && recorded?.[0] === observed[0] && recorded?.[1] === observed[1] ? tally(selected,type) : null;
+ };
+ const fg = confirmedTally(person.fieldGoals);
+ const threes = confirmedTally(person.threes,3);
+ const ft = confirmedTally(person.freeThrows,1);
+ const scored = (attempts: typeof shots) => attempts.reduce((sum,{shot})=>sum+(shot.made?shot.value:0),0);
+ const points = quarter === null ? person.points : periodAvailable && scored(shots) === person.points ? scored(selected) : null;
  const stats = [
   ['Puntos',points],
   ...(quarter === null ? [['Minutos jugados',person.minutes],['Rebotes',person.rebounds],['Asistencias',person.assists]] : []),
@@ -96,7 +99,7 @@ export default function MatchPlayerSheet({data,person,team,status,profileId,foll
     <figcaption>{marks.length>0?<><span className="shot-made-label">● Convertido</span><span className="shot-missed-label">× Fallado</span></>:'Sin tiros con ubicación disponible'}</figcaption>
    </figure>
    <h3>{quarter===null?'Estadísticas del partido':'Estadísticas del período'}</h3>
-   {quarter!==null&&!complete&&<p className="muted">El registro de tiros todavía no coincide con el total del partido.</p>}
+   {quarter!==null&&(!fg||!threes||!ft||points===null)&&<p className="muted">Algunas estadísticas del período siguen sin confirmar.</p>}
    <dl>{stats.map(([label,value])=><div key={label}><dt>{label}</dt><dd>{value??'—'}</dd></div>)}</dl>
   </div>
  </dialog>;
