@@ -8,8 +8,8 @@ import { drawAnalysisCard } from '../lib/analysis-card';
 import ShareCardDialog from './share-card-dialog';
 
 type Props = {
- name: string; playerId: string; team: string; games: Game[]; market: Market;
- line: number; side: 'over' | 'under'; season: number; competition: string; filters: string; fetchedAt: string;
+ name: string; playerId: string; team: string; teamCode?: string; games: Game[]; market: Market;
+ line: number; side: 'over' | 'under'; season: number; competition: string; filters: string;
 };
 
 export default function ShareAnalysis(props: Props) {
