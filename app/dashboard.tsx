@@ -21,6 +21,7 @@ import ArenaHome from '../components/arena-home';
 import ShareAnalysis from '../components/share-analysis';
 import PlayerMatchupContext from '../components/player-matchup-context';
 import PlayerShootingProfile from '../components/player-shooting-profile';
+import ProfileAdvanced from '../components/profile-advanced';
 import DataFreshness from '../components/data-freshness';
 import BetaMetrics from '../components/beta-metrics';
 import {trackBeta} from '../lib/beta-events';
@@ -264,6 +265,7 @@ export default function Dashboard({user,initialLiveBox=null,initialMatch=null,in
     <PlayerMatchupContext games={currentGames} teamGames={data.teamGames??[]} opponent={f.opponent} opponentName={teamNames[f.opponent]??f.opponent} market={selected.m} line={currentLine} side={f.side}/>
     </div>
     <PlayerShootingProfile games={currentGames}/>
+    <ProfileAdvanced key={currentPlayer.id} id={currentPlayer.id} name={currentPlayer.name} games={currentGames} season={data.season} competition={competition} filtered={f.opponent!=='all'||f.venue!=='all'||f.minMinutes>0||historyScope==='all'}/>
     <StatContextCard games={currentGames} history={currentPlayer.games} market={selected.m} line={currentLine} side={f.side} following={favoriteIds.has(currentPlayer.id+':'+selected.m)} onFollow={()=>toggle(currentPlayer.id+':'+selected.m)}/>
 <PlayerHistory games={currentGames} market={selected.m} line={currentLine} side={f.side}/><details className="card comparison-card reference-comparison"><summary>Comparar líneas y contexto</summary><h3>Comparar líneas y contexto</h3><p className="muted">{markets[selected.m]} · {f.side==='over'?'Más de':'Menos de'} · mismos filtros</p><div className="table-scroll"><table className="history"><thead><tr><th>Línea</th><th>L5</th><th>L10</th><th>L20</th><th>{historyScope==='all'?'Historial':'Temporada'}</th></tr></thead><tbody>{Array.from(new Set([-2,-1,0,1,2].map(delta=>Math.max(0,currentLine+delta)))).map(threshold=><tr className={threshold===currentLine?'current-line':''} key={threshold}><td><button onClick={()=>setOverrides(o=>({...o,[currentPlayer.id+':'+selected.m]:threshold}))}>{num(threshold)} {threshold===currentLine?'· actual':''}</button></td>{[5,10,20,0].map(n=>{const a=analyze(n?gamesFor(currentPlayer).slice(0,n):gamesFor(currentPlayer),selected.m,threshold,f.side);return <td key={n} className={rateColor(a.rate)}>{pct(a.rate)} <small className="muted">{a.hits}/{a.n}</small></td>;})}</tr>)}</tbody></table></div><div className="venue-comparison">{[true,false].map(home=>{const a=analyze(currentPlayer.games.filter(g=>g.home===home&&(f.opponent==='all'||g.opponent===f.opponent)&&g.minutes>=f.minMinutes).slice(0,f.windowSize),selected.m,currentLine,f.side);return <div key={String(home)}><small>{home?'Local':'Visitante'}</small><b>{pct(a.rate)}</b><span>Prom. {num(a.average)} · {a.n} partidos</span></div>;})}</div></details>
     {f.opponent!=='all'&&<RivalSummary games={gamesFor(currentPlayer)} opponent={f.opponent}/>}

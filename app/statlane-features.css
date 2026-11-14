@@ -215,3 +215,6 @@ html:has(.live-score-dock.is-collapsed) { scroll-padding-bottom: calc(48px + env
 .profile-shooting-grid h4, .profile-shooting-grid small { font-size: .75rem; margin: 0; color: var(--muted); }
 .profile-shooting-grid strong { font-size: 1.5rem; }
 .profile-shooting-grid meter { width: 100%; accent-color: var(--brand); }
+.profile-advanced { margin: 16px 0; }
+.profile-advanced > summary { cursor: pointer; padding: 14px 17px; border: 1px solid var(--border); border-radius: 10px; background: var(--panel); font-weight: 700; }
+.profile-advanced > section { margin-top: 12px; }

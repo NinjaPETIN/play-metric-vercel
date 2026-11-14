@@ -51,6 +51,16 @@ export async function loadPlayerDashboard(id:string,season?:number,competition:C
  const games=merged.flatMap(p=>p.games).sort((a,b)=>b.date.localeCompare(a.date));const seen=new Set<string>();const unique=games.filter(g=>{const key=g.gameId??g.date;if(seen.has(key))return false;seen.add(key);return true;});
  const fetchedAt=metas.map(m=>m.fetchedAt).sort().at(-1)!;
  const registered=roster?.players.find(p=>p.id===id);
- const result=buildDashboard(merged.length?[{key:id,payload:JSON.stringify({...merged[0],games:unique}),traitsPayload:pointers.find(r=>r.key===snapshotKey(selected,competition))?.traitsPayload}]:registered?[{key:id,payload:JSON.stringify({...registered,id:Number(id),games:[]})}]:[],{prefix:'',fetchedAt,teamGames:[],source:chosen.some(r=>r.source==='nba_api+espn')?'nba_api+espn':'nba_api'},selected,seasons,competition,pointers[0]?.profilePayload?{[id]:JSON.parse(pointers[0].profilePayload)}:{},true,roster);
+ const selectedMeta=await db.all<{payload:string}>(sql`select payload from provider_cache where key=${snapshotKey(selected,competition)}`);
+ const completed=(selectedMeta[0] ? JSON.parse(selectedMeta[0].payload) as {teamGames?:TeamGame[]} : {}).teamGames??[];
+ const recentCounts=new Map<string,number>();
+ const recentGames=[...completed].sort((a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id)).filter(game=>{
+  const home=recentCounts.get(game.home)??0,away=recentCounts.get(game.away)??0;
+  if(home>=5&&away>=5)return false;
+  recentCounts.set(game.home,home+1);
+  recentCounts.set(game.away,away+1);
+  return true;
+ });
+ const result=buildDashboard(merged.length?[{key:id,payload:JSON.stringify({...merged[0],games:unique}),traitsPayload:pointers.find(r=>r.key===snapshotKey(selected,competition))?.traitsPayload}]:registered?[{key:id,payload:JSON.stringify({...registered,id:Number(id),games:[]})}]:[],{prefix:'',fetchedAt,teamGames:recentGames,source:chosen.some(r=>r.source==='nba_api+espn')?'nba_api+espn':'nba_api'},selected,seasons,competition,pointers[0]?.profilePayload?{[id]:JSON.parse(pointers[0].profilePayload)}:{},true,roster);
  return {...result,historyScope:allSeasons?'all':'season',historySeasons:allSeasons?seasons:[selected]};
 }
