@@ -17,7 +17,7 @@ async function readShots(game: Game, name: string) {
  if (matches.length !== 1) return [];
  const match = matches[0];
  const box = await cachedNbaRead('historical-espn-box:' + match.id, async () =>
-  normalizeLiveBoxscore(await readEspn('summary?event=' + match.id), match));
+  normalizeLiveBoxscore(await readEspn('summary?event=' + match.id), match, date));
  const candidates = box.teams.find(team => team.code === game.team)?.players.filter(player =>
   !player.didNotPlay && identityName(player.name) === identityName(name) && player.points === game.points);
  if (candidates?.length !== 1) return [];
