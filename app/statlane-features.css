@@ -265,3 +265,10 @@ html:has(.live-score-dock.is-collapsed) { scroll-padding-bottom: calc(48px + env
 .shot-zone-summary li { display:grid; gap:3px; border:1px solid var(--border); border-radius:8px; padding:8px; font-size:.73rem; }
 .shot-zone-summary li strong { font-size:.98rem; }
 .shot-zone-summary small { color:var(--muted); }
+.shot-court-filters { display:flex; flex-wrap:wrap; gap:6px; margin:8px 0; }
+.shot-court-filters button { border:1px solid var(--border); border-radius:7px; padding:5px 9px; color:var(--text); background:var(--soft); font-size:.76rem; }
+.shot-court-filters button[aria-pressed=true] { border-color:var(--brand); }
+.shot-dot { stroke:var(--panel); stroke-width:1.3; cursor:pointer; }
+.shot-dot:focus-visible { stroke:var(--text); stroke-width:3; }
+.shot-dot.made { fill:#30bf9d; }
+.shot-dot.missed { fill:#ef7588; }

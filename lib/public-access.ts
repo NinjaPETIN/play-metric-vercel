@@ -5,7 +5,7 @@ export const SAMPLE_PLAYER_ID='2544';
 export function samplePlayer(id:string|null|undefined,competition='regular'){return id===SAMPLE_PLAYER_ID&&competition==='regular';}
 export function publicRead(path:string[],url:string){
  const competition=new URL(url).searchParams.get('competition')??'regular';
- if(path[0]==='players'&&path[1])return path.length<=3&&samplePlayer(path[1],competition)&&(!path[2]||['profile','games','traits'].includes(path[2]));
+ if(path[0]==='players'&&path[1])return path.length<=3&&samplePlayer(path[1],competition)&&(!path[2]||['profile','games','traits','shot-map'].includes(path[2]));
  return (path[0]==='players'&&path.length===1)||(['teams','games'].includes(path[0])&&path.length<=2);
 }
 export function publicCatalog(data:any,options:CatalogOptions=defaultCatalogOptions){
