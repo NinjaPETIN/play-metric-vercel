@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { Copy, Download, Link, Share2, X } from 'lucide-react';
 import { cardSizes, type CardFormat } from '../lib/performance-card';
 
@@ -21,7 +21,7 @@ function loadImage(src: string) {
  });
 }
 
-export default function ShareCardDialog({ title, triggerLabel, text, path, filename, assets, draw, onClose }: {
+export default function ShareCardDialog({ title, triggerLabel, text, path, filename, assets, draw, onClose, controls }: {
  title: string;
  triggerLabel: string;
  text: string;
@@ -30,18 +30,21 @@ export default function ShareCardDialog({ title, triggerLabel, text, path, filen
  assets: Record<string, string>;
  draw: (canvas: HTMLCanvasElement, format: CardFormat, light: boolean, images: Record<string, HTMLImageElement | undefined>) => void;
  onClose: () => void;
+ controls?: ReactNode;
 }) {
  const [format, setFormat] = useState<CardFormat>('square');
  const [light, setLight] = useState(false);
  const [message, setMessage] = useState('');
- const [images, setImages] = useState<Record<string, HTMLImageElement | undefined> | null>(null);
- const [sharedFile, setSharedFile] = useState<File | null>(null);
+ const [loadedAssets, setImages] = useState<{ key: string; images: Record<string, HTMLImageElement | undefined> } | null>(null);
+ const [rendered, setSharedFile] = useState<{ file: File; draw: typeof draw; name: string; light: boolean } | null>(null);
  const dialog = useRef<HTMLDialogElement>(null);
  const canvas = useRef<HTMLCanvasElement>(null);
  const heading = useId();
  const assetsKey = JSON.stringify(assets);
+ const images = loadedAssets?.key === assetsKey ? loadedAssets.images : null;
  const [width, height] = cardSizes[format];
  const fileName = filename + '-' + format + '.png';
+ const sharedFile = images && rendered?.draw === draw && rendered.name === fileName && rendered.light === light ? rendered.file : null;
 
  useEffect(() => {
   const element = dialog.current;
@@ -58,7 +61,7 @@ export default function ShareCardDialog({ title, triggerLabel, text, path, filen
   const entries = Object.entries(JSON.parse(assetsKey) as Record<string, string>).filter(([, src]) => src);
   const fonts = Promise.allSettled([600, 700, 800].map(weight => document.fonts.load(weight + ' 36px Poppins')));
   Promise.all([fonts, Promise.all(entries.map(async ([key, src]) => [key, await loadImage(src)] as const))]).then(([, loaded]) => {
-   if (active) setImages(Object.fromEntries(loaded));
+   if (active) setImages({ key: assetsKey, images: Object.fromEntries(loaded) });
   });
   return () => { active = false; };
  }, [assetsKey]);
@@ -70,7 +73,7 @@ export default function ShareCardDialog({ title, triggerLabel, text, path, filen
    draw(canvas.current, format, light, images);
    canvas.current.toBlob(blob => {
     if (!active) return;
-    if (blob) setSharedFile(new File([blob], fileName, { type: 'image/png' }));
+    if (blob) setSharedFile({ file: new File([blob], fileName, { type: 'image/png' }), draw, name: fileName, light });
     else setMessage('No pudimos preparar la imagen.');
    }, 'image/png');
   } catch {
@@ -123,7 +126,7 @@ export default function ShareCardDialog({ title, triggerLabel, text, path, filen
    {!images && <p role="status">Preparando vista previa…</p>}
   </div>
   <div className="sl-share-options">
-   <h2 id={heading}>{title}</h2>
+   <h2 id={heading}>{title}</h2>{controls}
    <div className="sl-share-setting">
     <span>Formato · {width} × {height} px</span>
     <div className="segmented" role="group" aria-label="Formato de la imagen">

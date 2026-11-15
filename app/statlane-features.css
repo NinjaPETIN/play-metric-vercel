@@ -218,3 +218,5 @@ html:has(.live-score-dock.is-collapsed) { scroll-padding-bottom: calc(48px + env
 .profile-advanced { margin: 16px 0; }
 .profile-advanced > summary { cursor: pointer; padding: 14px 17px; border: 1px solid var(--border); border-radius: 10px; background: var(--panel); font-weight: 700; }
 .profile-advanced > section { margin-top: 12px; }
+.sl-share-setting select { max-width: 100%; display: block; margin-top: 6px; color: var(--text); background: var(--soft); padding: 7px 10px; border: 1px solid var(--border); border-radius: 7px; }
+.sl-share-setting button:disabled { opacity: .48; }
