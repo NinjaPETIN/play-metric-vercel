@@ -8,22 +8,24 @@ import { markets } from '../lib/analytics';
 import { dailyDate, dailyNumber, dailyPercent, drawDailyCard } from '../lib/daily-trends-card';
 import type { DefenseMetric } from '../lib/team-defense';
 import { playerPath } from '../lib/player-path';
+import { useReadingPreferences } from './reading-preferences';
 import TeamLogo from './team-logo';
 
 export default function DailyTrendsPanel({day}:{day:string}) {
+ const { reduced } = useReadingPreferences();
  const [open,setOpen]=useState(false);
  const [state,setState]=useState<{day:string;data:DailyTrends|null}|null>(null);
  const [market,setMarket]=useState<DefenseMetric>('points');
  const [status,setStatus]=useState('');
  const [busy,setBusy]=useState(false);
  useEffect(()=>{
-  if(!open) return;
+  if(!open||reduced) return;
   let active=true;
   void loadCachedData<DailyTrends>('/api/nba/daily-trends?day='+day)
    .then(data=>{if(active)setState({day,data});})
    .catch(()=>{if(active)setState({day,data:null});});
   return ()=>{active=false;};
- },[open,day]);
+ },[open,day,reduced]);
  const current=state?.day===day?state:null;
  const data=current?.data;
  const rows=data?.reports?.[market]??[];
@@ -52,6 +54,7 @@ export default function DailyTrendsPanel({day}:{day:string}) {
   finally {setBusy(false);}
  }
 
+ if(reduced) return null;
  return <details className="card daily-trends" onToggle={event=>setOpen(event.currentTarget.open)}>
   <summary>Tendencias de la jornada <time dateTime={day}>{dailyDate(day)}</time></summary>
   {open&&<>
@@ -63,12 +66,12 @@ export default function DailyTrendsPanel({day}:{day:string}) {
     {leader ? <>
      <article className="daily-leader">
       <div className="daily-leader-identity"><img src={'/api/nba/headshot/'+leader.id} alt="" width="140" height="105" onError={event=>{event.currentTarget.hidden=true;}}/><div><small>{data.games} partidos · {markets[market]}</small><h3><a href={playerPath(leader)}>{leader.name}</a></h3><span><TeamLogo team={leader.team} size={20}/> {leader.team} {leader.home?'vs.':'@'} {leader.opponent}</span></div></div>
-      <div className="daily-leader-result"><strong>{dailyPercent(leader.form)}</strong><span>{leader.form.hits}/{leader.form.n} · L20</span><small>Más de {dailyNumber.format(leader.line)} · Cruce {leader.grade??'—'}</small></div>
+      <div className="daily-leader-result"><strong>{leader.form.hits}/{leader.form.n} · {dailyPercent(leader.form)}</strong><span>L20</span><small>Más de {dailyNumber.format(leader.line)} · Cruce {leader.grade??'—'}</small></div>
       <Spark row={leader} large/>
      </article>
      <div className="table-scroll"><table className="daily-trends-table">
       <thead><tr><th>#</th><th>Jugador y referencia</th><th>Últimos 10</th><th>L20</th><th>Temporada</th><th>Vs. rival</th><th>Cruce</th></tr></thead>
-      <tbody>{rows.map((row,index)=><tr key={row.id}><td>{index+1}</td><th scope="row"><TeamLogo team={row.team} size={22}/> <a href={playerPath(row)}>{row.name}</a><small>{row.team} {row.home?'vs.':'@'} {row.opponent} · Más de {dailyNumber.format(row.line)}</small></th><td><Spark row={row}/></td>{[row.form,row.season,row.versus].map((sample,i)=><td key={i}><strong>{dailyPercent(sample)}</strong>{sample.n>0&&<small>{sample.hits}/{sample.n}</small>}</td>)}<td>{row.grade??'—'}</td></tr>)}</tbody>
+      <tbody>{rows.map((row,index)=><tr key={row.id}><td>{index+1}</td><th scope="row"><TeamLogo team={row.team} size={22}/> <a href={playerPath(row)}>{row.name}</a><small>{row.team} {row.home?'vs.':'@'} {row.opponent} · Más de {dailyNumber.format(row.line)}</small></th><td><Spark row={row}/></td>{[row.form,row.season,row.versus].map((sample,i)=><td key={i}><strong>{sample.n ? sample.hits+'/'+sample.n+' · ':''}{dailyPercent(sample)}</strong>{i===2&&sample.n>0&&sample.n<5&&<small>Muestra corta</small>}</td>)}<td>{row.grade&&row.defense?<details className="daily-grade-detail"><summary aria-label={'Nota del cruce de '+row.name+': '+row.grade}>{row.grade}</summary><small>{row.opponent} · {row.defense.rank}.º de {row.defense.teams} · {row.defense.games} partidos</small></details>:'—'}</td></tr>)}</tbody>
      </table></div>
     </>:<p>Sin jugadores con al menos 10 partidos válidos para esta estadística.</p>}
     <p className="daily-trends-note">Referencias de Statlane. Cada porcentaje corresponde al historial mostrado. La nota del cruce se basa en la defensa del rival.</p>

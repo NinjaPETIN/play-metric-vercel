@@ -303,3 +303,24 @@ html:has(.live-score-dock.is-collapsed) { scroll-padding-bottom: calc(48px + env
  .daily-leader .daily-spark { grid-column:1/-1; }
  .daily-leader-identity img { width:52px; }
 }
+
+.reading-controls { padding:12px; margin:10px 0; background:var(--panel); border:1px solid var(--border); border-radius:9px; color:var(--text); }
+.reading-controls summary { cursor:pointer; font-weight:700; }
+.reading-controls > div { display:grid; gap:8px; margin-top:10px; font-size:.82rem; }
+.reading-controls label { display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
+.reading-controls select { background:var(--soft); color:var(--text); max-width:100%; }
+.reading-controls p,.match-alert-actions span { color:var(--muted); }
+.reading-controls a { text-decoration:underline; }
+.reading-actions { display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+.match-alert-actions { margin:8px 0; }
+.profile-grade-detail { position:relative; }
+.profile-grade-detail summary { cursor:pointer; list-style:none; }
+.profile-grade-detail summary::-webkit-details-marker { display:none; }
+.profile-grade-detail[open] { display:grid; justify-items:end; gap:6px; }
+.profile-grade-detail p { font-size:.75rem; margin:0; }
+.reading-stats-only :is(.catalog-reference,.catalog-mobile-reference,.catalog-window-rates,.catalog-rate-track,.catalog-chart-cell,.props-table,.profile-analysis-metrics,.chart-legend,.range-summary,.line-control,.line-note,.reference-comparison,.profile-split-results,.catalog-extra-context,.catalog-reading,.reference-analysis-options,.sl-catalog-baseline,.arena-sample-note) { display:none !important; }
+.reading-stats-only .catalog-player-card { grid-template-columns:minmax(0,1fr) auto auto; }
+.reading-stats-only :is(.chart-top,.player-card) [aria-label="Dirección del análisis"] { display:none; }
+.reading-stats-only :is(.catalog-command-bar .filter-help,.chart-top .line-control,.sample-warning,.filter-side) { display:none!important; }
+.daily-grade-detail summary { cursor:pointer; }
+.daily-grade-detail small { white-space:normal; }

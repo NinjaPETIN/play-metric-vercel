@@ -9,6 +9,7 @@ import { drawAnalysisCard, drawDefenseCard } from '../lib/analysis-card';
 import type { DefenseRank } from '../lib/team-defense';
 import { teamNames } from '../lib/team-overview';
 import { loadCachedData } from '../lib/client-data-cache';
+import {useReadingPreferences} from './reading-preferences';
 import ShareCardDialog from './share-card-dialog';
 
 type Props = {
@@ -18,8 +19,10 @@ type Props = {
 };
 
 export default function ShareAnalysis(props: Props) {
+ const {reduced}=useReadingPreferences();
  const [path, setPath] = useState('');
  const [open, setOpen] = useState(false);
+ if(reduced)return null;
  return <>
   <button className="button subtle" type="button" aria-haspopup="dialog" disabled={!props.games.length} onClick={() => {
    setPath(window.location.pathname + window.location.search);

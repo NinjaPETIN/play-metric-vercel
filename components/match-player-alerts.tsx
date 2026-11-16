@@ -1,5 +1,6 @@
 'use client';
 import {useEffect,useState} from 'react';
+import {useReadingPreferences} from './reading-preferences';
 import type {BoxData} from '../lib/live-boxscore';
 
 const labels={points:'Puntos',rebounds:'Rebotes',assists:'Asistencias'} as const;
@@ -8,6 +9,27 @@ type Rule={player:string;metric:Metric;target:number;reached:boolean};
 
 export default function MatchPlayerAlerts({data,fresh}:{data:BoxData;fresh:boolean}){
  const key='statlane:alerts:'+data.game.id;
+ const preferenceKey=key+':mode';
+ const {reduced,now}=useReadingPreferences();
+ const [mode,setMode]=useState<{off:boolean;mutedUntil:number}>({off:false,mutedUntil:0});
+ const muted=mode.off||mode.mutedUntil>now;
+ useEffect(()=>{
+  function read() {
+   try {
+    const saved=JSON.parse(localStorage.getItem(preferenceKey)??'null');
+    setMode({off:saved?.off===true,mutedUntil:Number.isFinite(saved?.mutedUntil)?saved.mutedUntil:0});
+   } catch {}
+  }
+  const timeout=window.setTimeout(read,0);
+  window.addEventListener('storage',read);
+  return()=>{clearTimeout(timeout);window.removeEventListener('storage',read);};
+ },[preferenceKey]);
+ function setAlertMode(off:boolean,mutedUntil:number) {
+  const next={off,mutedUntil};
+  setMode(next);
+  setNotice('');
+  try {localStorage.setItem(preferenceKey,JSON.stringify(next));} catch {}
+ }
  const [rules,setRules]=useState<Rule[]>([]);
  const [metric,setMetric]=useState<Metric>('points');
  const [target,setTarget]=useState('20');
@@ -33,14 +55,24 @@ export default function MatchPlayerAlerts({data,fresh}:{data:BoxData;fresh:boole
   });
   if(next.some((r,i)=>r!==rules[i]))queueMicrotask(()=>{
    setRules(next);
-   setNotice(next.filter((r,i)=>r!==rules[i]).map(r=>byId.get(r.player)?.name+' alcanzó '+r.target+' '+labels[r.metric].toLowerCase()).join(' · '));
+   if(!muted&&!reduced)setNotice(next.filter((r,i)=>r!==rules[i]).map(r=>byId.get(r.player)?.name+' alcanzó '+r.target+' '+labels[r.metric].toLowerCase()).join(' · '));
    try{localStorage.setItem(key,JSON.stringify(next));}catch{}
   });
- },[data,fresh,key,rules]);
- if(data.game.state!=='live'&&!rules.length)return null;
- return <><p role="status" hidden={!notice}>{notice}</p><details className="card match-alerts">
+ },[data,fresh,key,rules,muted,reduced]);
+ if(reduced||data.game.state!=='live'&&!rules.length)return null;
+ return <><p role="status" hidden={!notice||muted}>{notice}</p><details className="card match-alerts">
   <summary>Alertas del partido{rules.length?' · '+rules.filter(r=>r.reached).length+' alcanzadas':''}</summary>
-  {data.game.state==='live'&&<form onSubmit={event=>{
+  <div className="reading-actions match-alert-actions">
+   {muted ? <button type="button" className="button subtle" onClick={()=>setAlertMode(false,0)}>Reactivar alertas</button> : <>
+    <button type="button" className="button subtle" onClick={()=>{
+     const today=new Date().toLocaleDateString('en-CA',{timeZone:'America/Argentina/Buenos_Aires'});
+     setAlertMode(false,Date.parse(today+'T00:00:00-03:00')+86400000);
+    }}>Silenciar hasta mañana</button>
+    <button type="button" className="button subtle" onClick={()=>setAlertMode(true,0)}>Desactivar alertas</button>
+   </>}
+   {muted&&<span role="status">{mode.off?'Alertas desactivadas':'Alertas silenciadas hasta mañana'}</span>}
+  </div>
+  {!muted&&data.game.state==='live'&&<form onSubmit={event=>{
    event.preventDefault();
    const value=Number(target);
    if(!players.some(p=>p.id===playerId)||!Number.isInteger(value)||value<1||value>300||rules.length>=30||rules.some(r=>r.player===playerId&&r.metric===metric&&r.target===value))return;

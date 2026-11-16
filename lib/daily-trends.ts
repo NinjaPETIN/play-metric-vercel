@@ -1,7 +1,7 @@
 import { summarizeGames, value, type Game } from './analytics';
 import type { Player } from './data';
 import type { Calendar, TeamGame } from './nba-snapshot';
-import { defenseMetrics, matchupGrade, rankTeamDefense, type DefenseMetric } from './team-defense';
+import { defenseMetrics, matchupGrade, rankTeamDefense, type DefenseMetric, type DefenseRank } from './team-defense';
 
 export const dailyMarkets = defenseMetrics;
 export const minimumDailyGames = 10;
@@ -32,6 +32,7 @@ export function dailyTrends(fixtures: Calendar['games'], players: Player[], prev
     id:player.id, name:player.name, team, opponent:opponent.code, home:opponent.home, line,
     form, season:summarizeGames(season,metric,line), versus:summarizeGames(history.filter(game => game.opponent === opponent.code),metric,line),
     grade:matchupGrade(ranks[opponent.code] ?? [],metric,'over'),
+    defense:ranks[opponent.code]?.find(row=>row.metric===metric)??null,
     recent:history.slice(0,10).reverse().map(game => ({ value:value(game, metric), opponent:game.opponent })),
    });
   }
@@ -45,7 +46,7 @@ export function dailyTrends(fixtures: Calendar['games'], players: Player[], prev
 type Sample = ReturnType<typeof summarizeGames>;
 export type DailyTrendRow = {
  id:string; name:string; team:string; opponent:string; home:boolean; line:number;
- form:Sample; season:Sample; versus:Sample; grade:string|null;
+ form:Sample; season:Sample; versus:Sample; grade:string|null; defense:DefenseRank|null;
  recent:{value:number|null;opponent:string}[];
 };
 export type DailyTrends = { day:string; season:number; games:number; reports:ReturnType<typeof dailyTrends> | null };

@@ -28,9 +28,9 @@ export function drawDailyCard(canvas: HTMLCanvasElement, report: DailyTrends, me
  const textX=pad+(portrait?.naturalWidth?205:24);
  label(leader.name,textX,253,40,ink,800,540-(textX-pad));
  label(leader.team+' · '+(leader.home?'vs. ':'@ ')+leader.opponent+' · Más de '+dailyNumber.format(leader.line),textX,292,23,muted,700,540-(textX-pad));
- label(dailyPercent(leader.form),textX,371,69,highlight,800,220);
- label('L20 · '+leader.form.hits+'/'+leader.form.n,textX,407,22,muted,700,215);
- label('TEMP. '+dailyPercent(leader.season)+' · VS. '+dailyPercent(leader.versus)+' · CRUCE '+(leader.grade??'—'),textX+180,373,21,accent,700,455-(textX-pad));
+ label(leader.form.hits+'/'+leader.form.n+' · '+dailyPercent(leader.form),textX,356,51,highlight,800,450);
+ label('L20',textX,402,22,muted,700,145);
+ label('TEMP. '+dailyPercent(leader.season)+' · VS. '+dailyPercent(leader.versus)+' · CRUCE '+(leader.grade??'—'),textX+65,402,21,accent,700,455-(textX-pad));
  label('ÚLTIMOS PARTIDOS',pad+675,243,19,muted);
  bars(leader,pad+675,258,content-716,138,true);
 
@@ -45,8 +45,8 @@ export function drawDailyCard(canvas: HTMLCanvasElement, report: DailyTrends, me
   label(row.team+' · '+(row.home?'vs. ':'@ ')+row.opponent+' · Más de '+dailyNumber.format(row.line),cols[1],y+48,17,muted,600,360);
   bars(row,cols[2],y+10,292,39,false);
   [row.form,row.season,row.versus].forEach((sample,i)=>{
-   label(dailyPercent(sample),cols[i+3],y+26,23,highlight,800);
-   if(sample.n) label(sample.hits+'/'+sample.n,cols[i+3],y+48,16,muted,600);
+   label((sample.n?sample.hits+'/'+sample.n+' · ':'')+dailyPercent(sample),cols[i+3],y+29,18,highlight,800,116);
+   if(i===2&&sample.n>0&&sample.n<5) label('Muestra corta',cols[i+3],y+49,14,muted,600,116);
   });
   label(row.grade??'—',cols[6],y+37,23,accent,800);
  });

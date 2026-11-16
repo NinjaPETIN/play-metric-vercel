@@ -8,6 +8,7 @@ import type { Competition } from '../lib/competitions';
 import type { TeamGame } from '../lib/nba-snapshot';
 import { matchupGrade, type DefenseRank } from '../lib/team-defense';
 import { teamNames } from '../lib/team-overview';
+import { useReadingPreferences } from './reading-preferences';
 import TeamLogo from './team-logo';
 
 const number = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 1 });
@@ -18,21 +19,23 @@ export default function PlayerMatchupContext({ games, history, teamGames, team, 
  onOpponent: (team: string) => void; season: number; competition: Competition;
  market: Market; line: number; side: 'over' | 'under';
 }) {
+ const { reduced } = useReadingPreferences();
  const [result, setResult] = useState<{ scope: string; teams: Record<string, DefenseRank[]> | null } | null>(null);
  const scope = season + ':' + competition;
  const selected = opponent !== 'all';
  useEffect(() => {
-  if (!selected) return;
+  if (!selected||reduced) return;
   let active = true;
   const query = new URLSearchParams({ season: String(season), competition });
   void loadCachedData<{ teams: Record<string, DefenseRank[]> }>('/api/nba/team-defense?' + query)
    .then(data => { if (active) setResult({ scope, teams: data.teams }); })
    .catch(() => { if (active) setResult({ scope, teams: null }); });
   return () => { active = false; };
- }, [competition, scope, season, selected]);
+ }, [competition, scope, season, selected, reduced]);
 
  const ranks = result?.scope === scope ? result.teams?.[opponent] ?? [] : [];
  const grade = matchupGrade(ranks, market, side);
+ const defense = ranks.find(row=>row.metric===market);
  const recent = teamGames.filter(game => game.home === opponent || game.away === opponent)
   .sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id)).slice(0, 5);
  const sample = summarizeGames(games, market, line, side);
@@ -50,15 +53,18 @@ export default function PlayerMatchupContext({ games, history, teamGames, team, 
   </label>
   {selected && <>
    <div className="profile-context-team"><TeamLogo team={opponent} size={37}/><strong>{teamNames[opponent]}</strong></div>
-   <div className="profile-context-grade">
+   {!reduced&&<div className="profile-context-grade">
     <div><small>{markets[market]}</small><strong>{reference}</strong></div>
-    <div className="profile-grade-value" data-grade={grade?.[0]} aria-label={'Nota defensiva: ' + (grade ?? 'sin datos')}>{grade ?? '—'}</div>
-   </div>
+        <details className="profile-grade-detail">
+     <summary className="profile-grade-value" data-grade={grade?.[0]} aria-label={'Nota defensiva: '+(grade??'sin datos')}>{grade??'—'}</summary>
+     <p>{defense ? teamNames[opponent]+' está '+defense.rank+'.º de '+defense.teams+' en '+markets[market].toLowerCase()+' permitidos · '+defense.games+' partidos.' : 'Sin puesto defensivo para esta estadística.'}</p>
+    </details>
+   </div>}
    <div className="profile-split-results">
     <div><span>Muestra actual</span><strong>{sample.rate === null ? '—' : percent.format(sample.rate)}</strong><small>{sample.hits}/{sample.n} cumplen</small></div>
     <div><span>Historial vs. {opponent}</span><strong>{versus.rate === null ? '—' : percent.format(versus.rate)}</strong><small>{versus.n ? versus.hits + '/' + versus.n + ' cumplen' : 'Sin partidos válidos'}</small></div>
    </div>
-   <div className="profile-defense-ranks">
+   {!reduced&&<div className="profile-defense-ranks">
     <h4>Defensa del rival</h4>
     {ranks.length ? <>
      {ranks.map(rank => <div key={rank.metric}>
@@ -68,7 +74,7 @@ export default function PlayerMatchupContext({ games, history, teamGames, team, 
      </div>)}
      <p>El 1.º permite menos. La nota cruza el puesto con «{side === 'over' ? 'Más de' : 'Menos de'}».</p>
     </> : <p role="status">{result?.scope === scope ? 'Ranking no disponible para esta temporada y rival.' : 'Consultando el ranking defensivo…'}</p>}
-   </div>
+   </div>}
    <div className="profile-rival-results">
     <h4>Últimos partidos de {opponent}</h4>
     {recent.length ? <ul>{recent.map(game => {
