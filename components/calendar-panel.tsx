@@ -21,11 +21,14 @@ const localDay=(s:string)=>new Date(s).toLocaleDateString('en-CA',{timeZone:zone
 const gameDay=(g:ScheduledGame)=>localDay(g.startsAt??g.date+'T12:00:00Z');
 export default function CalendarPanel({reload}:{reload:number}){
  const [now,setNow]=useState(()=>Date.now()),live=useLiveScores(),clock=Math.max(now,live.now);
- const [data,setData]=useState<Calendar|null>(null),[error,setError]=useState(''),[loading,setLoading]=useState(true),[mode,setMode]=useState('today'),[competition,setCompetition]=useState<Competition|'all'>('all'),[query,setQuery]=useState(''),[retry,setRetry]=useState(0),[offset,setOffset]=useState(0);
+ const [data,setData]=useState<Calendar|null>(null),[mode,setMode]=useState('today'),[competition,setCompetition]=useState<Competition|'all'>('all'),[query,setQuery]=useState(''),[retry,setRetry]=useState(0),[offset,setOffset]=useState(0);
  const {watch,authenticated,toggle:toggleWatch}=useWatchlist();
  const [localFavorites,setFavorites]=useState<string[]>([]),[ready,setReady]=useState(false),[selected,setSelected]=useState<string|null>(null);
  useEffect(()=>{const timer=setInterval(()=>setNow(Date.now()),60000);return()=>clearInterval(timer);},[]);
- useEffect(()=>{let active=true;setLoading(true);setError('');loadCachedData<Calendar>('/api/nba/calendar',reload>0||retry>0).then(d=>{if(active)setData(d);}).catch(e=>{if(active)setError(e.message);}).finally(()=>{if(active)setLoading(false);});return()=>{active=false;};},[reload,retry]);
+ const requestKey=reload+':'+retry;
+ const [result,setResult]=useState<{key:string;error:string}|null>(null);
+ const loading=result?.key!==requestKey,error=loading?'':result.error;
+ useEffect(()=>{let active=true;loadCachedData<Calendar>('/api/nba/calendar',requestKey!=='0:0').then(calendar=>{if(active){setData(calendar);setResult({key:requestKey,error:''});}}).catch((error:Error)=>{if(active)setResult({key:requestKey,error:error.message});});return()=>{active=false;};},[requestKey]);
  useEffect(()=>{const timer=setTimeout(()=>{try{const raw=sessionStorage.getItem('playmetric:calendar:v1');if(raw){const r=JSON.parse(raw);if(['week','today','finished','live','favorites'].includes(r.mode))setMode(r.mode);if(['all','regular','preseason','playoffs'].includes(r.competition))setCompetition(r.competition);if(typeof r.query==='string')setQuery(r.query.slice(0,200));}const saved=JSON.parse(localStorage.getItem('statlane:favorite-teams:v1')??'[]');if(Array.isArray(saved))setFavorites(saved.filter((v:unknown)=>typeof v==='string'&&/^[A-Z]{2,4}$/.test(v)).slice(0,30));}catch{}setReady(true);},0);return()=>clearTimeout(timer);},[]);
  useEffect(()=>{if(ready)try{sessionStorage.setItem('playmetric:calendar:v1',JSON.stringify({mode,competition,query}));localStorage.setItem('statlane:favorite-teams:v1',JSON.stringify(localFavorites));}catch{}},[ready,mode,competition,query,localFavorites]);
  const favorites=authenticated?watch.teams:localFavorites;

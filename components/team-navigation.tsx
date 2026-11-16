@@ -9,10 +9,15 @@ import type {Player} from '../lib/data';
 import type {Competition} from '../lib/competitions';
 type Catalog={players:Player[];season:number;competition:Competition;[key:string]:unknown};
 export default function TeamNavigation({competition,season,catalog,activeTeam,activePlayer,onPlayer,onTeam,onPrefetchTeam}:{competition:Competition;season:number|undefined;catalog:Catalog|null;activeTeam?:string|null;activePlayer?:string|null;onPlayer:(p:Player)=>void;onTeam:(team:string)=>void;onPrefetchTeam?:(team:string)=>void}){
- const [expanded,setExpanded]=useState<string|null>(activeTeam??null),[query,setQuery]=useState(''),[remote,setRemote]=useState<Catalog|null>(null),[error,setError]=useState(false),[retry,setRetry]=useState(0),[loading,setLoading]=useState(false);
+ const [expanded,setExpanded]=useState<string|null>(activeTeam??null),[query,setQuery]=useState(''),[remote,setRemote]=useState<Catalog|null>(null),[retry,setRetry]=useState(0);
  const term=useDeferredValue(normalizeSearch(query));
- useEffect(()=>{setExpanded(activeTeam??null);},[activeTeam]);
- useEffect(()=>{if(catalog||!expanded&&!term)return;let active=true;const q=new URLSearchParams({format:'compact',competition,detail:'catalog'});if(season)q.set('season',String(season));setLoading(true);setError(false);loadCachedData<Catalog>('/api/v1/players?'+q,retry>0).then(d=>{if(active)setRemote(d);}).catch(()=>{if(active)setError(true);}).finally(()=>{if(active)setLoading(false);});return()=>{active=false;};},[catalog,competition,season,expanded,term,retry]);
+ const [lastActiveTeam,setLastActiveTeam]=useState(activeTeam);
+ if(lastActiveTeam!==activeTeam){setLastActiveTeam(activeTeam);setExpanded(activeTeam??null);}
+ const needsCatalog=!catalog&&Boolean(expanded||term);
+ const requestKey=JSON.stringify([competition,season,retry]);
+ const [result,setResult]=useState<{key:string;failed:boolean}|null>(null);
+ const loading=needsCatalog&&result?.key!==requestKey,error=needsCatalog&&result?.key===requestKey&&result.failed;
+ useEffect(()=>{if(!needsCatalog)return;let active=true;const q=new URLSearchParams({format:'compact',competition,detail:'catalog'});if(season)q.set('season',String(season));loadCachedData<Catalog>('/api/v1/players?'+q,retry>0).then(data=>{if(active){setRemote(data);setResult({key:requestKey,failed:false});}}).catch(()=>{if(active)setResult({key:requestKey,failed:true});});return()=>{active=false;};},[needsCatalog,competition,season,retry,requestKey]);
  const data=catalog??(remote?.competition===competition&&(!season||remote.season===season)?remote:null);
  const groups=useMemo(()=>{const map=new Map<string,Player[]>();for(const p of data?.players??[]){const team=p.currentTeam===undefined?p.team:p.currentTeam;if(!team)continue;if(!map.has(team))map.set(team,[]);map.get(team)!.push(p);}for(const list of map.values())list.sort((a,b)=>a.name.localeCompare(b.name,'es'));return map;},[data]);
  const teams=useMemo(()=>Object.keys(teamNames).sort((a,b)=>teamNames[a].localeCompare(teamNames[b],'es')).filter(t=>!term||normalizeSearch(t+' '+teamNames[t]).includes(term)||(groups.get(t)??[]).some(p=>normalizeSearch(p.name).includes(term))),[groups,term]);

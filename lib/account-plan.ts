@@ -18,4 +18,11 @@ export async function accountPlan(){
 export async function authorizePlayer(id:string){if(!/^\d{1,10}$/.test(id))throw new PlanError(400,'Jugador no válido.');const u=await identity(),day=usageDay();if(isAccountAdmin(u.userId)||await membership(u.userId))return state([],true,day);
  // One conditional UPSERT is atomic: simultaneous tabs cannot spend a sixth slot.
  const ids=await reservePlayerSlot(u.userId,id,day,DAILY_PLAYER_LIMIT);if(!ids)throw new PlanError(429,'Alcanzaste los 5 jugadores de hoy. Podés volver a los que ya abriste o consultar nuevos mañana.');return state(ids,false,day);}
-export function basicPlayer<T extends Record<string,any>>(p:T,pro:boolean):T{if(pro)return p;return {...p,leagueContext:null,traits:p.traits?{...p.traits,sources:{...p.traits.sources,shots:null,passes:null,defense:null}}:p.traits};}
+export function basicPlayer(player:Record<string,unknown>,pro:boolean) {
+ if(pro)return player;
+ const traits=player.traits;
+ const sources=traits&&typeof traits==='object'&&'sources' in traits?traits.sources:null;
+ return {...player,leagueContext:null,traits:traits&&typeof traits==='object'
+  ?{...traits,sources:{...(sources&&typeof sources==='object'?sources:{}),shots:null,passes:null,defense:null}}
+  :traits};
+}
