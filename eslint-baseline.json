@@ -7,16 +7,6 @@
       "rule": "@next/next/no-html-link-for-pages"
     },
     {
-      "fingerprint": "1df746387debdd99300b785dd4db823a25b4f51a976a759dbd02072c3c9bdd53",
-      "file": "app/cuenta/page.tsx",
-      "rule": "@next/next/no-html-link-for-pages"
-    },
-    {
-      "fingerprint": "1df746387debdd99300b785dd4db823a25b4f51a976a759dbd02072c3c9bdd53",
-      "file": "app/cuenta/page.tsx",
-      "rule": "@next/next/no-html-link-for-pages"
-    },
-    {
       "fingerprint": "9945dfa2a92596be1fcd1f05b3052160aa09df644f8ad98044edd888c24fbebe",
       "file": "app/dashboard.tsx",
       "rule": "@next/next/no-html-link-for-pages"
@@ -57,11 +47,6 @@
       "rule": "@next/next/no-html-link-for-pages"
     },
     {
-      "fingerprint": "1af0c7e10782c619070c246a6f56be2e64a80f72407cbc23c32a9646e95e9c33",
-      "file": "app/dashboard.tsx",
-      "rule": "@next/next/no-html-link-for-pages"
-    },
-    {
       "fingerprint": "8c9cd00a260eced0b9b0a6b7f7e4451efd779115ba5d056fe0c102918a4f4ff0",
       "file": "app/planes/page.tsx",
       "rule": "@next/next/no-html-link-for-pages"
@@ -70,21 +55,6 @@
       "fingerprint": "cd5309807bba281c6f813c328d71d97b476d55edc7a5d31950d4717efa529231",
       "file": "app/privacidad/page.tsx",
       "rule": "@next/next/no-html-link-for-pages"
-    },
-    {
-      "fingerprint": "57b6a5b8210c68b96ce1a9579d01332e03e66c609be5e1f6bee0ade086ededad",
-      "file": "components/analysis-tools.tsx",
-      "rule": "react-hooks/set-state-in-effect"
-    },
-    {
-      "fingerprint": "9b3768661115e07e9fb8acb81411fe0883014db3a47146eb89daf446f5b4ab57",
-      "file": "components/analysis-tools.tsx",
-      "rule": "@typescript-eslint/no-explicit-any"
-    },
-    {
-      "fingerprint": "9b3768661115e07e9fb8acb81411fe0883014db3a47146eb89daf446f5b4ab57",
-      "file": "components/analysis-tools.tsx",
-      "rule": "@typescript-eslint/no-explicit-any"
     },
     {
       "fingerprint": "be516bd1cd8a345bc9ff28ede58e36640a9bcf71536bc94299568f42a5613bc7",
@@ -107,18 +77,8 @@
       "rule": "react-hooks/set-state-in-effect"
     },
     {
-      "fingerprint": "069a564fb9aeea885a09c5bf99a585bdf98fd2d84bc4eab2dcf8e2927cfc53dc",
-      "file": "components/calendar-panel.tsx",
-      "rule": "react-hooks/set-state-in-effect"
-    },
-    {
       "fingerprint": "09d310d92735fdaa941a8dcfcdc0c9fe53927c0f2116338fe12f1a3cfd4c5b8b",
       "file": "components/following-changes.tsx",
-      "rule": "react-hooks/set-state-in-effect"
-    },
-    {
-      "fingerprint": "451c0b070bbf06671f0f14c08a02b18cee9dede69a8c516be00a88407480dfff",
-      "file": "components/news-panel.tsx",
       "rule": "react-hooks/set-state-in-effect"
     },
     {
@@ -144,21 +104,6 @@
     {
       "fingerprint": "eff81081f1ddc4d6c680fe97be66fa14aa2058109ef96d1e5d90a78663ea2921",
       "file": "lib/account-plan.ts",
-      "rule": "@typescript-eslint/no-explicit-any"
-    },
-    {
-      "fingerprint": "4a264512605c6d2a588605bd01d7f5e0ce243d1a55a138f9c39c75a2904245a2",
-      "file": "lib/client-data-cache.ts",
-      "rule": "@typescript-eslint/no-explicit-any"
-    },
-    {
-      "fingerprint": "23c021c2dedd33691026b53a07a1d664a6443159d12184d1169e8bcd6c3564a2",
-      "file": "lib/compact-dashboard.ts",
-      "rule": "@typescript-eslint/no-explicit-any"
-    },
-    {
-      "fingerprint": "23c021c2dedd33691026b53a07a1d664a6443159d12184d1169e8bcd6c3564a2",
-      "file": "lib/compact-dashboard.ts",
       "rule": "@typescript-eslint/no-explicit-any"
     },
     {

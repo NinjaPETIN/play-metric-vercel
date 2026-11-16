@@ -1,6 +1,6 @@
 import {applyRoster,rosterFreshness,type Roster} from './roster';
 import {loadRoster} from './roster-store';
-import {rankMetrics} from './league-context';
+import {rankLeague} from './league-context';
 import type {PlayerProfile} from './player-profile';
 import {competitions,snapshotKey,type Competition} from './competitions';
 import {getDb} from '../db';
@@ -9,6 +9,7 @@ import {and,eq,gt,gte,lt,like,inArray,or,sql} from 'drizzle-orm';
 import {type Player} from './data';
 import {type TeamGame,type Snapshot} from './nba-snapshot';
 import {analyze,value,markets,type Market} from './analytics';
+const marketKeys = Object.keys(markets) as Market[];
 const dashboardCache=new Map<string,{prefix:string;profileVersion:string;value:Awaited<ReturnType<typeof buildDashboard>>}>();
 export async function loadDashboard(season?:number,competition:Competition='regular',catalog=false){
  const roster=await loadRoster();
@@ -16,8 +17,9 @@ export async function loadDashboard(season?:number,competition:Competition='regu
  const seasons=keys.filter(r=>r.key.startsWith(competitions[competition].namespace+':')&&/^[a-z_]+:\d{4}$/.test(r.key)).map(r=>Number(r.key.split(':')[1])).sort((a,b)=>b-a);
  const selected=season??seasons[0];if(!selected||!seasons.includes(selected))throw new Error('No hay historial disponible para esta temporada.');
  const record=keys.find(r=>r.key===snapshotKey(selected,competition));if(!record?.payload)throw Error('No hay historial disponible.');const meta=JSON.parse(record.payload) as {prefix:string;fetchedAt:string;teamGames?:TeamGame[];source?:string};
- const profileRows=keys.filter(r=>r.key.startsWith('nba_profile:')&&r.payload),profileVersion=keys.filter(r=>r.key.startsWith('nba_profile:')||r.key.startsWith('nba_traits_revision:')).map(r=>r.payload).join('|')+'|'+(roster?.fetchedAt??''),profiles=Object.fromEntries(profileRows.map(r=>[r.key.slice('nba_profile:'.length),JSON.parse(r.payload!) as PlayerProfile]));
+ const profileRows=keys.filter(r=>r.key.startsWith('nba_profile:')&&r.payload),profileVersion=keys.filter(r=>r.key.startsWith('nba_profile:')||r.key.startsWith('nba_traits_revision:')).map(r=>r.payload).join('|')+'|'+(roster?.fetchedAt??'');
  const cached=dashboardCache.get(competition+':'+selected+(catalog?':catalog':''));if(cached?.prefix===meta.prefix&&cached.profileVersion===profileVersion&&cached.value.fetchedAt===meta.fetchedAt&&cached.value.seasons.join(',')===seasons.join(','))return {...cached.value,roster:rosterFreshness(roster?.fetchedAt??null)};
+ const profiles=Object.fromEntries(profileRows.map(r=>[r.key.slice('nba_profile:'.length),JSON.parse(r.payload!) as PlayerProfile]));
  // Bound response size and use indexed ranges: D1 limits LIKE pattern length.
  const records:{key:string;payload:string;traitsPayload?:string|null}[]=[];let cursor='';
  // Qualify the outer payload explicitly: Drizzle strips column table names in
@@ -34,8 +36,24 @@ export async function loadDashboard(season?:number,competition:Competition='regu
 export async function loadCalendar(){const [record]=await getDb().select().from(providerCache).where(eq(providerCache.key,'nba_calendar'));return record?JSON.parse(record.payload):null;}
 
 function buildDashboard(records:{key:string;payload:string;traitsPayload?:string|null}[],meta:{prefix:string;fetchedAt:string;teamGames?:TeamGame[];source?:string},selected:number,seasons:number[],competition:Competition,profiles:Record<string,PlayerProfile>={},withContext=true,roster:Roster|null=null,includeMissing=false){
- const players:Player[]=records.map(r=>{const p=JSON.parse(r.payload) as Snapshot['players'][number];const sums=Object.fromEntries(Object.keys(markets).map(m=>[m,{sum:0,n:0}])) as Record<Market,{sum:number;n:number}>;for(const g of p.games){if(!g.played||g.minutes<=0)continue;for(const m of Object.keys(markets) as Market[]){const v=value(g,m);if(v!==null){sums[m].sum+=v;sums[m].n++;}}}const lines=Object.fromEntries(Object.entries(sums).map(([m,{sum,n}])=>[m,Math.max(.5,Math.round(n?sum/n:0)-.5)])) as Record<Market,number>;return {id:String(p.id),name:p.name,team:p.team??'—',position:profiles[String(p.id)]?.position??'',profile:profiles[String(p.id)]??null,traits:r.traitsPayload?JSON.parse(r.traitsPayload):null,color:['#91b9ed','#c7f464','#d7a6f8','#ee9a55'][p.id%4],base:[0,0,0,0],lines,games:p.games};});
- if(withContext&&players.length>1){const rows=players.map(p=>{const games=p.games.filter(g=>g.played&&g.minutes>0);return {id:p.id,n:games.length,minutes:games.reduce((s,g)=>s+g.minutes,0),points:games.reduce((s,g)=>s+g.points,0),rebounds:games.reduce((s,g)=>s+g.rebounds,0),assists:games.reduce((s,g)=>s+g.assists,0),threes:games.reduce((s,g)=>s+g.threes,0)};});for(const p of players)p.leagueContext={playerId:p.id,season:selected,competition,fetchedAt:meta.fetchedAt,metrics:rankMetrics(rows,p.id)};}
+ const players:Player[]=records.map(r=>{const p=JSON.parse(r.payload) as Snapshot['players'][number];const sums=Object.fromEntries(marketKeys.map(m=>[m,{sum:0,n:0}])) as Record<Market,{sum:number;n:number}>;for(const g of p.games){if(!g.played||g.minutes<=0)continue;for(const m of marketKeys){const v=value(g,m);if(v!==null){sums[m].sum+=v;sums[m].n++;}}}const lines=Object.fromEntries(Object.entries(sums).map(([m,{sum,n}])=>[m,Math.max(.5,Math.round(n?sum/n:0)-.5)])) as Record<Market,number>;return {id:String(p.id),name:p.name,team:p.team??'—',position:profiles[String(p.id)]?.position??'',profile:profiles[String(p.id)]??null,traits:r.traitsPayload?JSON.parse(r.traitsPayload):null,color:['#91b9ed','#c7f464','#d7a6f8','#ee9a55'][p.id%4],base:[0,0,0,0],lines,games:p.games};});
+ if(withContext&&players.length>1){
+  const rows=players.map(player=>{
+   const totals={id:player.id,n:0,minutes:0,points:0,rebounds:0,assists:0,threes:0};
+   for(const game of player.games){
+    if(!game.played||game.minutes<=0)continue;
+    totals.n++;
+    totals.minutes+=game.minutes;
+    totals.points+=game.points;
+    totals.rebounds+=game.rebounds;
+    totals.assists+=game.assists;
+    totals.threes+=game.threes;
+   }
+   return totals;
+  });
+  const rankings=rankLeague(rows);
+  for(const player of players)player.leagueContext={playerId:player.id,season:selected,competition,fetchedAt:meta.fetchedAt,metrics:rankings.get(player.id)??[]};
+ }
  return {roster:rosterFreshness(roster?.fetchedAt??null),teamGames:meta.teamGames??[],mode:'historical',source:meta.source==='nba_api+espn'?'NBA.com + ESPN (partidos terminados)':'NBA.com vía nba_api',season:selected,seasons,competition,supportedMarkets:Object.keys(markets).filter(m=>players.some(p=>p.games.some(g=>value(g,m as Market)!==null))),fetchedAt:meta.fetchedAt,lastGameDate:players.reduce<string|null>((last,p)=>p.games.reduce<string|null>((date,g)=>!date||g.date>date?g.date:date,last),null),players:applyRoster(players,roster,includeMissing)};
 }
 
