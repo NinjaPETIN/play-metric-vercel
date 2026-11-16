@@ -324,3 +324,11 @@ html:has(.live-score-dock.is-collapsed) { scroll-padding-bottom: calc(48px + env
 .reading-stats-only :is(.catalog-command-bar .filter-help,.chart-top .line-control,.sample-warning,.filter-side) { display:none!important; }
 .daily-grade-detail summary { cursor:pointer; }
 .daily-grade-detail small { white-space:normal; }
+
+.player-period-comparison { padding: 20px; }
+.player-period-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
+.player-period-comparison p { font-size: .85rem; }
+.player-period-comparison > p { margin-top: 12px; }
+.player-period-comparison th, .player-period-comparison td { padding: 10px 12px; white-space: nowrap; }
+.player-period-comparison td { font-variant-numeric: tabular-nums; }
+.player-period-comparison td:last-child { font-weight: 700; }

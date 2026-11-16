@@ -1,5 +1,6 @@
 import type {Calendar} from './nba-snapshot';
 import type {Player} from './data';
+import {minutesTrend} from './period-comparison';
 import {matchContext} from './calendar-context';
 type Match=Calendar['games'][number];
 export function buildMatchPreview(calendar:Calendar,match:Match,players:Player[],historicalFetchedAt:string|null,venue:'all'|'split'='all'){
@@ -21,8 +22,14 @@ export function buildMatchPreview(calendar:Calendar,match:Match,players:Player[]
    if(!sample.length)return [];
    return [{id:p.id,name:p.name,team,n:sample.length,points:sample.reduce((s,g)=>s+g.points,0)/sample.length,rebounds:sample.reduce((s,g)=>s+g.rebounds,0)/sample.length,assists:sample.reduce((s,g)=>s+g.assists,0)/sample.length}];
   }).sort((a,b)=>b.points-a.points||b.n-a.n||a.name.localeCompare(b.name));
+  const rotation=candidates.flatMap(candidate=>{
+   const player=players.find(p=>p.id===candidate.id);
+   const sample=(player?.games??[]).filter(g=>g.gameId&&verified.has(g.gameId)&&g.team===team&&g.played&&g.minutes>0).sort((a,b)=>b.date.localeCompare(a.date));
+   const trend=minutesTrend(sample);
+   return trend&&Math.abs(trend.delta)>=2?[{id:candidate.id,name:candidate.name,...trend}]:[];
+  }).sort((a,b)=>Math.abs(b.delta)-Math.abs(a.delta)).slice(0,3);
   const recent=games.slice(0,5).reverse().map(g=>{const home=g.home===team,score=(home?g.homeScore:g.awayScore)!,against=(home?g.awayScore:g.homeScore)!;return {id:g.id,opponent:home?g.away:g.home,score,against,result:score>against?'V':'D'};});
-  return {...context.teams.find(t=>t.team===team)!,recent,form:recent.map(g=>g.result),n:games.length,boxGames:complete.length,points:games.length?games.reduce((s,g)=>s+(g.home===team?g.homeScore!:g.awayScore!),0)/games.length:null,rebounds:complete.length?complete.reduce((s,[,b])=>s+b.rebounds,0)/complete.length:null,assists:complete.length?complete.reduce((s,[,b])=>s+b.assists,0)/complete.length:null,leader:candidates[0]??null};
+  return {...context.teams.find(t=>t.team===team)!,recent,form:recent.map(g=>g.result),n:games.length,boxGames:complete.length,points:games.length?games.reduce((s,g)=>s+(g.home===team?g.homeScore!:g.awayScore!),0)/games.length:null,rebounds:complete.length?complete.reduce((s,[,b])=>s+b.rebounds,0)/complete.length:null,assists:complete.length?complete.reduce((s,[,b])=>s+b.assists,0)/complete.length:null,leader:candidates[0]??null,rotation};
  });
  return {venue,season:calendar.season,competition:match.competition,calendarFetchedAt:calendar.fetchedAt,historicalFetchedAt,teams,meetings:finals.filter(g=>[g.home,g.away].includes(match.home)&&[g.home,g.away].includes(match.away)).slice(0,2).map(g=>({id:g.id,date:g.date,home:g.home,away:g.away,homeScore:g.homeScore,awayScore:g.awayScore}))};
 }
