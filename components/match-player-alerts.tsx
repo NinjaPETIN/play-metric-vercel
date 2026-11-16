@@ -36,6 +36,11 @@ export default function MatchPlayerAlerts({data,fresh}:{data:BoxData;fresh:boole
  const [playerId,setPlayerId]=useState('');
  const [notice,setNotice]=useState('');
  useEffect(()=>{
+  if (!muted && !reduced) return;
+  const timer=window.setTimeout(()=>setNotice(''),0);
+  return ()=>window.clearTimeout(timer);
+ },[muted,reduced]);
+ useEffect(()=>{
   try{
    const saved:unknown=JSON.parse(localStorage.getItem(key)??'[]');
    if(Array.isArray(saved))queueMicrotask(()=>setRules(saved.filter((r):r is Rule=>r&&typeof r.player==='string'&&Object.hasOwn(labels,r.metric)&&Number.isInteger(r.target)&&r.target>0&&typeof r.reached==='boolean').slice(0,30)));

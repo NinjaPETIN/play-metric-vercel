@@ -22,23 +22,23 @@ export default function ShareAnalysis(props: Props) {
  const {reduced}=useReadingPreferences();
  const [path, setPath] = useState('');
  const [open, setOpen] = useState(false);
- if(reduced)return null;
+
  return <>
   <button className="button subtle" type="button" aria-haspopup="dialog" disabled={!props.games.length} onClick={() => {
    setPath(window.location.pathname + window.location.search);
    setOpen(true);
   }}><Share2 size={16}/> Compartir análisis</button>
-  {open && <AnalysisDialog props={props} path={path} onClose={() => setOpen(false)}/>}
+  {open && <AnalysisDialog props={props} reduced={reduced} path={path} onClose={() => setOpen(false)}/>}
  </>;
 }
 
-function AnalysisDialog({ props, path, onClose }: { props: Props; path: string; onClose: () => void }) {
+function AnalysisDialog({ props, reduced, path, onClose }: { props: Props; reduced: boolean; path: string; onClose: () => void }) {
  const [rival, setRival] = useState(props.initialRival ?? '');
  const [view, setView] = useState<'analysis' | 'defense'>('analysis');
  const [response, setResponse] = useState<{ teams: Record<string, DefenseRank[]> } | null>(null);
  const [failed, setFailed] = useState(false);
  const { name, playerId, games, market, line, side, season, competitionKey, teamCode } = props;
- const needsDefense = Boolean(rival);
+ const needsDefense = !reduced && Boolean(rival);
  useEffect(() => {
   if (!needsDefense) return;
   let active = true;
@@ -52,19 +52,19 @@ function AnalysisDialog({ props, path, onClose }: { props: Props; path: string; 
  const rows = response?.teams[rival];
  const rivalName = teamNames[rival] ?? rival;
  const draw = useCallback((canvas: HTMLCanvasElement, format: CardFormat, light: boolean, images: Record<string, HTMLImageElement | undefined>) => {
-  if (view === 'defense') drawDefenseCard(canvas, format, light, props, rivalName, rival, rows ?? [], images);
-  else drawAnalysisCard(canvas, format, light, props, images, rival, rows ?? []);
- }, [props, rival, rivalName, rows, view]);
+  if (!reduced && view === 'defense') drawDefenseCard(canvas, format, light, props, rivalName, rival, rows ?? [], images);
+  else drawAnalysisCard(canvas, format, light, props, images, reduced ? '' : rival, reduced ? [] : rows ?? [], reduced);
+ }, [props, rival, rivalName, rows, view, reduced]);
  const stats = summarizeGames(games, market, line, side);
  const reference = (side === 'over' ? 'Más de ' : 'Menos de ') + line.toLocaleString('es-AR');
- const text = view === 'defense'
+ const text = reduced ? [name + ' · ' + markets[market], 'Promedio: ' + (stats.average?.toLocaleString('es-AR', {maximumFractionDigits: 1}) ?? '—') + ' · ' + stats.n + ' partidos'].join('\n') : view === 'defense'
   ? [name + ' vs. ' + rivalName + ' · Defensa del rival', ...(rows ?? []).map(row => markets[row.metric] + ': ' + row.rank + '.º de ' + row.teams)].join('\n')
   : [name + ' · ' + markets[market], reference, stats.hits + '/' + stats.n + ' cumplen la referencia en esta muestra.'].join('\n');
 
- return <ShareCardDialog title="Compartir análisis" triggerLabel={'Análisis de ' + name} text={text} path={path}
-  filename={'statlane-' + (view === 'defense' ? 'defensa-' + rival.toLowerCase() : 'analisis-' + market) + '-' + playerId}
+ return <ShareCardDialog title="Compartir análisis" triggerLabel={'Análisis de ' + name} text={text} path={reduced ? path.split('?')[0] : path}
+  filename={'statlane-' + (!reduced && view === 'defense' ? 'defensa-' + rival.toLowerCase() : 'analisis-' + market) + '-' + playerId}
   assets={{ portrait: '/api/nba/headshot/' + playerId, team: teamCode ? '/api/nba/team-logo/' + teamCode : '', rival: rival ? '/api/nba/team-logo/' + rival : '' }}
-  controls={<div className="sl-share-setting">
+  controls={!reduced&&<div className="sl-share-setting">
    <label>Rival del cruce <select value={rival} onChange={event => {
     setRival(event.target.value);
     setView('analysis');

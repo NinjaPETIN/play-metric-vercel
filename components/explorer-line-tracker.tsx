@@ -1,6 +1,7 @@
 'use client';
 
 import {useEffect, useState, useSyncExternalStore} from 'react';
+import {useReadingPreferences} from './reading-preferences';
 import {markets, type Market} from '../lib/analytics';
 import {boxFeedSchema, type BoxData, type BoxFeed} from '../lib/live-boxscore';
 import {courtKnown} from '../lib/boxscore-display';
@@ -57,6 +58,7 @@ export default function ExplorerLineTracker({match,initial=null,selection=null,i
   match:ScheduledGame; initial?:BoxFeed|null; selection?:Line|null; identities:Array<{id:string;name:string}>; onLive?:()=>void;
   live?:{data:BoxData|null; stale:boolean; fetchedAt:string|null};
 }) {
+  const {reduced} = useReadingPreferences();
   const snapshot = useSyncExternalStore(subscribe,() => {
     try {return localStorage.getItem(storeKey(match.id)) ?? '[]';} catch {return '[]';}
   },empty);
@@ -69,7 +71,7 @@ export default function ExplorerLineTracker({match,initial=null,selection=null,i
   const sharedFeed=!!live;
 
   useEffect(() => {
-    if (sharedFeed || finished) return;
+    if (reduced || sharedFeed || finished) return;
     let active = true;
     let request:AbortController|undefined;
     async function refresh() {
@@ -91,7 +93,7 @@ export default function ExplorerLineTracker({match,initial=null,selection=null,i
     const timer = setInterval(refresh,LIVE_POLL_MS);
     document.addEventListener('visibilitychange',refresh);
     return () => {active=false;request?.abort();clearInterval(timer);document.removeEventListener('visibilitychange',refresh);};
-  },[match.id,match.status,startsAt,finished,sharedFeed]);
+  },[match.id,match.status,startsAt,finished,sharedFeed,reduced]);
 
   function save(lines:Line[]) {
     try {
@@ -110,7 +112,7 @@ export default function ExplorerLineTracker({match,initial=null,selection=null,i
   })));
   const picked = selection && people.get(selection.playerId);
   const active = selection && saved.some(item => key(item) === key(selection));
-  if (live && !saved.length) return null;
+  if (reduced || live && !saved.length) return null;
   const fetchedAt = live ? live.fetchedAt : feed?.fetchedAt;
   return <section className={'card sl-explorer-tracker'+(live?' sl-live-tracker':'')} aria-label="Seguimiento de líneas">
     <div className="sl-tracker-header"><div><h3>{live?'Tus líneas guardadas':'Seguimiento de líneas'}</h3>

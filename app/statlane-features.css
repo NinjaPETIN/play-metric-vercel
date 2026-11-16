@@ -332,3 +332,11 @@ html:has(.live-score-dock.is-collapsed) { scroll-padding-bottom: calc(48px + env
 .player-period-comparison th, .player-period-comparison td { padding: 10px 12px; white-space: nowrap; }
 .player-period-comparison td { font-variant-numeric: tabular-nums; }
 .player-period-comparison td:last-child { font-weight: 700; }
+
+.teammate-comparison { padding: 16px 20px; margin-block: 12px; }
+.teammate-comparison > summary { cursor: pointer; font-weight: 700; }
+.teammate-comparison > div { display: grid; gap: 12px; padding-top: 12px; }
+.teammate-comparison label, .game-reference-save { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.teammate-comparison .history td, .teammate-comparison .history th { padding: 8px 12px; white-space: nowrap; }
+.prematch-side .sl-match-availability-grid { grid-template-columns: minmax(0, 1fr); }
+.sl-explorer-chart.no-reference::after, .sl-explorer-chart.no-reference::before { display: none; }

@@ -66,3 +66,8 @@ export function normalizeMatchAvailability(raw:unknown, game:LiveGame, now=Date.
     }),
   };
 }
+
+export function injuryReportUrl(date: string) {
+ const year = Number(date.slice(0, 4)) - (date.slice(5, 7) >= '09' ? 0 : 1);
+ return 'https://official.nba.com/nba-injury-report-' + year + '-' + String(year + 1).slice(-2) + '-season/';
+}

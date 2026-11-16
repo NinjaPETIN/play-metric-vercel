@@ -12,6 +12,8 @@ import type {Player} from '../lib/data';
 import type {ScheduledGame} from './calendar-panel';
 import type {BoxFeed} from '../lib/live-boxscore';
 import ExplorerLineTracker from './explorer-line-tracker';
+import { useReadingPreferences } from './reading-preferences';
+import { SaveGameReference } from './game-references';
 import MatchAvailability from './match-availability';
 import Portrait from './match-player-portrait';
 import TeamLogo from './team-logo';
@@ -54,6 +56,7 @@ export default function NbaMatchExplorer({
   match, players, supported, market, last, competition, season, seasons, team, focus, initialFeed, venue, minMinutes, opponent, loading,
   gamesFor, onChange, onTeam, onSeason, onCompetition, onVenue, onMinutes, onOpponent, onOpen, onLive,
 }: Props) {
+  const { reduced } = useReadingPreferences();
   const [lineText, setLineText] = useState('');
   const [side,setSide] = useState<LineSide>('over');
   const [pickedBar,setPickedBar] = useState<{sample:string;index:number}>();
@@ -88,11 +91,11 @@ export default function NbaMatchExplorer({
   const line = lineText !== '' && enteredLine >= 0 && enteredLine <= 200 ? enteredLine : fallbackLine;
   const ranked = useMemo(() => samples.map(sample => ({...sample,...lineResults(sample.recent,line,side)}))
     .filter(row => row.n)
-    .sort((a,b) => b.rate - a.rate || b.n - a.n || (b.average ?? 0) - (a.average ?? 0) ||
-      a.player.name.localeCompare(b.player.name,'es')), [samples,line,side]);
+    .sort((a,b) => (reduced ? (b.average ?? 0) - (a.average ?? 0) || b.n - a.n : b.rate - a.rate || b.n - a.n || (b.average ?? 0) - (a.average ?? 0)) ||
+      a.player.name.localeCompare(b.player.name,'es')), [samples,line,side,reduced]);
   const playerId = selection && selection.focus === focus ? selection.id : focus?.id;
   const selected = ranked.find(row => row.player.id === playerId) ?? ranked[0];
-  const chartMax = Math.max(1,line,...(selected?.recent ?? []).map(v => v ?? 0)) * 1.1;
+  const chartMax = Math.max(1,reduced?0:line,...(selected?.recent ?? []).map(v => v ?? 0)) * 1.1;
   const latestMeeting = preview?.meetings[0];
   const sampleKey = [selected?.player.id,market,last,competition,season,venue,minMinutes,opponent].join(':');
   const detailKey = [selected?.player.id,competition,season].join(':');
@@ -105,8 +108,6 @@ export default function NbaMatchExplorer({
   const gameResult = gameDetail && typeof detail === 'object' ? catalogGameResult(gameDetail,detail.teamGames) : null;
   const lineLabel = side === 'over' ? 'Más de' : 'Menos de';
   const trackedLine = selected ? {playerId:selected.player.id,name:selected.player.name,market,side,line} : null;
-  const injuryYear = match.date.slice(5,7) >= '09' ? Number(match.date.slice(0,4)) : Number(match.date.slice(0,4))-1;
-  const injuryReport = 'https://official.nba.com/nba-injury-report-' + injuryYear + '-' + String(injuryYear+1).slice(-2) + '-season/';
 
   async function loadGameDetail() {
     if (!selected || detail==='loading' || typeof detail==='object') return;
@@ -139,10 +140,10 @@ export default function NbaMatchExplorer({
           `${latestMeeting.away} ${latestMeeting.awayScore} – ${latestMeeting.homeScore} ${latestMeeting.home}` : 'Sin cruces registrados'}</small></span></div>
       </div>}
     </section>
-    <MatchAvailability key={match.id} id={match.id} away={match.away} home={match.home} reportUrl={injuryReport}/>
+    <MatchAvailability key={match.id} id={match.id} away={match.away} home={match.home} date={match.date} season={preview?.season} competition={match.competition}/>
     <section className="card sl-explorer-board" aria-labelledby="nba-explorer-title">
       <div className="sl-explorer-heading"><div><h2 id="nba-explorer-title">Explorador del partido</h2>
-        <p>Compará a ambos equipos con la misma línea y el historial de la temporada elegida.</p></div>
+        <p>{reduced?'Compará las estadísticas registradas de ambos equipos.':'Compará a ambos equipos con la misma línea y el historial de la temporada elegida.'}</p></div>
         <div className="sl-explorer-controls sl-explorer-history">
           <select aria-label="Competición del historial" value={competition} onChange={e => onCompetition(e.target.value as Competition)}>
             {Object.entries(competitions).map(([key,entry]) => <option key={key} value={key}>{entry.label}</option>)}
@@ -156,11 +157,11 @@ export default function NbaMatchExplorer({
         <label>Estadística<select value={market} onChange={e => {setLineText('');onChange(e.target.value as Market,last);}}>
           {supported.map(key => <option key={key} value={key}>{markets[key]}</option>)}
         </select></label>
-        <label>Línea de referencia<input type="number" min={0} max={200} step={0.5} placeholder={String(fallbackLine)}
+        {!reduced&&<><label>Línea de referencia<input type="number" min={0} max={200} step={0.5} placeholder={String(fallbackLine)}
           value={lineText} onChange={e => setLineText(e.target.value)} onBlur={() => setLineText(String(line))}/></label>
         <label>Dirección<select value={side} onChange={e=>setSide(e.target.value as LineSide)}>
           <option value="over">Más de</option><option value="under">Menos de</option>
-        </select></label>
+        </select></label></>}
         <label>Equipo<select value={team} onChange={e => onTeam(e.target.value)}>
           <option value="all">Ambos equipos</option><option value={match.away}>{match.away}</option><option value={match.home}>{match.home}</option>
         </select></label>
@@ -185,20 +186,20 @@ export default function NbaMatchExplorer({
         {loading ? <p role="status">Cargando las estadísticas seleccionadas…</p> : !selected ?
           <p>No hay partidos con datos para esta selección.</p> : <>
           <div className="sl-explorer-table"><table><thead><tr>
-            <th scope="col">Jugador</th><th scope="col">Promedio</th><th scope="col">MIN</th><th scope="col">{lineLabel} {format(line)}</th>
+            <th scope="col">Jugador</th><th scope="col">Promedio</th><th scope="col">MIN</th>{!reduced&&<th scope="col">{lineLabel} {format(line)}</th>}
           </tr></thead><tbody>{ranked.map(row => <tr key={row.player.id} className={row.player.id === selected.player.id ? 'active' : ''}>
             <th scope="row"><button type="button" onClick={() => setSelection({id:row.player.id,focus})} aria-pressed={row.player.id === selected.player.id}>
               <Portrait person={row.player}/><span><strong>{row.player.name}</strong><small><TeamLogo team={row.player.team} size={15}/>{row.player.team}</small></span>
             </button></th>
-            <td>{format(row.average)}</td><td>{format(row.minutes)}</td><td><strong>{row.hits}/{row.n}</strong><small>{Math.round(row.rate * 100)} %</small></td>
+            <td>{format(row.average)}</td><td>{format(row.minutes)}</td>{!reduced&&<td><strong>{row.hits}/{row.n}</strong><small>{Math.round(row.rate * 100)} %</small></td>}
           </tr>)}</tbody></table></div>
           <aside className="sl-explorer-detail">
             <h3>{selected.player.name}</h3><p>{markets[market]} · {selected.n} PJ con datos</p>
-            <div className="sl-explorer-chart" style={{'--line':100 * line / chartMax + '%'} as React.CSSProperties} role="group"
+            <div className={'sl-explorer-chart'+(reduced?' no-reference':'')} style={reduced?undefined:{'--line':100 * line / chartMax + '%'} as React.CSSProperties} role="group"
               aria-label="Partidos del más antiguo al más reciente">
               {selected.recent.map((stat,index) => <button key={index} type="button" aria-pressed={index===pickedIndex}
                 aria-label={`Partido ${index+1} · ${format(stat)}`} onClick={()=>setPickedBar({sample:sampleKey,index})}>
-                <span className={stat===null?'missing':stat===line?'equal':(side==='over'?stat>line:stat<line)?'above':''}
+                <span className={stat===null?'missing':reduced?'':stat===line?'equal':(side==='over'?stat>line:stat<line)?'above':''}
                   style={{height:stat===null?'2px':`max(2px, ${100*stat/chartMax}%)`}}/>
               </button>)}
             </div>
@@ -212,15 +213,15 @@ export default function NbaMatchExplorer({
               {selected.minutesDelta!==null&&<div><dt>Minutos vs. los {last} PJ anteriores</dt><dd>{selected.minutesDelta>0?'+':''}{format(selected.minutesDelta)}</dd></div>}
               <div><dt>Condición en este partido</dt><dd>{selected.player.team === match.home ? 'Local' : 'Visitante'}</dd></div>
               <div><dt>Rival</dt><dd>{selected.player.team === match.home ? match.away : match.home}</dd></div>
-              {selected.pushes > 0 && <div><dt>Igualó la línea</dt><dd>{selected.pushes} PJ</dd></div>}
+              {!reduced&&selected.pushes > 0 && <div><dt>Igualó la línea</dt><dd>{selected.pushes} PJ</dd></div>}
             </dl>
             <div className="sl-explorer-links">
-              <button className="button" type="button" onClick={() => onOpen(selected.player,market,last,line,side)}>Ver perfil completo</button>
+              <button className="button" type="button" onClick={() => onOpen(selected.player,market,last,reduced?selected.player.lines[market]:line,reduced?'over':side)}>Ver perfil completo</button>
             </div>
           </aside>
         </>}
       </div>
-      {selected&&<details className="sl-explorer-odds"><summary>Comparar cuotas manualmente</summary>
+      {!reduced&&selected&&<details className="sl-explorer-odds"><summary>Comparar cuotas manualmente</summary>
         <p>{selected.player.name} · {markets[market]} · {lineLabel}</p>
         <div className="sl-explorer-quotes">{quotes.map((quote,index)=>{
           const decimal = Number(quote.odds.trim().replace(',','.'));
@@ -239,6 +240,7 @@ export default function NbaMatchExplorer({
         })}</div>
       </details>}
     </section>
+    {match.status===1&&trackedLine&&selected&&<SaveGameReference key={[trackedLine.playerId,market,line,side].join(':')} {...trackedLine} team={selected.player.currentTeam??selected.player.team} matchId={match.id}/>}
     <ExplorerLineTracker match={match} initial={initialFeed} selection={trackedLine} identities={players} onLive={onLive}/>
   </div>;
 }

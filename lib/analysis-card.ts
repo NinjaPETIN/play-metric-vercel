@@ -25,7 +25,7 @@ const number = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 1 });
 export function drawAnalysisCard(canvas: HTMLCanvasElement, format: CardFormat, light: boolean, data: {
  name: string; team: string; teamCode?: string; position?: string; games: Game[]; market: Market; line: number; side: 'over' | 'under';
  season: number; competition: string; filters: string;
-}, images: Images, rival: string, ranks: DefenseRank[]) {
+}, images: Images, rival: string, ranks: DefenseRank[], reduced = false) {
  const portrait = images.portrait;
  const [width, height] = cardSizes[format];
  canvas.width = width;
@@ -41,7 +41,7 @@ export function drawAnalysisCard(canvas: HTMLCanvasElement, format: CardFormat, 
  const summary = summarizeGames(data.games, data.market, data.line, data.side);
  const rows = data.games.filter(game => game.played && game.minutes > 0).slice(0, 10).reverse();
  const entries = rows.map(game => ({ game, stat: value(game, data.market) }));
- const max = Math.max(1, data.line, ...entries.map(({stat}) => stat ?? 0)) * 1.18;
+ const max = Math.max(1, reduced ? 0 : data.line, ...entries.map(({stat}) => stat ?? 0)) * 1.18;
 
  const heroEnd = Math.round(height * .35);
  if (portrait?.naturalWidth) {
@@ -62,7 +62,11 @@ export function drawAnalysisCard(canvas: HTMLCanvasElement, format: CardFormat, 
  }
 
  const reference = (data.side === 'over' ? 'Más de ' : 'Menos de ') + number.format(data.line);
- const metrics = [
+ const metrics = reduced ? [
+  ['ESTADÍSTICA', markets[data.market]],
+  ['PROMEDIO', summary.average === null ? '—' : number.format(summary.average)],
+  ['PARTIDOS', String(summary.n)],
+ ] : [
   ['ESTADÍSTICA', markets[data.market]], ['REFERENCIA', reference],
   ['PROMEDIO', summary.average === null ? '—' : number.format(summary.average)],
   ['CUMPLEN', summary.hits + '/' + summary.n],
@@ -101,7 +105,7 @@ export function drawAnalysisCard(canvas: HTMLCanvasElement, format: CardFormat, 
   const x = left + (index + .5) * step;
   const bar = Math.min(step * .83, 90);
   if (stat !== null) {
-   const color = stat === data.line ? accent : (data.side === 'over' ? stat > data.line : stat < data.line) ? highlight : red;
+   const color = reduced ? accent : stat === data.line ? accent : (data.side === 'over' ? stat > data.line : stat < data.line) ? highlight : red;
    ctx.fillStyle = color;
    ctx.fillRect(x - bar / 2, Math.min(y(stat), bottom - 3), bar, Math.max(3, bottom - y(stat)));
   }
@@ -109,6 +113,7 @@ export function drawAnalysisCard(canvas: HTMLCanvasElement, format: CardFormat, 
   text((game.home ? 'vs ' : '@ ') + game.opponent, x, bottom + 34, 19, ink, 700, step - 7, 'center');
   text(game.date.slice(8) + '/' + game.date.slice(5, 7), x, bottom + 61, 17, muted, 600, step - 7, 'center');
  });
+ if (!reduced) {
  ctx.textAlign = 'left';
  ctx.setLineDash([8, 6]);
  ctx.strokeStyle = accent;
@@ -119,9 +124,11 @@ export function drawAnalysisCard(canvas: HTMLCanvasElement, format: CardFormat, 
  ctx.stroke();
  ctx.setLineDash([]);
  text(number.format(data.line), pad, y(data.line) + 7, 21, accent, 800, 69);
+ }
  ctx.fillStyle = border;
  ctx.fillRect(pad, height - 128, content, 2);
- text(data.competition + ' · ' + data.filters, pad, height - 86, 20, ink, 600);
+ text(data.competition + (reduced ? '' : ' · ' + data.filters), pad, height - 86, 20, ink, 600);
+ if (reduced) return;
  text(rival ? 'Cruce según defensa de equipo' : 'Frecuencia histórica', pad, height - 48, 22, muted, 600, content - 440);
  const legend = [['Cumple', highlight], ['No cumple', red], ['Iguala', accent]] as const;
  legend.forEach(([name, color], index) => {

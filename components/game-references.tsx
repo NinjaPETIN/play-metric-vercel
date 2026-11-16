@@ -1,0 +1,88 @@
+'use client';
+
+import { useState } from 'react';
+import { markets, type Market } from '../lib/analytics';
+import { useReadingPreferences } from './reading-preferences';
+
+type Reference = { matchId: string; playerId: string; name: string; team: string; opponent: string; market: Market;
+ line: number; side: 'over' | 'under'; savedAt: string; startsAt: string };
+type Row = Reference & { result: number | null; state: 'upcoming' | 'pending' | 'final' };
+const date = new Intl.DateTimeFormat('es-AR', { timeZone: 'America/Argentina/Buenos_Aires', dateStyle: 'short', timeStyle: 'short' });
+const amount = (n: number) => n.toLocaleString('es-AR', { maximumFractionDigits: 2 });
+const referenceLabel = (row: Reference) => (row.side === 'over' ? 'Más de ' : 'Menos de ') + amount(row.line);
+
+export function SaveGameReference({ playerId, team, market, line, side, matchId }: {
+ playerId: string; team: string; market: Market; line: number; side: 'over' | 'under'; matchId?: string;
+}) {
+ const { reduced } = useReadingPreferences();
+ const [busy, setBusy] = useState(false);
+ const [message, setMessage] = useState('');
+ if (reduced) return null;
+ async function save() {
+  setBusy(true);
+  setMessage('');
+  try {
+   const response = await fetch('/api/account/game-references', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ playerId, team, market, line, side, matchId }),
+   });
+   const payload: { error?: string; reference?: Reference; alreadySaved?: boolean } = await response.json();
+   const row = payload.reference;
+   if (!response.ok || !row) throw Error(payload.error ?? 'No pudimos guardar la referencia.');
+   setMessage((payload.alreadySaved ? 'Ya guardada' : 'Guardada') + ' vs. ' + row.opponent + ' · ' + referenceLabel(row));
+  } catch (error) { setMessage(error instanceof Error ? error.message : 'No pudimos guardar la referencia.'); }
+  finally { setBusy(false); }
+ }
+ return <div className="game-reference-save">
+  <button type="button" className="button subtle" disabled={busy} onClick={() => void save()}>{busy ? 'Guardando…' : matchId ? 'Guardar referencia' : 'Guardar referencia para el próximo partido'}</button>
+  {message && <small role="status">{message}</small>}
+ </div>;
+}
+
+export function GameReferenceHistory() {
+ const { reduced } = useReadingPreferences();
+ const [rows, setRows] = useState<Row[] | null>(null);
+ const [message, setMessage] = useState('');
+ const [busy, setBusy] = useState(false);
+ if (reduced) return null;
+ async function load() {
+  setBusy(true);
+  setMessage('');
+  try {
+   const response = await fetch('/api/account/game-references', { cache: 'no-store' });
+   if (!response.ok) throw Error();
+   const payload: { rows: Row[] } = await response.json();
+   setRows(payload.rows);
+  } catch { setMessage('No pudimos cargar tus referencias.'); }
+  finally { setBusy(false); }
+ }
+ async function remove(row: Row) {
+  setBusy(true);
+  try {
+   const response = await fetch('/api/account/game-references', {
+    method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ matchId: row.matchId, playerId: row.playerId, market: row.market }),
+   });
+   if (!response.ok) throw Error();
+   setRows(current => current?.filter(entry => entry !== row) ?? null);
+   setMessage('Referencia eliminada.');
+  } catch { setMessage('No pudimos eliminar la referencia.'); }
+  finally { setBusy(false); }
+ }
+ return <details className="card teammate-comparison" onToggle={event => { if (event.currentTarget.open && rows === null && !busy) void load(); }}>
+  <summary>Referencias guardadas</summary>
+  <div><button type="button" className="button subtle" disabled={busy} onClick={() => void load()}>Consultar resultados</button>
+  {busy && <p role="status">Consultando…</p>}
+  {message && <p role="status">{message}</p>}
+  {rows?.length === 0 && <p>Guardá una referencia desde la ficha de un jugador antes de su próximo partido.</p>}
+  {Boolean(rows?.length) && <div className="table-scroll"><table className="history"><thead><tr>
+   {['Jugador', 'Referencia', 'Guardada', 'Resultado', 'Acción'].map(label => <th key={label} scope="col">{label}</th>)}
+  </tr></thead><tbody>{rows?.map(row => <tr key={[row.matchId, row.playerId, row.market].join(':')}>
+   <th scope="row"><a href={'/partidos/' + row.matchId + '?matchTab=live'}>{row.name} vs. {row.opponent}</a></th>
+   <td>{referenceLabel(row)} · {markets[row.market]}</td>
+   <td><time dateTime={row.savedAt}>{date.format(new Date(row.savedAt))} ARG</time></td>
+   <td>{row.result !== null ? amount(row.result) : row.state === 'upcoming' ? 'Pendiente' : row.state === 'final' ? 'Sin estadística verificada' : 'Esperando resultado oficial'}</td>
+   <td>{row.state !== 'upcoming' && <button type="button" className="button subtle" disabled={busy} onClick={() => void remove(row)}>Eliminar</button>}</td>
+  </tr>)}</tbody></table></div>}
+  </div>
+ </details>;
+}

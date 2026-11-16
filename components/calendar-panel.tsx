@@ -9,6 +9,7 @@ import {boxFeedSchema,type BoxFeed} from '../lib/live-boxscore';
 import {competitions,type Competition} from '../lib/competitions';
 import type {Calendar} from '../lib/nba-snapshot';
 import TeamLogo from './team-logo';
+import {GameReferenceHistory} from './game-references';
 import DailyTrendsPanel from './daily-trends-panel';
 import Portrait from './match-player-portrait';
 import {useWatchlist,FollowButton} from './watchlist-provider';
@@ -44,6 +45,7 @@ export default function CalendarPanel({reload}:{reload:number}){
  const grouped=Object.groupBy(games,gameDay);
  return <section className="calendar-panel statlane-calendar">
   <DailyTrendsPanel day={day}/>
+  {authenticated&&<GameReferenceHistory/>}
   {authenticated&&<details className="card sl-calendar-teams"><summary>Elegir mis equipos <span>{watch.teams.length}</span></summary><div>{Object.entries(teamNames).map(([team,name])=><div key={team}><TeamLogo team={team} size={28}/><span>{name}</span><FollowButton kind="teams" item={team} name={name}/></div>)}</div></details>}
   <div className="calendar-controls"><div className="segmented">{[['today','Hoy'],['live','En vivo · '+liveCount],['week','Próximos'],['finished','Resultados'],['favorites','Mis equipos']].map(([k,v])=><button key={k} aria-pressed={mode===k} className={mode===k?'selected':''} onClick={()=>{setMode(k);setSelected(null);setOffset(0);}}>{k==='live'&&<i className="calendar-live-dot"/>}{v}</button>)}</div>
   <div className="calendar-date"><button className="icon" aria-label="Día anterior" onClick={()=>{setMode('today');setOffset(n=>n-1);setSelected(null);}}><ChevronLeft size={18}/></button><span><CalendarDays size={16}/>{new Date(day+'T12:00:00Z').toLocaleDateString('es-AR',{day:'numeric',month:'short'})}</span><button className="icon" aria-label="Día siguiente" onClick={()=>{setMode('today');setOffset(n=>n+1);setSelected(null);}}><ChevronRight size={18}/></button></div>
