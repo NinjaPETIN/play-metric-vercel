@@ -1,0 +1,51 @@
+import { summarizeGames, value, type Game } from './analytics';
+import type { Player } from './data';
+import type { Calendar, TeamGame } from './nba-snapshot';
+import { defenseMetrics, matchupGrade, rankTeamDefense, type DefenseMetric } from './team-defense';
+
+export const dailyMarkets = defenseMetrics;
+export const minimumDailyGames = 10;
+
+export function dailyTrends(fixtures: Calendar['games'], players: Player[], previous: Player[], finals: TeamGame[], day: string) {
+ const opponents = new Map(fixtures.flatMap(game => [[game.home,{ code: game.away, home: true }], [game.away,{ code: game.home, home: false }]] as const));
+ const cutoff = new Map(fixtures.map(game => [game.id, game.date]));
+ const beforeDay = (game: { date: string; gameId?: string }) => game.date < day && !cutoff.has(game.gameId ?? '');
+ const ranks = rankTeamDefense(finals.filter(game => beforeDay({date: game.date, gameId: game.id})), players);
+ const older = new Map(previous.map(player => [player.id, player.games]));
+ const reports = Object.fromEntries(dailyMarkets.map(metric => [metric, []])) as Record<DefenseMetric, DailyTrendRow[]>;
+ for (const player of players) {
+  const team = player.currentTeam;
+  const opponent = team && opponents.get(team);
+  if (!team || !opponent) continue;
+  const valid = (games: Game[]) => games.filter(game => beforeDay(game) && game.played && game.minutes > 0).sort((a,b) => b.date.localeCompare(a.date));
+  const season = valid(player.games);
+  if (!season.length) continue;
+  const history = [...season, ...valid(older.get(player.id) ?? [])].filter((game, index, rows) =>
+   !game.gameId || rows.findIndex(row => row.gameId === game.gameId) === index);
+  for (const metric of dailyMarkets) {
+   const average = summarizeGames(season, metric, 0).average;
+   if (average === null) continue;
+   const line = Math.max(.5, Math.round(average) - .5);
+   const form = summarizeGames(history.slice(0,20), metric, line);
+   if (form.n < minimumDailyGames) continue;
+   reports[metric].push({
+    id:player.id, name:player.name, team, opponent:opponent.code, home:opponent.home, line,
+    form, season:summarizeGames(season,metric,line), versus:summarizeGames(history.filter(game => game.opponent === opponent.code),metric,line),
+    grade:matchupGrade(ranks[opponent.code] ?? [],metric,'over'),
+    recent:history.slice(0,10).reverse().map(game => ({ value:value(game, metric), opponent:game.opponent })),
+   });
+  }
+ }
+ for (const metric of dailyMarkets) {
+  reports[metric] = reports[metric].sort((a,b) => (b.form.rate ?? 0)-(a.form.rate ?? 0) || b.form.n-a.form.n || a.name.localeCompare(b.name,'es') || a.id.localeCompare(b.id)).slice(0,20);
+ }
+ return reports;
+}
+
+type Sample = ReturnType<typeof summarizeGames>;
+export type DailyTrendRow = {
+ id:string; name:string; team:string; opponent:string; home:boolean; line:number;
+ form:Sample; season:Sample; versus:Sample; grade:string|null;
+ recent:{value:number|null;opponent:string}[];
+};
+export type DailyTrends = { day:string; season:number; games:number; reports:ReturnType<typeof dailyTrends> | null };

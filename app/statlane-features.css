@@ -272,3 +272,34 @@ html:has(.live-score-dock.is-collapsed) { scroll-padding-bottom: calc(48px + env
 .shot-dot:focus-visible { stroke:var(--text); stroke-width:3; }
 .shot-dot.made { fill:#30bf9d; }
 .shot-dot.missed { fill:#ef7588; }
+
+.daily-trends { padding:15px; margin-bottom:14px; }
+.daily-trends summary { cursor:pointer; font-weight:800; }
+.daily-trends summary time { float:right; color:var(--muted); font-size:.78rem; font-weight:600; }
+.daily-trends-controls { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; margin:14px 0; }
+.daily-leader { display:grid; grid-template-columns: minmax(200px,1fr) auto minmax(145px,1fr); align-items:center; gap:16px; background:var(--soft); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:12px; }
+.daily-leader-identity,.daily-leader-identity span { display:flex; align-items:center; gap:7px; }
+.daily-leader-identity img { object-fit:contain; width:75px; height:auto; }
+.daily-leader h3 { margin:3px 0; }
+.daily-leader a,.daily-trends-table a { color:inherit; }
+.daily-leader small,.daily-trends-table small,.daily-trends-note { color:var(--muted); font-size:.72rem; }
+.daily-leader-result { display:grid; }
+.daily-leader-result strong { font-size:2.15rem; color:var(--green,#118369); line-height:1.15; }
+.daily-trends-table { width:100%; border-collapse:collapse; font-size:.8rem; white-space:nowrap; }
+.daily-trends-table :is(th,td) { border-bottom:1px solid var(--border); padding:8px; text-align:left; }
+.daily-trends-table small { display:block; }
+.daily-spark { width:118px; height:27px; display:flex; position:relative; gap:2px; }
+.daily-spark.is-large { width:100%; height:75px; }
+.daily-spark span { flex:1; height:100%; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; min-width:0; }
+.daily-spark span b { font-size:.63rem; margin-bottom:2px; }
+.daily-spark span i { width:100%; background:#ff8796; border-radius:2px 2px 0 0; }
+.daily-spark i[data-result=hit] { background:#36bb98; }
+.daily-spark i[data-result=equal] { background:var(--brand); }
+.daily-spark i[data-result=missing] { opacity:0; }
+.daily-spark em { position:absolute; width:100%; border-bottom:1px dashed var(--muted); pointer-events:none; }
+.daily-trends-note { margin:12px 0 0; }
+@media(max-width:740px) {
+ .daily-leader { grid-template-columns: minmax(0,1fr) auto; gap:10px; }
+ .daily-leader .daily-spark { grid-column:1/-1; }
+ .daily-leader-identity img { width:52px; }
+}
