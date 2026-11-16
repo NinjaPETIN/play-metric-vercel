@@ -15,7 +15,7 @@ test('teammate splits exclude incomplete games, dates outside the shared stint a
  const dates = [1,2,3,4,5,6,7];
  const players = [
   player('subject', dates.map(n => ({ ...appearance(n, 20), fieldGoalsAttempted: n === 2 ? 12 : undefined }))),
-  player('teammate', [appearance(2), appearance(5)]),
+  { ...player('teammate', [appearance(2), appearance(5)]), currentTeam: 'BOS' },
   ...['a','b','c','d'].map(id => player(id, dates.map(n => appearance(n)))),
  ];
  const finals = dates.map(n => ({
@@ -25,6 +25,7 @@ test('teammate splits exclude incomplete games, dates outside the shared stint a
  const result = teammateSplits(players, finals, 'BOS', '2026-11-06').compare('subject','teammate');
  assert.equal(result?.with.games, 2);
  assert.equal(result?.without.games, 1);
+ assert.equal(teammateSplits(players, finals, 'BOS', '2026-11-07', true).compare('subject','teammate')?.without.games, 2);
  assert.deepEqual(result?.with.metrics.find(row => row.key === 'fieldGoalsAttempted'), { key:'fieldGoalsAttempted', value:12, games:1 });
  assert.equal(teammateSplits(players, finals, 'BOS', '2026-11-05').compare('subject','teammate')?.without.games, 0);
 });

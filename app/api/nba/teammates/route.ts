@@ -1,6 +1,8 @@
 import { cachedNbaRead } from '../../../../lib/read-cache';
-import { loadDashboard } from '../../../../lib/provider';
+import { loadCalendar, loadDashboard } from '../../../../lib/provider';
 import { isCompetition } from '../../../../lib/competitions';
+import type { Calendar } from '../../../../lib/nba-snapshot';
+import { rosterFreshness } from '../../../../lib/roster';
 import { teammateSplits } from '../../../../lib/teammate-splits';
 
 export async function GET(request: Request) {
@@ -19,8 +21,12 @@ export async function GET(request: Request) {
  }
  try {
   const splits = await cachedNbaRead('teammates:' + season + ':' + competition + ':' + team + ':' + (before ?? ''), async () => {
-   const data = await cachedNbaRead('preview-history:' + season + ':' + competition, () => loadDashboard(Number(season), competition, true));
-   return teammateSplits(data.players, data.teamGames, team, before);
+   const [data, calendar] = await Promise.all([
+    cachedNbaRead('preview-history:' + season + ':' + competition, () => loadDashboard(Number(season), competition, true)),
+    cachedNbaRead<Calendar | null>('calendar', loadCalendar).catch(() => null),
+   ]);
+   const currentRoster = calendar?.season === Number(season) && rosterFreshness(data.roster.fetchedAt).status === 'ready';
+   return teammateSplits(data.players, data.teamGames, team, before, currentRoster);
   });
   return Response.json({ players: splits.players, comparison: subject && teammate ? splits.compare(subject, teammate) : null }, { headers });
  } catch {

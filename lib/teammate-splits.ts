@@ -14,7 +14,7 @@ function summarize(games: Game[]) {
  };
 }
 
-export function teammateSplits(players: Player[], finals: TeamGame[], team: string, before?: string) {
+export function teammateSplits(players: Player[], finals: TeamGame[], team: string, before?: string, currentRoster = false) {
  const finalById = new Map(finals.filter(game => (!before || game.date < before) && (game.home === team || game.away === team)).map(game => [game.id, game]));
  const boxes = new Map<string, { points: number; players: Set<string>; duplicate: boolean }>();
  const roster = players.flatMap(player => {
@@ -27,7 +27,7 @@ export function teammateSplits(players: Player[], finals: TeamGame[], team: stri
    box.players.add(player.id);
    boxes.set(id, box);
   }
-  return rows.length ? [{ id: player.id, name: player.name, rows }] : [];
+  return rows.length ? [{ id: player.id, name: player.name, rows, currentTeam: player.currentTeam, latestTeam: player.games.reduce<Game | undefined>((latest, game) => game.team && (!latest || game.date > latest.date) ? game : latest, undefined)?.team }] : [];
  });
  const verified = new Set([...boxes].flatMap(([id, box]) => {
   const final = finalById.get(id)!;
@@ -35,7 +35,7 @@ export function teammateSplits(players: Player[], finals: TeamGame[], team: stri
  }));
  const eligible = roster.flatMap(player => {
   const games = player.rows.filter(game => verified.has(game.gameId!)).sort((a, b) => a.date.localeCompare(b.date));
-  return games.length ? [{ id: player.id, name: player.name, games }] : [];
+  return games.length ? [{ id: player.id, name: player.name, games, currentTeam: player.currentTeam, latestTeam: player.latestTeam }] : [];
  });
  return {
   players: eligible.map(({ id, name }) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name)),
@@ -46,9 +46,10 @@ export function teammateSplits(players: Player[], finals: TeamGame[], team: stri
    const ids = new Set(teammate.games.map(game => game.gameId));
    const start = teammate.games[0].date;
    const end = teammate.games.at(-1)!.date;
+   const stillOnTeam = currentRoster && teammate.currentTeam === team && teammate.latestTeam === team;
    return {
     with: summarize(subject.games.filter(game => ids.has(game.gameId))),
-    without: summarize(subject.games.filter(game => !ids.has(game.gameId) && game.date > start && game.date < end)),
+    without: summarize(subject.games.filter(game => !ids.has(game.gameId) && game.date > start && (game.date < end || stillOnTeam && game.date > end))),
    };
   },
  };

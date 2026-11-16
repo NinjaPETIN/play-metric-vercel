@@ -70,7 +70,7 @@ export default function TeammateComparison({ team, season, competition, playerId
       })}</tr>)}</tbody>
     </table></div>
     {Math.min(comparison.with.games, comparison.without.games) < 5 && <p className="muted">Muestra pequeña o incompleta.</p>}
-    <p className="muted">Partidos con estadísticas de equipo verificadas. La muestra «Sin» cuenta encuentros entre la primera y la última aparición registrada del compañero con este equipo.</p>
+    <p className="muted">Partidos con estadísticas de equipo verificadas. La muestra «Sin» abarca el período entre apariciones y puede incluir ausencias posteriores si la plantilla actual confirma que el compañero sigue en el equipo.</p>
    </>}
   </div>}
  </details>;
