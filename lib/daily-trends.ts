@@ -7,12 +7,12 @@ export const dailyMarkets = defenseMetrics;
 export const minimumDailyGames = 10;
 
 export function dailyTrends(fixtures: Calendar['games'], players: Player[], previous: Player[], finals: TeamGame[], day: string) {
- const opponents = new Map(fixtures.flatMap(game => [[game.home,{ code: game.away, home: true }], [game.away,{ code: game.home, home: false }]] as const));
- const cutoff = new Map(fixtures.map(game => [game.id, game.date]));
+ const opponents = new Map<string,{code:string;home:boolean}>(fixtures.flatMap(game => [[game.home,{ code: game.away, home: true }], [game.away,{ code: game.home, home: false }]] as const));
+ const cutoff = new Set(fixtures.map(game => game.id));
  const beforeDay = (game: { date: string; gameId?: string }) => game.date < day && !cutoff.has(game.gameId ?? '');
  const ranks = rankTeamDefense(finals.filter(game => beforeDay({date: game.date, gameId: game.id})), players);
  const older = new Map(previous.map(player => [player.id, player.games]));
- const reports = Object.fromEntries(dailyMarkets.map(metric => [metric, []])) as Record<DefenseMetric, DailyTrendRow[]>;
+ const reports:Record<DefenseMetric,DailyTrendRow[]> = {points:[],rebounds:[],assists:[],threes:[]};
  for (const player of players) {
   const team = player.currentTeam;
   const opponent = team && opponents.get(team);
