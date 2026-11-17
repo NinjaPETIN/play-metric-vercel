@@ -69,10 +69,12 @@ export default function PlayerPeriodComparison({ games, name, path }: { games: G
    <div><h3>Qué cambió</h3><p className="muted">Promedios por partido · filtros aplicados{prior.length < 10 ? ' · muestra anterior parcial' : ''}</p></div>
    <button type="button" className="button subtle" onClick={() => setSharing(true)}><Share2 size={16}/> Compartir tarjeta</button>
   </div>
-  <div className="table-scroll"><table className="history"><thead><tr>{labels.map(label => <th scope="col" key={label}>{label}</th>)}</tr></thead>
+  <strong className="period-comparison-highlight">{delta(rows[1].recent.value,rows[1].prior.value,' min')}</strong>
+  <p className="period-comparison-sample">Por partido · {recent.length} recientes frente a {prior.length} anteriores</p>
+  <details><summary>Ver comparación completa</summary><div className="table-scroll"><table className="history"><thead><tr>{labels.map(label => <th scope="col" key={label}>{label}</th>)}</tr></thead>
    <tbody>{table.map(([label, ...cells]) => <tr key={label}><th scope="row">{label}</th>{cells.map((cell, i) => <td key={i}>{cell}</td>)}</tr>)}</tbody>
   </table></div>
-  <p className="muted">El porcentaje de tiros de campo se calcula sobre los intentos registrados.</p>
+  <p className="muted">El porcentaje de tiros de campo se calcula sobre los intentos registrados.</p></details>
   {sharing && <ShareCardDialog title="Compartir Qué cambió" triggerLabel="Compartir tarjeta"
    text={name + ' · Qué cambió en sus últimos ' + recent.length + ' partidos. ' + table[0][3] + ' puntos y ' + table[1][3] + ' minutos por partido. Statlane.'}
    path={path} filename="statlane-que-cambio" assets={{}} draw={draw} onClose={() => setSharing(false)}/>}
