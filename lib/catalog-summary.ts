@@ -38,3 +38,9 @@ export function catalogRows(players:Player[],market:Market|'all',settings:{sort:
  const m=market==='all'?'points':market;
  return players.flatMap(p=>{const a=p.catalogStats?.[m];return a&&a.n>=settings.minGames&&(market==='all'||(a.rate??0)>=settings.minRate/100&&(a.line??0)>=settings.minLine&&(a.line??0)<=settings.maxLine)?[{p,m,a}]:[];}).sort((a,b)=>settings.sort==='name'?a.p.name.localeCompare(b.p.name,'es'):settings.sort==='average'||market==='all'?(b.a.average??-1)-(a.a.average??-1)||a.p.name.localeCompare(b.p.name,'es'):(b.a.rate??-1)-(a.a.rate??-1)||b.a.n-a.a.n||a.p.name.localeCompare(b.p.name,'es'));
 }
+
+export function catalogTrendResult(value:number|null,line:number|null|undefined,side:CatalogOptions['side']){
+ if(value===null)return 'missing';
+ if(line==null)return 'neutral';
+ return (side==='under'?value<line:value>line)?'hit':'miss';
+}

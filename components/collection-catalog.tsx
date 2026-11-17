@@ -2,7 +2,7 @@
 import {useMemo,useRef,useState,type ReactNode} from 'react';
 import type {Player} from '../lib/data';
 import {markets,type Market} from '../lib/analytics';
-import {catalogRows,type CatalogStat} from '../lib/catalog-summary';
+import {catalogRows,catalogTrendResult,type CatalogStat} from '../lib/catalog-summary';
 import {useReadingPreferences} from './reading-preferences';
 import {useUpcomingGames} from './design-schedule';
 import TeamLogo from './team-logo';
@@ -13,11 +13,17 @@ const number=(n:number|null|undefined)=>n==null?'—':n.toLocaleString('es-AR',{
 type Settings={sort:string;minGames:number;minRate:number;maxLine:number;minLine:number;side:'over'|'under';venue:string;opponent:string;minMinutes:number};
 type Row={p:Player;m:Market;a?:CatalogStat};
 function portrait(player:Player){return 'https://cdn.nba.com/headshots/nba/latest/260x190/'+player.id+'.png';}
-function Spark({values=[],metric}:{values?:Array<number|null>;metric:string}){
- const max=Math.max(1,...values.map(value=>value??0));
+const referenceText=(line:number,side:Settings['side'])=>(side==='under'?'Menos de ':'Más de ')+number(line);
+function Spark({values=[],metric,line,side}:{values?:Array<number|null>;metric:string;line?:number|null;side:Settings['side']}){
+ const max=Math.max(1,line??0,...values.map(value=>value??0))*1.08;
  if(!values.length)return <span className="muted" aria-label="Sin partidos para graficar">—</span>;
- const description=metric+' por partido, del más antiguo al más reciente: '+values.map(value=>value===null?'sin dato':number(value)).join('; ');
- return <span className="design-catalog-spark" data-dense={values.length>10} role="img" aria-label={description}>{values.map((value,index)=><i key={index} className={value===null?'is-missing':undefined} title={value===null?'Sin dato':number(value)} style={{height:Math.max(4,(value??0)/max*100)+'%'}}/>)}</span>;
+ const reference=line==null?'':referenceText(line,side);
+ const bars=values.map(value=>({value,result:catalogTrendResult(value,line,side)}));
+ const describe=(bar:typeof bars[number])=>bar.value===null?'Sin dato':number(bar.value)+' '+metric.toLowerCase()+(bar.result==='hit'?' · Cumplió':bar.result==='miss'?' · No cumplió':'');
+ return <span className="design-catalog-spark" data-dense={values.length>10} role="img" aria-label={[metric+' del más antiguo al más reciente',reference,...bars.map(describe)].filter(Boolean).join('; ')}>
+  {bars.map((bar,index)=><i key={index} data-result={bar.result} title={describe(bar)} style={{height:Math.max(4,(bar.value??0)/max*100)+'%'}}/>)}
+  {line!=null&&<span className="design-spark-threshold" aria-hidden="true" style={{bottom:line/max*100+'%'}}/>}
+ </span>;
 }
 export default function CollectionCatalog({players,favorites,following,market,windowSize,settings,onMinimumGames,onOpen,favorite,competition='regular',season}:{competition?:Competition;season?:number;players:Player[];favorites:string[];following:boolean;market:Market|'all';windowSize:number;settings:Settings;onMinimumGames:()=>void;onOpen:(p:Player,m:Market)=>void;favorite:(p:Player,m:Market)=>ReactNode}){
  const {reduced}=useReadingPreferences();
@@ -55,6 +61,7 @@ export default function CollectionCatalog({players,favorites,following,market,wi
   <div className="design-catalog-title"><h2>{following?'Tu seguimiento':'Jugadores de la NBA'}</h2></div>
   <div className="design-catalog-method" aria-label="Cómo leer el explorador">
    <strong>{metric} · {sample}</strong>
+   {!reduced&&<div className="design-catalog-key"><span><i data-result="hit"/> Cumplió</span><span><i data-result="miss"/> No cumplió</span></div>}
    <p>El promedio toma solo los partidos con minutos jugados y datos para esa estadística. {filters.length>0&&<>Filtros de la muestra: {filters.join(' · ')}. </>}Cada barra representa un partido, del más antiguo al más reciente. {!windowSize&&<>El gráfico muestra hasta 30 partidos. </>}La altura de las barras se ajusta para cada jugador.</p>
   </div>
   {rows.length&&featured?<div className="design-catalog-layout">
@@ -71,8 +78,9 @@ export default function CollectionCatalog({players,favorites,following,market,wi
       <span className="design-catalog-rival">{rival?<><TeamLogo team={rival} size={23}/><span>{rival}</span></>:<span title="Próximo rival sin confirmar">—</span>}</span>
       <span className="design-catalog-average" aria-label={number(a?.average)+' '+markets[m].toLowerCase()+' por partido en '+(a?.n??0)+' partidos con datos'}>
        <strong>{number(a?.average)}</strong><small>{mixed?markets[m]+' · ':''}{a?.n??0} PJ</small>
+       {!reduced&&a?.line!=null&&<small className="design-catalog-line">{referenceText(a.line,settings.side)}</small>}
       </span>
-      <Spark values={a?.recent} metric={markets[m]}/>
+      <Spark values={a?.recent} metric={markets[m]} line={reduced?null:a?.line} side={settings.side}/>
       <div className="design-catalog-actions">{favorite(p,m)}</div>
      </article>;
     })}
@@ -82,9 +90,10 @@ export default function CollectionCatalog({players,favorites,following,market,wi
     <img src={portrait(featured.p)} width={260} height={190} alt="" decoding="async"/>
     <div><h3>{featured.p.name}</h3><p>{featured.p.currentTeam??featured.p.team}</p>
      <b className="design-quick-average">{number(featured.a?.average)}</b><p>{markets[featured.m]} por partido · {featured.a?.n??0} PJ</p>
-     <small>{chartSample} partidos</small><Spark values={featured.a?.recent} metric={markets[featured.m]}/>
-     {!reduced&&<details><summary>Ver referencia y detalle</summary>
-      <p>Referencia {number(featured.a?.line)} · {featured.a?.rate==null?'—':Math.round(featured.a.rate*100)+'%'}</p>
+     <small>{chartSample} partidos</small>
+     {!reduced&&featured.a?.line!=null&&<p className="design-quick-line"><span>Línea de referencia</span><strong>{referenceText(featured.a.line,settings.side)} {markets[featured.m].toLowerCase()}</strong></p>}
+     <Spark values={featured.a?.recent} metric={markets[featured.m]} line={reduced?null:featured.a?.line} side={settings.side}/>
+     {!reduced&&<details><summary>Ver resultados por partido</summary>
       <div className="design-quick-windows">{['5','10','20'].map(window=>{const stat=featured.a?.windows?.[window];return <span key={window}><small>L{window}</small><b>{stat?.rate==null?'—':Math.round(stat.rate*100)+'%'}</b><small>{stat?.n??0} PJ</small></span>;})}</div>
       <CatalogTrend key={[key(featured),season,competition,windowSize,settings.venue,settings.opponent,settings.minMinutes,settings.side].join(':')} a={featured.a} label={markets[featured.m]} side={settings.side} player={featured.p} options={{market:featured.m,last:windowSize,venue:settings.venue,opponent:settings.opponent,minutes:settings.minMinutes,side:settings.side}} competition={competition} season={season}/>
       </details>}

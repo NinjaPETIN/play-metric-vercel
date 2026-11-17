@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {summarizeCatalogPlayer,catalogRows,defaultCatalogOptions} from '../lib/catalog-summary';
+import {summarizeCatalogPlayer,catalogRows,catalogTrendResult,defaultCatalogOptions} from '../lib/catalog-summary';
 import {catalogOptions} from '../lib/catalog-options';
 import {publicCatalog} from '../lib/public-access';
 import {scopedNbaRead} from '../lib/scoped-nba-read';
@@ -63,4 +63,10 @@ test('opening-season summaries show real small samples and preserve explicit min
  assert.equal(catalogRows([catalog],'points',{...settings,minGames:5}).length,0);
  assert.equal(catalog.catalogStats.points?.windows?.['10'].n,1);
  assert.equal(catalog.catalogStats.points?.recent?.length,1);
+});
+
+test('explorer bars follow both directions and do not mark ties or missing values as hits',()=>{
+ assert.deepEqual([12,10,8,null].map(value=>catalogTrendResult(value,10,'over')),['hit','miss','miss','missing']);
+ assert.deepEqual([12,10,8,null].map(value=>catalogTrendResult(value,10,'under')),['miss','miss','hit','missing']);
+ assert.equal(catalogTrendResult(12,null,'over'),'neutral');
 });
