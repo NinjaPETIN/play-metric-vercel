@@ -26,7 +26,6 @@ export default function MatchPreview({match,onHistorical,onPlayers,pending=false
  <div className="prematch-meetings"><h3>Últimos cruces</h3>{data?.meetings.length?data.meetings.map(g=><div key={g.id}><TeamLogo team={g.away} size={24}/><b>{g.away}</b><strong>{g.awayScore}</strong><span>-</span><b>{g.home}</b><strong>{g.homeScore}</strong><TeamLogo team={g.home} size={24}/><time>{new Date(g.date+'T12:00:00Z').toLocaleDateString('es-AR',{day:'numeric',month:'short'})}</time></div>):<p>{data?'Sin cruces registrados en esta competición.':failed?'Cruces no disponibles.':'Consultando cruces…'}</p>}</div>
  </section>
  <section className="card prematch-players"><header><h2>Jugadores a seguir</h2><small>Historial · No confirma titulares</small></header><div>{teams.map(team=>{const p=data?.teams.find(t=>t.team===team)?.leader;return <article key={team}>{p?<><Portrait person={p}/><div><div className="prematch-player-name"><TeamLogo team={team} size={26}/><b>{p.name}</b></div><small>Promedios de temporada · {p.n} PJ</small><div className="prematch-player-numbers">{([['PTS',p.points],['REB',p.rebounds],['AST',p.assists]] as const).map(([label,value])=><span key={label}><small>{label}</small><b>{format(value)}</b></span>)}</div><a href={playerPath(p)}>Ver perfil →</a></div></>:<><TeamLogo team={team} size={54}/><div><b>{team}</b><p>{data?'Todavía no hay promedios completos disponibles.':failed?'Historial no disponible.':'Cargando jugadores…'}</p></div></>}</article>;})}</div></section>
- <div className="design-pregame-panels"> <MatchAvailability key={match.id} id={match.id} away={match.away} home={match.home} date={match.date} season={data?.season} competition={match.competition}/>
  <section className="card prematch-rotation"><h2>Cambios en minutos</h2>
   {teams.map(team=>{
    const rotation=data?.teams.find(row=>row.team===team)?.rotation;
@@ -37,9 +36,9 @@ export default function MatchPreview({match,onHistorical,onPlayers,pending=false
     <p>{data?'Sin cambios de al menos 2 minutos con muestra suficiente.':failed?'Historial no disponible.':'Consultando minutos…'}</p>}</div>;
   })}
  </section>
- </div>{data&&teams.map(team=><TeammateComparison key={[team,match.id].join(':')} team={team} season={data.season} competition={match.competition} before={match.date}/>)}
+ {data&&teams.map(team=><TeammateComparison key={[team,match.id].join(':')} team={team} season={data.season} competition={match.competition} before={match.date}/>)}
  </div><aside className="prematch-side"><section className="card prematch-info"><h2>Datos del encuentro</h2><p><TeamLogo team={match.away} size={22}/><b>{match.away} @ {match.home}</b><TeamLogo team={match.home} size={22}/></p><dl><div><dt><CalendarDays size={17}/>Inicio</dt><dd>{time}</dd></div><div><dt><Trophy size={17}/>Competición</dt><dd>{competitions[match.competition].label}</dd></div></dl></section>
-
+ <MatchAvailability key={match.id} id={match.id} away={match.away} home={match.home} date={match.date} season={data?.season} competition={match.competition}/>
  <section className="card prematch-court"><svg viewBox="0 0 94 50" aria-hidden="true"><g fill="none" stroke="currentColor" strokeWidth=".4"><rect x="2" y="2" width="90" height="46"/><path d="M47 2v46M2 17h18v16H2M92 17H74v16h18"/><circle cx="47" cy="25" r="6"/><path d="M2 5h10a24 24 0 0 1 0 40H2M92 5H82a24 24 0 0 0 0 40h10"/></g></svg><div><i/><b>{pending?'Esperando el salto inicial':'El juego, en contexto'}</b><small>{pending?'Seguí el partido desde este panel':'Explorá el historial del encuentro'}</small></div></section>
  </aside></div>{(onHistorical||onPlayers)&&<div className="match-preview-actions">{onHistorical&&<button className="button subtle" onClick={onHistorical}>Resumen histórico</button>}{onPlayers&&<button className="button subtle" onClick={onPlayers}>Explorador</button>}</div>}
  </section>;

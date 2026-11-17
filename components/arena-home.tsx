@@ -8,7 +8,7 @@ import {loadCachedData} from '../lib/client-data-cache';
 import TeamLogo from './team-logo';
 import LiveScoreStrip from './live-score-strip';
 
-export default function ArenaHome({guest=false,compact=false}:{guest?:boolean;compact?:boolean}){
+export default function ArenaHome({guest=false}:{guest?:boolean}){
  const [calendar,setCalendar]=useState<Calendar|null>(null),[now,setNow]=useState<string|null>(null),[failed,setFailed]=useState(false);
  useEffect(()=>{
   const update=()=>setNow(new Date().toISOString());
@@ -35,9 +35,9 @@ export default function ArenaHome({guest=false,compact=false}:{guest?:boolean;co
    <Link className="arena-calendar-link" href="/?view=calendar">Ver calendario<ChevronRight size={15}/></Link>
   </section>
   {calendar&&<p className="arena-schedule-source">Calendario consultado {new Date(calendar.fetchedAt).toLocaleString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})} ARG · Horarios sujetos a cambios. *Estado de la última importación; el marcador en vivo se consulta por separado.</p>}</LiveScoreStrip>
-  {!compact&&<section className="arena-hero" aria-labelledby="arena-title">
+  <section className="arena-hero" aria-labelledby="arena-title">
    <div className="arena-hero-content"><span className="arena-eyebrow">NBA · EL JUEGO, EN DATOS</span><h1 id="arena-title">El juego, en contexto<span>.</span></h1><p>Estadísticas, tendencias y noticias para entender más que el resultado.</p><div className="arena-hero-links"><a className="arena-context-link" href="#news-context">Noticias y contexto<ArrowUpRight size={16}/></a>{guest&&<Link className="arena-join-link" href="/login?return_to=%2F">Crear cuenta gratis<ChevronRight size={14}/></Link>}</div></div>
    <span className="arena-hero-mark" aria-hidden="true">STAT<br/>LANE</span>
-  </section>}
+  </section>
  </div>;
 }

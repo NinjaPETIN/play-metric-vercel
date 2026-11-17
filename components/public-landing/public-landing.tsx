@@ -1,8 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import {ArrowUpRight, BarChart3, CalendarDays, Newspaper, Users} from 'lucide-react';
-import LandingExample from './landing-example';
-import {UpcomingFixtures} from '../design-schedule';
 import AnnouncementBar from './announcement-bar';
 import {activeAnnouncements} from './announcements';
 import styles from './public-landing.module.css';
@@ -18,7 +16,11 @@ const features = [
   {title: 'Noticias y contexto', text: 'Encontrá titulares de la NBA y leé las notas originales.', href: news, icon: Newspaper},
 ];
 
-export default function PublicLanding({authenticated=false}:{authenticated?:boolean}) {
+const exampleGames = [28, 23, 52, 41, 37, 45, 42];
+const average = (exampleGames.reduce((sum, points) => sum + points, 0) / exampleGames.length)
+  .toLocaleString('es-AR', {maximumFractionDigits: 1});
+
+export default function PublicLanding() {
   return (
     <div className={styles.page}>
       <AnnouncementBar items={activeAnnouncements()} />
@@ -28,29 +30,43 @@ export default function PublicLanding({authenticated=false}:{authenticated?:bool
             <Image src="/statlane-mark.svg" width={25} height={27} alt="" /> STATLANE
           </Link>
           <nav aria-label="Navegación de la portada">
-            <Link href={explore} prefetch={false}>Jugadores</Link><Link href="/?view=markets" prefetch={false}>Estadísticas</Link><Link href="/?view=favorites" prefetch={false}>Favoritos</Link>
+            <a href={explore}>Estadísticas</a>
             <a href={calendar}>Partidos</a>
             <a href={news}>Noticias</a>
           </nav>
-          <Link className={styles.secondary} href={authenticated?'/cuenta':'/login?return_to=%2F%3Fview%3Dexplore'} prefetch={false}>{authenticated?'Mi cuenta':'Ingresar'}</Link>
+          <a className={styles.secondary} href="/login?return_to=%2F%3Fview%3Dexplore">Ingresar</a>
         </div>
       </header>
       <main>
         <section className={styles.hero}>
           <div className={styles.heroInner}>
             <div>
-              
-              <h1>La NBA, en números y en <em>contexto</em></h1>
+              <span className={styles.kicker}>ESTADÍSTICAS NBA</span>
+              <h1>La NBA, en números <em>y en contexto</em></h1>
               <p>Consultá estadísticas de jugadores, compará tendencias y seguí partidos en vivo.</p>
               <div className={styles.actions}>
-                <a className={styles.primary} href={explore}>Explorar jugadores →</a>
+                <a className={styles.primary} href={explore}>Explorar estadísticas</a>
                 <a className={styles.secondary} href={calendar}>Ver partidos</a>
               </div>
             </div>
-            <LandingExample />
+            <figure className={styles.example}>
+              <figcaption>Vista de ejemplo</figcaption>
+              <div className={styles.player}>
+                <Image src="https://cdn.nba.com/headshots/nba/latest/260x190/1629029.png"
+                  width={130} height={95} alt="" unoptimized />
+                <div><strong>Luka Dončić</strong><span>Puntos por partido</span><b>{average}</b></div>
+              </div>
+              <div className={styles.chart} role="img" aria-label={`Puntos por partido en esta muestra: ${exampleGames.join(', ')}`}>
+                {exampleGames.map((points, index) => (
+                  <span key={index} style={{height: `${points / 60 * 100}%`}}>
+                    <b aria-hidden="true">{points}</b>
+                  </span>
+                ))}
+              </div>
+              <small>Muestra histórica · 7 partidos</small>
+            </figure>
           </div>
         </section>
-        <UpcomingFixtures />
         <section className={styles.features}>
           <h2>Qué podés hacer en Statlane</h2>
           <div className={styles.cards}>

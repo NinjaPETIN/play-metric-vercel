@@ -1,106 +1,22 @@
 'use client';
-import {ChevronRight} from 'lucide-react';
-import {useMemo,useRef,useState,type ReactNode} from 'react';
+import {useState,type ReactNode} from 'react';
 import type {Player} from '../lib/data';
 import {markets,type Market} from '../lib/analytics';
-import {catalogRows,catalogTrendResult,type CatalogStat} from '../lib/catalog-summary';
+import {catalogRows,type CatalogWindow} from '../lib/catalog-summary';
 import {useReadingPreferences} from './reading-preferences';
-import {useUpcomingGames} from './design-schedule';
 import TeamLogo from './team-logo';
 import CatalogTrend from './catalog-trend';
+import CatalogSecondary from './catalog-secondary';
 import type {Competition} from '../lib/competitions';
-
 const number=(n:number|null|undefined)=>n==null?'—':n.toLocaleString('es-AR',{maximumFractionDigits:1});
-type Settings={sort:string;minGames:number;minRate:number;maxLine:number;minLine:number;side:'over'|'under';venue:string;opponent:string;minMinutes:number};
-type Row={p:Player;m:Market;a?:CatalogStat};
-function portrait(player:Player){return 'https://cdn.nba.com/headshots/nba/latest/260x190/'+player.id+'.png';}
-const referenceText=(line:number,side:Settings['side'])=>(side==='under'?'Menos de ':'Más de ')+number(line);
-function Spark({values=[],metric,line,side}:{values?:Array<number|null>;metric:string;line?:number|null;side:Settings['side']}){
- const max=Math.max(1,line??0,...values.map(value=>value??0))*1.08;
- if(!values.length)return <span className="muted" aria-label="Sin partidos para graficar">—</span>;
- const reference=line==null?'':referenceText(line,side);
- const bars=values.map(value=>({value,result:catalogTrendResult(value,line,side)}));
- const describe=(bar:typeof bars[number])=>bar.value===null?'Sin dato':number(bar.value)+' '+metric.toLowerCase()+(bar.result==='hit'?' · Cumplió':bar.result==='miss'?' · No cumplió':'');
- return <span className="design-catalog-spark" data-dense={values.length>10} role="img" aria-label={[metric+' del más antiguo al más reciente',reference,...bars.map(describe)].filter(Boolean).join('; ')}>
-  {bars.map((bar,index)=><i key={index} data-result={bar.result} title={describe(bar)} style={{height:Math.max(4,(bar.value??0)/max*100)+'%'}}/>)}
-  {line!=null&&<span className="design-spark-threshold" aria-hidden="true" style={{bottom:line/max*100+'%'}}/>}
- </span>;
-}
+function Rate({stat}:{stat?:CatalogWindow}){return <span className={'catalog-rate '+(stat?.rate==null?'':stat.rate>=.6?'positive':stat.rate<.4?'negative':'neutral')} title={stat?`${stat.n} partidos en la muestra`:undefined}>{stat?.rate==null?'—':Math.round(stat.rate*100)+'%'}<small>{stat?.n?stat.n+' PJ':''}</small>{!!stat?.n&&stat.n<10&&<small className="small-sample" title={`Un partido cambia la frecuencia aproximadamente ${Math.round(100/stat.n)} puntos porcentuales`}>Muestra pequeña</small>}</span>;}
+type Settings={sort:string;minGames:number;minRate:number;minLine:number;maxLine:number;side:'over'|'under';venue:string;opponent:string;minMinutes:number};
 export default function CollectionCatalog({players,favorites,following,market,windowSize,settings,onMinimumGames,onOpen,favorite,competition='regular',season}:{competition?:Competition;season?:number;players:Player[];favorites:string[];following:boolean;market:Market|'all';windowSize:number;settings:Settings;onMinimumGames:()=>void;onOpen:(p:Player,m:Market)=>void;favorite:(p:Player,m:Market)=>ReactNode}){
  const {reduced}=useReadingPreferences();
- const {games}=useUpcomingGames();
- const rivals=useMemo(()=>{
-  const teams=new Map<string,string>();
-  for(const game of games){
-   if(!teams.has(game.away))teams.set(game.away,game.home);
-   if(!teams.has(game.home))teams.set(game.home,game.away);
-  }
-  return teams;
- },[games]);
- const [limit,setLimit]=useState(50);
- const [selected,setSelected]=useState<string|null>(null);
- const panel=useRef<HTMLElement>(null);
  const selection=reduced?{...settings,sort:'name',minRate:0,minLine:0,maxLine:Infinity}:settings;
+ const [limit,setLimit]=useState(50);
  const available=catalogRows(players,market,{...selection,minGames:1});
- const rows:Row[]=following?players.flatMap(p=>favorites.filter(id=>id.startsWith(p.id+':')).flatMap(id=>{
-  const m=id.split(':')[1] as Market;
-  return Object.hasOwn(markets,m)&&(market==='all'||m===market)?[{p,m,a:p.catalogStats?.[m]}]:[];
- })):catalogRows(players,market,selection);
- const key=(row:Row)=>row.p.id+':'+row.m;
- const featured=rows.find(row=>key(row)===selected)??rows[0];
- const sample=windowSize?'Últimos '+windowSize+' partidos':'Temporada completa';
- const chartSample=windowSize?'Últimos '+Math.min(windowSize,30):'Últimos 30';
- const mixed=following&&market==='all';
- const metric=mixed?'Estadísticas guardadas':markets[market==='all'?'points':market];
- const filters=[settings.venue==='home'?'De local':settings.venue==='away'?'De visitante':null,
-  settings.opponent!=='all'?'Contra '+settings.opponent:null,settings.minMinutes>0?'Mín. '+settings.minMinutes+' min':null].filter(Boolean);
- function select(row:Row){
-  setSelected(key(row));
-  if(matchMedia('(max-width: 760px)').matches)requestAnimationFrame(()=>panel.current?.scrollIntoView({block:'nearest'}));
- }
- return <section className="design-catalog" aria-label="Catálogo de estadísticas">
-  <div className="design-catalog-title"><h2>{following?'Tu seguimiento':'Jugadores de la NBA'}</h2></div>
-  <div className="design-catalog-method" aria-label="Cómo leer el explorador">
-   <strong>{metric} · {sample}</strong>
-   {!reduced&&<div className="design-catalog-key"><span><i data-result="hit"/> Cumplió</span><span><i data-result="miss"/> No cumplió</span></div>}
-   <p>El promedio toma solo los partidos con minutos jugados y datos para esa estadística. {filters.length>0&&<>Filtros de la muestra: {filters.join(' · ')}. </>}Cada barra representa un partido, del más antiguo al más reciente. {!windowSize&&<>El gráfico muestra hasta 30 partidos. </>}La altura de las barras se ajusta para cada jugador.</p>
-  </div>
-  {rows.length&&featured?<div className="design-catalog-layout">
-   <div className="design-catalog-list">
-    <div className="design-catalog-row design-catalog-columns" aria-hidden="true"><span>Jugador</span><span>Próximo rival</span><span>Promedio <small>{mixed?'Por partido':metric+' / partido'}</small></span><span>{chartSample}<small>Partidos</small></span><span/></div>
-    {rows.slice(0,limit).map(row=>{
-     const {p,m,a}=row;
-     const team=p.currentTeam??p.team,rival=rivals.get(team);
-     return <article key={key(row)} className={'design-catalog-row'+(key(featured)===key(row)?' is-picked':'')}>
-      <button type="button" className="design-catalog-identity" onClick={()=>onOpen(p,m)}>
-       <img src={portrait(p)} width={52} height={42} loading="lazy" decoding="async" alt=""/>
-       <span><strong>{p.name}</strong><small>{team}{p.position?' · '+p.position:''}</small></span>
-      </button>
-      <span className="design-catalog-rival">{rival?<><TeamLogo team={rival} size={23}/><span>{rival}</span></>:<span title="Próximo rival sin confirmar">—</span>}</span>
-      <span className="design-catalog-average" aria-label={number(a?.average)+' '+markets[m].toLowerCase()+' por partido en '+(a?.n??0)+' partidos con datos'}>
-       <strong>{number(a?.average)}</strong><small>{mixed?markets[m]+' · ':''}{a?.n??0} PJ</small>
-       {!reduced&&a?.line!=null&&<small className="design-catalog-line">{referenceText(a.line,settings.side)}</small>}
-      </span>
-      <Spark values={a?.recent} metric={markets[m]} line={reduced?null:a?.line} side={settings.side}/>
-      <div className="design-catalog-actions"><button type="button" className="design-player-preview" aria-label={'Vista rápida de '+p.name} aria-pressed={key(featured)===key(row)} onClick={()=>select(row)}><ChevronRight size={17}/></button>{favorite(p,m)}</div>
-     </article>;
-    })}
-    {rows.length>limit&&<button className="button subtle" onClick={()=>setLimit(value=>value+50)}>Mostrar 50 más</button>}
-   </div>
-   <aside className="design-catalog-quick card" ref={panel} aria-label="Vista rápida del jugador">
-    <img src={portrait(featured.p)} width={260} height={190} alt="" decoding="async"/>
-    <div><h3>{featured.p.name}</h3><p>{featured.p.currentTeam??featured.p.team}</p>
-     <b className="design-quick-average">{number(featured.a?.average)}</b><p>{markets[featured.m]} por partido · {featured.a?.n??0} PJ</p>
-     <small>{chartSample} partidos</small>
-     {!reduced&&featured.a?.line!=null&&<p className="design-quick-line"><span>Línea de referencia</span><strong>{referenceText(featured.a.line,settings.side)} {markets[featured.m].toLowerCase()}</strong></p>}
-     <Spark values={featured.a?.recent} metric={markets[featured.m]} line={reduced?null:featured.a?.line} side={settings.side}/>
-     {!reduced&&<details><summary>Ver resultados por partido</summary>
-      <div className="design-quick-windows">{['5','10','20'].map(window=>{const stat=featured.a?.windows?.[window];return <span key={window}><small>L{window}</small><b>{stat?.rate==null?'—':Math.round(stat.rate*100)+'%'}</b><small>{stat?.n??0} PJ</small></span>;})}</div>
-      <CatalogTrend key={[key(featured),season,competition,windowSize,settings.venue,settings.opponent,settings.minMinutes,settings.side].join(':')} a={featured.a} label={markets[featured.m]} side={settings.side} player={featured.p} options={{market:featured.m,last:windowSize,venue:settings.venue,opponent:settings.opponent,minutes:settings.minMinutes,side:settings.side}} competition={competition} season={season}/>
-      </details>}
-     <button type="button" className="button subtle" onClick={()=>onOpen(featured.p,featured.m)}>Ver ficha completa →</button>
-    </div>
-   </aside>
-  </div>:<div className="empty"><h2>No hay estadísticas con estos filtros</h2>{!following&&available.length>0&&settings.minGames>1?<button className="button subtle" onClick={onMinimumGames}>Ver desde 1 partido</button>:<p>Probá otra selección o ajustá los filtros.</p>}</div>}
- </section>;
+ const maxGames=Math.max(0,...available.map(r=>r.a.n));
+ const rows=following?players.flatMap(p=>favorites.filter(id=>id.startsWith(p.id+':')).flatMap(id=>{const m=id.split(':')[1];return Object.hasOwn(markets,m)&&(market==='all'||m===market)?[{p,m:m as Market,a:p.catalogStats?.[m as Market]}]:[];})):catalogRows(players,market,selection);
+ return <section className="catalog-selection" aria-label="Catálogo de estadísticas"><div className="catalog-table-heading"><h2>{following?'Tu seguimiento':market==='all'?'Resumen en puntos':markets[market]}</h2><span>{rows.length} jugadores · {windowSize?'L'+windowSize:'Temporada'}</span></div><details className="catalog-reading"><summary>Cómo leer estos datos</summary><p>Una barra por partido; el más reciente a la derecha. Verde: cumple la referencia según Más de / Menos de; rojo: no cumple; gris: empate. L5, L10 y L20 son frecuencias históricas, no probabilidades futuras. La referencia automática es el promedio de la temporada redondeado al entero más cercano, menos 0,5 (mínimo 0,5); podés ajustarla en la ficha.</p></details><div className="catalog-player-cards">{!following&&rows.length>0&&maxGames<5&&<p className="filter-help" role="status">Todavía hay pocos partidos en esta selección. Mostramos los datos disponibles; cada tarjeta indica la muestra real. L5, L10 y L20 incluyen hasta esa cantidad, sin completar partidos faltantes.</p>}{rows.slice(0,limit).map(({p,m,a})=><article className="catalog-player-card" key={p.id+':'+m}><div className="catalog-identity"><button className="catalog-player" onClick={()=>onOpen(p,m)}><span className="catalog-photo"><span>{p.name.split(' ').map(s=>s[0]).slice(0,2).join('')}</span><img src={`https://cdn.nba.com/headshots/nba/latest/260x190/${p.id}.png`} alt="" loading="lazy" onError={e=>{e.currentTarget.style.display='none';}}/></span><span><strong>{p.name}</strong><small className="catalog-team"><TeamLogo team={p.currentTeam??'—'} size={22}/>{p.currentTeam??'Sin confirmar'} · equipo actual</small><small className="catalog-historic-team">Historial: {p.team}</small><span className="catalog-reference">Referencia {number(a?.line)} · {markets[m]}</span></span></button></div><div className="catalog-chart-cell"><small>{windowSize?'ÚLTIMOS '+windowSize+' PARTIDOS':'ÚLTIMOS 30 PARTIDOS'}</small><CatalogTrend key={[p.id,m,competition,season,windowSize,settings.venue,settings.opponent,settings.minMinutes,settings.side].join(':')} a={a} label={markets[m]} side={settings.side} player={p} options={{market:m,last:windowSize,venue:settings.venue,opponent:settings.opponent,minutes:settings.minMinutes,side:settings.side}} competition={competition} season={season}/></div><div className="catalog-average-cell"><small>PROMEDIO {windowSize?'L'+windowSize:'TEMP.'}</small><strong className="catalog-average">{number(a?.average)}</strong><span>{markets[m].toLowerCase()} / partido</span><small className="catalog-count">{a?.n??0} partidos válidos</small>{a?.average!=null&&a.windows?.season.average!=null&&<div className="sl-catalog-baseline"><span>Temporada: <b>{number(a.windows.season.average)}</b> · {a.windows.season.n} PJ</span><small>{windowSize?'L'+windowSize:'Muestra'} vs. temporada: <b>{a.average-a.windows.season.average>0?'+':''}{number(a.average-a.windows.season.average)}</b></small></div>}{!!a?.n&&a.n<10&&<small className="arena-sample-note">Muestra pequeña</small>}</div><CatalogSecondary><p className="catalog-mobile-reference">Referencia {number(a?.line)} · {markets[m]}<small>Historial: {p.team}</small></p><div className="catalog-window-rates" aria-label="Frecuencias históricas">{['5','10','20'].map(w=><div key={w}><small>L{w}</small><Rate stat={a?.windows?.[w]}/><span className="catalog-rate-track" aria-hidden="true"><i style={{width:Math.round((a?.windows?.[w]?.rate??0)*100)+'%'}}/></span></div>)}</div></CatalogSecondary><div className="catalog-card-actions">{favorite(p,m)}<button className="catalog-open" aria-label={`Ver ${markets[m]} de ${p.name}`} onClick={()=>onOpen(p,m)}>→</button></div></article>)}</div>{!rows.length&&<div className="empty"><h2>No hay estadísticas con estos filtros</h2><p>{!following&&available.length>0?<>Hay estadísticas disponibles, pero ningún jugador cumple estos filtros con el mínimo de {settings.minGames} partidos.</>:"Probá otra selección o bajá la muestra mínima."}</p>{!following&&available.length>0&&settings.minGames>1&&<button className="button subtle" onClick={onMinimumGames}>Ver desde 1 partido</button>}</div>}{rows.length>limit&&<button className="button subtle catalog-more" onClick={()=>setLimit(v=>v+50)}>Mostrar 50 más · {Math.min(limit,rows.length)} de {rows.length}</button>}<p className="catalog-footnote">{settings.side==='under'?'Menos de':'Más de'} la referencia · Mínimo {settings.minGames} partidos · Frecuencias del historial seleccionado, no cuotas en vivo. {windowSize===0&&'El gráfico muestra hasta 30 partidos; el promedio incluye toda la muestra.'}</p></section>;
 }

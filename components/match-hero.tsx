@@ -12,6 +12,7 @@ export default function MatchHero({match,initialFeed=null,records=null}:{records
  const {feed,failed,now}=useLiveScores(),age=feed?.fetchedAt?now-Date.parse(feed.fetchedAt):Infinity;
  const initial=initialFeed?.data?.game.nbaId===match.id&&initialFeed.fetchedAt&&(now===0||now-Date.parse(initialFeed.fetchedAt)<300000)?initialFeed.data.game:null;
  const live=(age>=-5000&&age<300000?feed?.games.find(g=>g.nbaId===match.id):null)??initial;
+ const fetchedAt=feed?.fetchedAt??initialFeed?.fetchedAt;
  const stale=failed||(feed?feed.status!=='ready'||age>90000:initialFeed?.status!=='ready');
  const scheduled=live?live.state==='scheduled':match.status===1;
  const startsAt=live?.startsAt??match.startsAt,zone='America/Argentina/Buenos_Aires';
@@ -31,6 +32,6 @@ export default function MatchHero({match,initialFeed=null,records=null}:{records
   <div className="match-page-team"><TeamLogo team={match.away} size={80}/><div><small>Visitante · {match.away}</small><h2>{match.awayName}</h2>{awayRecord&&<span className="match-team-record" title="Récord de temporada regular">{awayRecord.wins} V · {awayRecord.losses} D</span>}</div></div>
   <div className="match-page-center"><small>{competitions[match.competition].label}</small>{scheduled?<><span className="prematch-vs">VS</span><strong className="prematch-start">{startLabel}</strong><span className="broadcast-status">Por comenzar</span><span className="prematch-start-note">Inicio programado · Hora de Argentina</span></>:<><strong className="broadcast-score">{score}</strong><span className={'broadcast-status'+(playing?' is-live':'')}>{playing&&<i aria-hidden="true"/>}{label}</span></>}</div>
   <div className="match-page-team home"><TeamLogo team={match.home} size={80}/><div><small>Local · {match.home}</small><h2>{match.homeName}</h2>{homeRecord&&<span className="match-team-record" title="Récord de temporada regular">{homeRecord.wins} V · {homeRecord.losses} D</span>}</div></div>
-  <footer className="broadcast-meta"><span>{when} · ARG</span></footer>
+  <footer className="broadcast-meta"><span>{when} · ARG</span>{live&&<span>ESPN · Lectura {new Date(fetchedAt!).toLocaleTimeString('es-AR',{timeZone:'America/Argentina/Buenos_Aires'})} ARG · Consulta cada 5 s</span>}</footer>
  </section></>;
 }
