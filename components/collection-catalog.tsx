@@ -1,4 +1,5 @@
 'use client';
+import {ChevronRight} from 'lucide-react';
 import {useMemo,useRef,useState,type ReactNode} from 'react';
 import type {Player} from '../lib/data';
 import {markets,type Market} from '../lib/analytics';
@@ -71,7 +72,7 @@ export default function CollectionCatalog({players,favorites,following,market,wi
      const {p,m,a}=row;
      const team=p.currentTeam??p.team,rival=rivals.get(team);
      return <article key={key(row)} className={'design-catalog-row'+(key(featured)===key(row)?' is-picked':'')}>
-      <button type="button" className="design-catalog-identity" aria-pressed={key(featured)===key(row)} onClick={()=>select(row)}>
+      <button type="button" className="design-catalog-identity" onClick={()=>onOpen(p,m)}>
        <img src={portrait(p)} width={52} height={42} loading="lazy" decoding="async" alt=""/>
        <span><strong>{p.name}</strong><small>{team}{p.position?' · '+p.position:''}</small></span>
       </button>
@@ -81,7 +82,7 @@ export default function CollectionCatalog({players,favorites,following,market,wi
        {!reduced&&a?.line!=null&&<small className="design-catalog-line">{referenceText(a.line,settings.side)}</small>}
       </span>
       <Spark values={a?.recent} metric={markets[m]} line={reduced?null:a?.line} side={settings.side}/>
-      <div className="design-catalog-actions">{favorite(p,m)}</div>
+      <div className="design-catalog-actions"><button type="button" className="design-player-preview" aria-label={'Vista rápida de '+p.name} aria-pressed={key(featured)===key(row)} onClick={()=>select(row)}><ChevronRight size={17}/></button>{favorite(p,m)}</div>
      </article>;
     })}
     {rows.length>limit&&<button className="button subtle" onClick={()=>setLimit(value=>value+50)}>Mostrar 50 más</button>}
