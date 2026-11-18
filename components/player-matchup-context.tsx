@@ -59,6 +59,7 @@ export default function PlayerMatchupContext({ games, history, teamGames, team, 
         <details className="profile-grade-detail">
      <summary className="profile-grade-value" data-grade={grade?.[0]} aria-label={'Nota defensiva: '+(grade??'sin datos')}>{grade??'—'}</summary>
      <p>{defense ? teamNames[opponent]+' está '+defense.rank+'.º de '+defense.teams+' en '+markets[market].toLowerCase()+' permitidos · '+defense.games+' partidos.' : 'Sin puesto defensivo para esta estadística.'}</p>
+     <p>La nota ordena la defensa según lo que permite por partido: A+ corresponde al 10% más favorable, A al siguiente 15%, B al siguiente 15%, C al tramo intermedio, D al siguiente 20% y F al 20% menos favorable. Para «Menos de» se invierte el orden. Mide el contexto defensivo, no la probabilidad de cumplir esta línea.</p>
     </details>
    </div>}
    <div className="profile-split-results">

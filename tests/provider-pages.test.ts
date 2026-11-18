@@ -3,11 +3,12 @@ import assert from 'node:assert/strict';
 import {mkdtemp,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join,resolve,sep} from 'node:path';
+import {pathToFileURL} from 'node:url';
 
 test('full regular-season history uses bounded database responses without losing games',async()=>{
  const root=resolve(process.env.TEST_TMPDIR??tmpdir()),dir=await mkdtemp(join(root,'pm-provider-'));
  assert.ok(resolve(dir).startsWith(root+sep),'Test directory must remain inside its temporary root');
- process.env.TURSO_DATABASE_URL='file:'+join(dir,'test.db');
+ process.env.TURSO_DATABASE_URL=pathToFileURL(join(dir,'test.db')).href;
  process.env.TURSO_AUTH_TOKEN='';
  const {databaseClient}=await import('../lib/database-env');
  const client=databaseClient();
@@ -22,5 +23,5 @@ test('full regular-season history uses bounded database responses without losing
   const {loadDashboard}=await import('../lib/provider');
   for(const catalog of [true,false]){const data=await loadDashboard(2025,'regular',catalog);assert.equal(data.players.length,players.length);assert.equal(new Set(data.players.map(p=>p.id)).size,players.length);assert.equal(data.players.reduce((n,p)=>n+p.games.length,0),241*82);}
   assert.equal(pages,14);
- }finally{client.close();await rm(dir,{recursive:true,force:true});}
+ }finally{client.close();await rm(dir,{recursive:true,force:true,maxRetries:10,retryDelay:100});}
 });

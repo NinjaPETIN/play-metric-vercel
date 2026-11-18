@@ -1,4 +1,5 @@
 'use client';
+import FollowedSchedule from './followed-schedule';
 import {useEffect,useState} from 'react';
 import Link from 'next/link';
 import type {Player} from '../lib/data';
@@ -7,7 +8,7 @@ import {useLiveScores} from '../lib/use-live-scores';
 import {loadCachedData} from '../lib/client-data-cache';
 import {boxFeedSchema,type BoxFeed} from '../lib/live-boxscore';
 import {LIVE_POLL_MS} from '../lib/live-refresh';
-import {useWatchlist,FollowButton} from './watchlist-provider';
+import {useWatchlist} from './watchlist-provider';
 import Portrait from './match-player-portrait';
 import LiveFollowing from './live-following';
 export default function FollowedPlayers({catalog}:{catalog:Player[]}){
@@ -27,5 +28,5 @@ function FollowedContent({catalog}:{catalog:Player[]}){
  },[wanted]);
  const boxData=Object.entries(boxes).filter(([id,b])=>wanted.split(',').includes(id)&&b.data&&b.fetchedAt&&live.now-Date.parse(b.fetchedAt)<300000&&live.now-Date.parse(b.fetchedAt)>=-5000).map(([,b])=>b.data!);
 
- return <div>{error&&<p role="status">{error}</p>}<div className="sl-inline-saved">{watch.players.map(key=>{const p=catalog.find(p=>'nba:'+p.id===key);return <div key={key}>{p&&<Portrait person={p}/>}<span>{p?<Link href={'/jugadores/'+p.id}>{p.name}</Link>:'Jugador guardado'}<small>{p?(p.currentTeam===null?'Sin confirmar':p.currentTeam??p.team):'Disponible en su partido'}</small></span><FollowButton item={key} name={p?.name??'jugador'}/></div>;})}</div>{boxData.length>1&&<label>Partido <select aria-label="Filtrar seguimiento por partido" value={gameFilter} onChange={e=>setGameFilter(e.target.value)}><option value="all">Todos mis partidos</option>{boxData.map(d=><option key={d.game.id} value={d.game.id}>{d.game.away} - {d.game.home}</option>)}</select></label>}<LiveFollowing games={boxData.filter(d=>gameFilter==='all'||gameFilter===d.game.id)} allowAdd={false} identities={catalog} freshFor={Object.fromEntries(Object.entries(boxes).map(([id,b])=>[id,b.status==='ready'&&!!b.fetchedAt&&live.now-Date.parse(b.fetchedAt)<90000]))} competitions={Object.fromEntries((calendar?.games??[]).map(g=>[g.id,g.competition]))}/></div>;
+ return <div>{error&&<p role="status">{error}</p>}<FollowedSchedule players={catalog} keys={watch.players} calendar={calendar} now={live.now}/>{boxData.length>1&&<label>Partido <select aria-label="Filtrar seguimiento por partido" value={gameFilter} onChange={e=>setGameFilter(e.target.value)}><option value="all">Todos mis partidos</option>{boxData.map(d=><option key={d.game.id} value={d.game.id}>{d.game.away} - {d.game.home}</option>)}</select></label>}<LiveFollowing games={boxData.filter(d=>gameFilter==='all'||gameFilter===d.game.id)} allowAdd={false} identities={catalog} freshFor={Object.fromEntries(Object.entries(boxes).map(([id,b])=>[id,b.status==='ready'&&!!b.fetchedAt&&live.now-Date.parse(b.fetchedAt)<90000]))} competitions={Object.fromEntries((calendar?.games??[]).map(g=>[g.id,g.competition]))}/></div>;
 }
