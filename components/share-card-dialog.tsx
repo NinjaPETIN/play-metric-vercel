@@ -9,7 +9,7 @@ const formats = { square: 'Cuadrada', vertical: 'Vertical', wide: 'Horizontal' }
 function loadImage(src: string) {
  return new Promise<HTMLImageElement | undefined>(resolve => {
   const image = new Image();
-  const timer = window.setTimeout(() => resolve(undefined), 5000);
+  const timer = window.setTimeout(() => resolve(undefined), 12000);
   function finish(asset?: HTMLImageElement) {
    window.clearTimeout(timer);
    resolve(asset);

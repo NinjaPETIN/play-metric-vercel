@@ -20,7 +20,7 @@ export default function ShareMatchResult({ data }: { data: BoxData }) {
  const assets = Object.fromEntries(data.teams.map(team => [team.code, '/api/nba/team-logo/' + team.code]));
  leaders.forEach((player, index) => {
   const id = player && nbaPlayerId(player.name);
-  if (id) assets['leader-' + data.teams[index].code] = '/api/nba/headshot/' + id;
+  if (id) assets['leader-' + data.teams[index].code] = '/api/nba/headshot/' + id + '?size=large';
  });
 
  return <div className="match-share-result">
@@ -32,3 +32,4 @@ export default function ShareMatchResult({ data }: { data: BoxData }) {
    draw={draw} onClose={() => setOpen(false)}/>}
  </div>;
 }
+

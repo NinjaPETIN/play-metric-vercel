@@ -206,9 +206,9 @@ function drawEditorialAnalysis(canvas: HTMLCanvasElement, light: boolean, data: 
 
  const rank = ranks.find(row=>row.metric===data.market);
  const tiles = [
-  ['ÚLTIMOS 5',last5.n ? last5.hits+'/'+last5.n : '—','Cumplen la línea'],
-  ['ÚLTIMOS 10',last10.n ? last10.hits+'/'+last10.n : '—','Cumplen la línea'],
-  ['PROMEDIO L10',last10.average === null ? '—' : number.format(last10.average),markets[data.market]+' por partido'],
+  ['HASTA 5 PJ',last5.n ? last5.hits+'/'+last5.n : '—','Cumplen la línea'],
+  ['HASTA 10 PJ',last10.n ? last10.hits+'/'+last10.n : '—','Cumplen la línea'],
+  ['PROM. '+last10.n+' PJ',last10.average === null ? '—' : number.format(last10.average),markets[data.market]+' por partido'],
   ['CRUCE',rival ? matchupGrade(ranks,data.market,data.side) ?? '—' : '—',rank ? rank.rank+'.º de '+rank.teams+' · '+rival : rival || 'Rival sin seleccionar'],
  ];
  const tileWidth = (content-45)/4;
@@ -307,4 +307,5 @@ export function drawDefenseCard(canvas: HTMLCanvasElement, format: CardFormat, l
  ctx.restore();
  label('STATLANE', width - pad, height - 54, 31, ink, 800, 174, 'right');
 }
+
 

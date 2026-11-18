@@ -64,7 +64,7 @@ function AnalysisDialog({ props, reduced, path, onClose }: { props: Props; reduc
  const recentOpponents = reduced ? [] : [...new Set(games.filter(game=>game.played && game.minutes > 0).slice(0,10).map(game=>game.opponent))];
  return <ShareCardDialog title="Compartir análisis" triggerLabel={'Análisis de ' + name} text={text} path={reduced ? path.split('?')[0] : path} initialFormat={reduced?'square':'vertical'}
   filename={'statlane-' + (!reduced && view === 'defense' ? 'defensa-' + rival.toLowerCase() : 'analisis-' + market) + '-' + playerId}
-  assets={{ portrait: '/api/nba/headshot/' + playerId, team: teamCode ? '/api/nba/team-logo/' + teamCode : '', rival: rival ? '/api/nba/team-logo/' + rival : '',
+  assets={{ portrait: '/api/nba/headshot/' + playerId + '?size=large', team: teamCode ? '/api/nba/team-logo/' + teamCode : '', rival: rival ? '/api/nba/team-logo/' + rival : '',
    ...Object.fromEntries(recentOpponents.map(code=>[code,'/api/nba/team-logo/'+code])) }}
   controls={!reduced&&<div className="sl-share-setting">
    <label>Rival del cruce <select value={rival} onChange={event => {
@@ -79,4 +79,5 @@ function AnalysisDialog({ props, reduced, path, onClose }: { props: Props; reduc
   </div>}
   draw={draw} onClose={onClose}/>;
 }
+
 
