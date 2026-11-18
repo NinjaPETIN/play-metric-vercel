@@ -1,0 +1,14 @@
+.caption { display: grid; justify-items: center; gap: 8px; }
+.location { display: block; margin-top: 4px; font-variant-numeric: tabular-nums; }
+.replay {
+ display: inline-flex;
+ align-items: center;
+ gap: 6px;
+ min-height: 34px;
+ padding: 4px 10px;
+ border: 1px solid var(--border);
+ border-radius: 7px;
+ background: var(--soft);
+ color: var(--text);
+}
+@media (prefers-reduced-motion: reduce) { .replay { display: none; } }
