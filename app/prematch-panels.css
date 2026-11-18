@@ -1,0 +1,81 @@
+/* Prematch context uses the same spacing and controls as the player workspace. */
+.sl-match-availability.card { padding: 20px; }
+.sl-match-availability .sl-explorer-heading {
+ display: grid; gap: 10px; align-items: start; margin-bottom: 8px;
+}
+.sl-match-availability h2, .prematch-rotation h2 { font-size: 20px; line-height: 1.3; margin: 0; }
+.sl-match-availability .sl-explorer-heading a {
+ justify-self: start; display: inline-flex; padding: 6px 10px;
+ border: 1px solid var(--border); border-radius: 7px; color: var(--brand-link); font-size: 12px;
+}
+.sl-match-availability > p { margin: 8px 0 18px; font-size: 11px; line-height: 1.6; }
+.sl-match-availability-grid { display: grid; gap: 22px; }
+.sl-match-availability-grid .availability-team {
+ min-width: 0; padding: 0; border: 0; border-radius: 0; background: transparent;
+}
+.availability-team + .availability-team { border-top: 1px solid var(--border); padding-top: 20px; }
+.availability-team h3 { display: flex; align-items: center; gap: 9px; font-size: 17px; margin: 0 0 12px; }
+.availability-team > p { margin: 0 0 12px; padding: 10px; background: var(--soft); border-radius: 8px; font-size: 12px; }
+.availability-team h4 { margin: 16px 0 8px; font-size: 12px; color: var(--muted); font-weight: 600; }
+.availability-team ul { padding: 0; margin: 0; list-style: none; }
+.availability-team li {
+ display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start;
+ gap: 5px 10px; padding: 11px 0; border-bottom: 1px solid var(--border); font-size: 13px;
+}
+.availability-team li:last-child { border-bottom: 0; }
+.availability-team li button, .availability-team li > strong { text-align: left; padding: 0; overflow-wrap: anywhere; font-weight: 600; line-height: 1.4; }
+.availability-team li time { grid-column: 1 / -1; color: var(--muted); font-size: 10px; }
+.availability-status {
+ padding: 3px 7px; border-radius: 5px; font-size: 10px; font-weight: 600;
+ background: var(--soft); color: var(--text); max-width: 130px; text-align: center; line-height: 1.5;
+}
+.availability-status[data-state='out'] { background: #e45c761c; color: #c23e59; }
+.availability-status[data-state='questionable'] { background: #db9e241c; color: #916110; }
+.availability-status[data-state='available'] { background: #1b9b761c; color: #087351; }
+html[data-theme='dark'] .availability-status[data-state='out'] { color: #ff9caf; }
+html[data-theme='dark'] .availability-status[data-state='questionable'] { color: #f2c677; }
+html[data-theme='dark'] .availability-status[data-state='available'] { color: #67dfb5; }
+.availability-team .sl-match-starters li { grid-template-columns: 1fr; }
+.availability-team .position-defense { margin-top: 12px; padding-top: 14px; }
+.position-defense summary { line-height: 1.5; font-size: 12px; }
+
+.prematch-rotation.card { padding: 20px; }
+.prematch-rotation > div { margin-top: 20px; }
+.prematch-rotation h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-size: 15px; }
+.prematch-rotation ul { list-style: none; padding: 0; margin: 0; }
+.prematch-rotation li {
+ display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center;
+ gap: 6px 18px; padding: 13px 0; border-bottom: 1px solid var(--border);
+}
+.prematch-rotation li:last-child { border: 0; }
+.prematch-rotation li a { font-size: 14px; line-height: 1.5; font-weight: 600; }
+.prematch-rotation li strong {
+ white-space: nowrap; padding: 5px 9px; background: var(--soft); border-radius: 7px;
+ font-size: 14px; font-variant-numeric: tabular-nums;
+}
+.prematch-rotation li small { grid-column: 1 / -1; font-size: 11px; color: var(--muted); line-height: 1.5; }
+
+.teammate-comparison.card { padding: 0; overflow: hidden; }
+.teammate-comparison > summary {
+ display: list-item; margin: 0; padding: 17px 20px; font-size: 14px;
+ line-height: 1.5; cursor: pointer; font-weight: 600;
+}
+.teammate-comparison[open] > summary { border-bottom: 1px solid var(--border); }
+.teammate-comparison > div { padding: 18px 20px; display: grid; gap: 16px; }
+.teammate-comparison label { display: grid; grid-template-columns: 1fr; gap: 7px; align-items: start; font-size: 12px; color: var(--muted); }
+.teammate-comparison select, .position-defense select {
+ width: 100%; min-width: 0; min-height: 42px; max-width: 100%; padding: 9px 12px;
+ background: var(--soft); color: var(--text); border: 1px solid var(--border); border-radius: 8px; font-size: 13px;
+}
+.teammate-comparison select:focus-visible { outline-offset: 2px; }
+.teammate-comparison .table-scroll { max-width: 100%; }
+.teammate-comparison .history { width: 100%; }
+.teammate-comparison .history th { font-size: 11px; }
+.teammate-comparison .history td { font-variant-numeric: tabular-nums; }
+.teammate-comparison p { font-size: 12px; line-height: 1.7; }
+@media (max-width: 480px) {
+ .prematch-rotation li { grid-template-columns: 1fr; }
+ .prematch-rotation li strong { justify-self: start; }
+ .availability-team li { gap: 6px; }
+ .sl-match-availability.card, .prematch-rotation.card { padding: 16px; }
+}

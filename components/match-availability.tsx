@@ -52,13 +52,13 @@ export default function MatchAvailability({id,away,home,date,season,competition,
         const team=feed?.teams.find(entry=>entry.code===code);
         const leader=leaders?.[code];
         const injury=leader&&team?.injuries?.find(row=>identityName(row.name)===identityName(leader.name));
-        return <article key={code}>
+        return <article key={code} className="availability-team">
           <h3><TeamLogo team={code} size={26}/>{code}</h3>
           {leader&&<p><strong>{leader.name}</strong> · {injury?.status??'Sin estado individual publicado'}{injury&&<> · {timestamp.format(new Date(injury.reportedAt))} ARG</>}</p>}
           <h4>Disponibilidad</h4>
           {team?.injuries?.length ? <ul>{team.injuries.map(entry=><li key={entry.id}>
             {season ? <button type="button" className="match-play-player" aria-expanded={selected?.code===code&&selected.name===entry.name}
-              onClick={()=>setSelected(old=>old?.code===code&&old.name===entry.name?null:{code,name:entry.name})}>{entry.name}</button> : <strong>{entry.name}</strong>}<span>{entry.status}</span>
+            onClick={()=>setSelected(old=>old?.code===code&&old.name===entry.name?null:{code,name:entry.name})}>{entry.name}</button> : <strong>{entry.name}</strong>}<span className="availability-status" data-state={entry.status==='Fuera'?'out':entry.status==='Disponible'?'available':'questionable'}>{entry.status}</span>
             <time dateTime={entry.reportedAt}>{timestamp.format(new Date(entry.reportedAt))} ARG</time>
           </li>)}</ul> : <p>{team?.injuries ? 'Sin novedades en ESPN.' : 'Sin reporte para este equipo.'}</p>}
           <h4>Titulares</h4>
