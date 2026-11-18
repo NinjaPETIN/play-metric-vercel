@@ -15,7 +15,7 @@ export async function GET(request: Request) {
   return Response.json({error:'Elegí una fecha dentro de los próximos o últimos siete días.'},{status:400});
  }
  try {
-  const result = await cachedNbaRead<DailyTrends>('daily-trends:' + day, async () => {
+  const result = await cachedNbaRead<DailyTrends>('daily-trends-v2:' + day, async () => {
    const calendar = await cachedNbaRead<Calendar|null>('calendar', loadCalendar);
    if (!calendar) throw new Error('Calendario no disponible');
    const fixtures = calendar.games.filter(game => game.competition === 'regular'
@@ -26,10 +26,13 @@ export async function GET(request: Request) {
     loadDashboard(calendar.season,'regular',true),
     loadDashboard(calendar.season-1,'regular',true).catch(() => null),
    ]);
-   return {day,season:season.season,games:fixtures.length,reports:dailyTrends(fixtures,season.players,previous?.players ?? [],season.teamGames,day)};
+   const streaks = {points:[],rebounds:[],assists:[],threes:[]};
+   const reports = dailyTrends(fixtures,season.players,previous?.players ?? [],season.teamGames,day,streaks);
+   return {day,season:season.season,games:fixtures.length,reports,streaks};
   });
   return Response.json(result);
  } catch {
   return Response.json({error:'No pudimos preparar las tendencias de la jornada.'},{status:503});
  }
 }
+

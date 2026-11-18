@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { Game } from '../lib/analytics';
 import type { Player } from '../lib/data';
-import { dailyTrends } from '../lib/daily-trends';
+import { activeStreak, dailyTrends } from '../lib/daily-trends';
 import type { Calendar } from '../lib/nba-snapshot';
 
 test('daily ranking uses confirmed teams, pre-jornada history and the real L20 denominator', () => {
@@ -25,3 +25,11 @@ test('daily ranking uses confirmed teams, pre-jornada history and the real L20 d
  assert.equal(row.recent.length,10);
  assert.equal(row.grade,null);
 });
+
+test('active streaks use inclusive thresholds, skip DNPs and stop at the first miss', () => {
+ const game = (points:number,played=true) => ({points,played,minutes:played?20:0}) as Game;
+ const sample = [game(20),game(0,false),game(20),game(25),game(21),game(22),game(19),game(25)];
+ assert.deepEqual(activeStreak(sample,'points'),{threshold:20,count:5});
+ assert.equal(activeStreak([game(19),...sample.slice(0,2)],'points'),null);
+});
+

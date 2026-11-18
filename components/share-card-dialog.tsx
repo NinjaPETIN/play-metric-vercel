@@ -21,7 +21,7 @@ function loadImage(src: string) {
  });
 }
 
-export default function ShareCardDialog({ title, triggerLabel, text, path, filename, assets, draw, onClose, controls }: {
+export default function ShareCardDialog({ title, triggerLabel, text, path, filename, assets, draw, onClose, controls, initialFormat = 'square' }: {
  title: string;
  triggerLabel: string;
  text: string;
@@ -31,8 +31,9 @@ export default function ShareCardDialog({ title, triggerLabel, text, path, filen
  draw: (canvas: HTMLCanvasElement, format: CardFormat, light: boolean, images: Record<string, HTMLImageElement | undefined>) => void;
  onClose: () => void;
  controls?: ReactNode;
+ initialFormat?: CardFormat;
 }) {
- const [format, setFormat] = useState<CardFormat>('square');
+ const [format, setFormat] = useState<CardFormat>(initialFormat);
  const [light, setLight] = useState(false);
  const [message, setMessage] = useState('');
  const [loadedAssets, setImages] = useState<{ key: string; images: Record<string, HTMLImageElement | undefined> } | null>(null);
@@ -150,3 +151,4 @@ export default function ShareCardDialog({ title, triggerLabel, text, path, filen
   </div>
  </dialog>;
 }
+

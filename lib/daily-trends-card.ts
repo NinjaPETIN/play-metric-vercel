@@ -1,11 +1,49 @@
 import { markets } from './analytics';
-import type { DailyTrendRow, DailyTrends } from './daily-trends';
+import type { DailyStreak, DailyTrendRow, DailyTrends } from './daily-trends';
+import { teamColors } from './team-colors';
 import type { DefenseMetric } from './team-defense';
 import { socialCardStyle } from './performance-card';
 
 export const dailyPercent = (sample: DailyTrendRow['form']) => sample.rate === null ? '—' : Math.round(sample.rate * 100) + '%';
 export const dailyNumber = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 1 });
 export const dailyDate = (day: string) => new Date(day + 'T12:00:00Z').toLocaleDateString('es-AR', {day:'numeric',month:'long',timeZone:'UTC'});
+
+export function drawStreakCard(canvas: HTMLCanvasElement, day: string, metric: DefenseMetric, rows: DailyStreak[], images: Record<string, HTMLImageElement | undefined>) {
+ const width = 1080, height = 1350;
+ canvas.width = width;
+ canvas.height = height;
+ const ctx = canvas.getContext('2d');
+ if (!ctx || !rows.length) return;
+ const {pad,content,ink,muted,highlight,label,tile,teamGlow,masthead} = socialCardStyle(ctx,'vertical',false,width,height);
+ teamGlow(rows[0].team, width * .78);
+ masthead();
+ const portrait = images.portrait;
+ if (portrait?.naturalWidth) {
+  const w = 535, h = w * portrait.naturalHeight / portrait.naturalWidth;
+  ctx.globalAlpha = .62;
+  ctx.drawImage(portrait, width - w, 90, w, h);
+  ctx.globalAlpha = 1;
+ }
+ label('Rachas de ' + markets[metric].toLowerCase(), pad, 220, 63, ink, 800);
+ label('NBA · ' + dailyDate(day), pad, 274, 30, muted, 600);
+ rows.forEach((row, i) => {
+  const y = 320 + i * 85, logo = images[row.team];
+  tile(pad, y, content, 69);
+  ctx.save();
+  ctx.beginPath();
+  ctx.roundRect(pad, y, 118, 69, [12,0,0,12]);
+  ctx.clip();
+  ctx.fillStyle = teamColors[row.team] ?? '#454e80';
+  ctx.fillRect(pad, y, 118, 69);
+  if (logo?.naturalWidth) ctx.drawImage(logo, pad + 29, y + 4, 60, 60);
+  else label(row.team, pad + 59, y + 44, 27, '#fff', 800, 100, 'center');
+  ctx.restore();
+  label(row.name + ' · ' + row.threshold + '+', pad + 139, y + 44, 32, ink, 800, content - 315);
+  label(row.count + '/' + row.count + ' PJ', width-pad-20, y+44, 31, highlight, 800, 150, 'right');
+ });
+ label('Partidos jugados consecutivos · Temporada regular', pad, height - 108, 25, muted, 600);
+ label('El umbral indicado se alcanzó en todos los partidos de la racha.', pad, height - 68, 22, muted, 600);
+}
 
 export function drawDailyCard(canvas: HTMLCanvasElement, report: DailyTrends, metric: DefenseMetric, rows: DailyTrendRow[], portrait?: HTMLImageElement) {
  const width = 1400, height = 520 + rows.length * 61;
@@ -73,3 +111,4 @@ export function drawDailyCard(canvas: HTMLCanvasElement, report: DailyTrends, me
   ctx!.setLineDash([]);
  }
 }
+

@@ -2,6 +2,7 @@ import { markets, summarizeGames, value, type Game, type Market } from './analyt
 import { cardSizes, socialCardStyle, type CardFormat } from './performance-card';
 
 import { defenseMetrics, matchupGrade, type DefenseRank } from './team-defense';
+import { teamNames } from './team-overview';
 
 type Images = Record<string, HTMLImageElement | undefined>;
 
@@ -21,11 +22,13 @@ function cardImage(ctx: CanvasRenderingContext2D, image: HTMLImageElement | unde
 }
 
 const number = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 1 });
-
-export function drawAnalysisCard(canvas: HTMLCanvasElement, format: CardFormat, light: boolean, data: {
+type CardData = {
  name: string; team: string; teamCode?: string; position?: string; games: Game[]; market: Market; line: number; side: 'over' | 'under';
  season: number; competition: string; filters: string;
-}, images: Images, rival: string, ranks: DefenseRank[], reduced = false) {
+};
+
+export function drawAnalysisCard(canvas: HTMLCanvasElement, format: CardFormat, light: boolean, data: CardData, images: Images, rival: string, ranks: DefenseRank[], reduced = false) {
+ if (format === 'vertical' && !reduced) return drawEditorialAnalysis(canvas, light, data, images, rival, ranks);
  const portrait = images.portrait;
  const [width, height] = cardSizes[format];
  canvas.width = width;
@@ -141,6 +144,113 @@ export function drawAnalysisCard(canvas: HTMLCanvasElement, format: CardFormat, 
  });
 }
 
+function drawEditorialAnalysis(canvas: HTMLCanvasElement, light: boolean, data: CardData, images: Images, rival: string, ranks: DefenseRank[]) {
+ const [width,height] = cardSizes.vertical;
+ canvas.width = width;
+ canvas.height = height;
+ const ctx = canvas.getContext('2d');
+ if (!ctx) return;
+ const {pad,content,ink,muted,accent,highlight,border,label,tile,teamGlow,masthead} = socialCardStyle(ctx,'vertical',light,width,height);
+ const red = light ? '#aa3956' : '#ff7489';
+ const games = data.games.filter(game=>game.played && game.minutes > 0);
+ const summarize = (rows:Game[]) => summarizeGames(rows,data.market,data.line,data.side);
+ const sample = summarize(games), last5 = summarize(games.slice(0,5)), last10 = summarize(games.slice(0,10));
+ const entries = games.slice(0,10).reverse();
+ const pct = sample.rate === null ? '—' : Math.round(sample.rate * 100) + '%';
+ const line = number.format(data.line);
+ const side = data.side === 'over' ? 'Más de' : 'Menos de';
+ const season = data.season + '/' + String(data.season + 1).slice(-2);
+ const [surname,...given] = data.name.trim().split(/\s+/).reverse();
+ const nameWidth = images.portrait?.naturalWidth ? 495 : content - 70;
+
+ teamGlow(data.teamCode ?? '',width * .79);
+ masthead();
+ label('NBA · ' + season,width-pad,86,26,muted,700,420,'right');
+ tile(pad,118,content,365);
+ ctx.save();
+ ctx.beginPath();
+ ctx.roundRect(pad,118,content,365,24);
+ ctx.clip();
+ teamGlow(data.teamCode ?? '',width * .81);
+ const mark = images.team, portrait = images.portrait;
+ if (mark?.naturalWidth) {
+  ctx.globalAlpha=.18;
+  ctx.drawImage(mark, width-pad-416,130,390,340);
+  ctx.globalAlpha=1;
+ }
+ if (portrait?.naturalWidth) {
+  const w = Math.min(570, 365 * portrait.naturalWidth / portrait.naturalHeight);
+  const h = w * portrait.naturalHeight / portrait.naturalWidth;
+  ctx.drawImage(portrait,width-pad-w+18,483-h,w,h);
+ }
+ ctx.restore();
+ const teamName = data.teamCode ? teamNames[data.teamCode] ?? data.teamCode : '';
+ label([data.position,teamName].filter(Boolean).join(' · '),pad+34,184,24,accent,700,nameWidth);
+ if (given.length) label(given.reverse().join(' '),pad+34,249,44,muted,700,nameWidth);
+ label(surname.toLocaleUpperCase('es-AR'),pad+34,353,91,ink,800,nameWidth);
+ cardImage(ctx,mark,pad+34,395,45,border);
+ label(data.teamCode ?? '—',pad+90,426,25,ink,800,76);
+ if (rival) {
+  label('VS.',pad+168,425,19,muted,700,56);
+  cardImage(ctx,images.rival,pad+226,395,45,border);
+  label(rival,pad+280,426,25,ink,800,94);
+ }
+
+ tile(pad,502,content,150);
+ label(line,pad+30,605,90,ink,800,210);
+ label(markets[data.market].toUpperCase(),pad+246,563,34,ink,800,325);
+ label(side + ' · Línea de referencia',pad+246,608,22,muted,600,335);
+ label('FRECUENCIA',width-pad-253,558,22,muted,800,158,'right');
+ label(sample.hits + ' de ' + sample.n,width-pad-253,602,22,muted,700,150,'right');
+ label(pct,width-pad-28,607,78,highlight,800,206,'right');
+
+ const rank = ranks.find(row=>row.metric===data.market);
+ const tiles = [
+  ['ÚLTIMOS 5',last5.n ? last5.hits+'/'+last5.n : '—','Cumplen la línea'],
+  ['ÚLTIMOS 10',last10.n ? last10.hits+'/'+last10.n : '—','Cumplen la línea'],
+  ['PROMEDIO L10',last10.average === null ? '—' : number.format(last10.average),markets[data.market]+' por partido'],
+  ['CRUCE',rival ? matchupGrade(ranks,data.market,data.side) ?? '—' : '—',rank ? rank.rank+'.º de '+rank.teams+' · '+rival : rival || 'Rival sin seleccionar'],
+ ];
+ const tileWidth = (content-45)/4;
+ tiles.forEach(([title,result,note],index)=>{
+  const x = pad+index*(tileWidth+15), middle = x+tileWidth/2;
+  tile(x,668,tileWidth,132);
+  label(title,middle,701,20,muted,800,tileWidth-20,'center');
+  label(result,middle,756,48,index===3?accent:highlight,800,tileWidth-20,'center');
+  label(note,middle,782,17,muted,600,tileWidth-20,'center');
+ });
+
+ tile(pad,817,content,356);
+ label('ÚLTIMOS ' + entries.length + ' PARTIDOS',pad+25,860,24,muted,800);
+ label('— —  Línea '+line,width-pad-25,860,23,accent,700,290,'right');
+ const values = entries.map(game=>value(game,data.market));
+ const max = Math.max(1,data.line,...values.map(stat=>stat??0))*1.12;
+ const y = (stat:number) => 1100 - stat/max*204;
+ const step=(content-50)/Math.max(1,entries.length);
+ entries.forEach((game,index)=>{
+  const x=pad+25+step*(index+.5), stat=values[index], bar=Math.min(step*.82,96);
+  if (stat !== null) {
+   ctx.fillStyle=stat===data.line?accent:(data.side==='over'?stat>data.line:stat<data.line)?highlight:red;
+   ctx.beginPath();
+   ctx.roundRect(x-bar/2, Math.min(1095,y(stat)),bar,Math.max(5,1100-y(stat)),5);
+   ctx.fill();
+  }
+  label(stat === null ? '—' : number.format(stat),x,y(stat??0)-12,24,ink,800,step-8,'center');
+  if (!cardImage(ctx,images[game.opponent],x-18,1115,36,border)) label(game.opponent,x,1140,16,muted,700,step-6,'center');
+ });
+ ctx.strokeStyle=accent;
+ ctx.lineWidth=2;
+ ctx.setLineDash([9,7]);
+ ctx.beginPath();
+ ctx.moveTo(pad+25,y(data.line));
+ ctx.lineTo(width-pad-25,y(data.line));
+ ctx.stroke();
+ ctx.setLineDash([]);
+ label(data.name+' cumplió la línea en '+sample.hits+' de '+sample.n+' partidos de la muestra.',pad,1225,28,ink,700);
+ label(data.competition+' · '+data.filters,pad,1273,20,muted,600);
+ label('Frecuencia histórica · Statlane',pad,1310,21,muted,600);
+}
+
 export function drawDefenseCard(canvas: HTMLCanvasElement, format: CardFormat, light: boolean, data: {
  name: string; teamCode?: string; season: number; competition: string;
 }, rivalName: string, rival: string, rows: DefenseRank[], images: Images) {
@@ -197,3 +307,4 @@ export function drawDefenseCard(canvas: HTMLCanvasElement, format: CardFormat, l
  ctx.restore();
  label('STATLANE', width - pad, height - 54, 31, ink, 800, 174, 'right');
 }
+
