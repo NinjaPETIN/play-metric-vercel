@@ -18,14 +18,26 @@ export function drawStreakCard(canvas: HTMLCanvasElement, day: string, metric: D
  teamGlow(rows[0].team, width * .78);
  masthead();
  const portrait = images.portrait;
- if (portrait?.naturalWidth) {
-  const w = 535, h = w * portrait.naturalHeight / portrait.naturalWidth;
-  ctx.globalAlpha = .62;
-  ctx.drawImage(portrait, width - w, 90, w, h);
-  ctx.globalAlpha = 1;
+ const hasPortrait = !!(portrait?.naturalWidth && portrait.naturalHeight);
+ if (hasPortrait && portrait) {
+  const portraitLeft = 690, portraitTop = 26, portraitBottom = 302;
+  const w = 415, h = w * portrait.naturalHeight / portrait.naturalWidth;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(portraitLeft, portraitTop, width - portraitLeft - 20, portraitBottom - portraitTop);
+  ctx.clip();
+  ctx.drawImage(portrait, 670, portraitBottom - h, w, h);
+  const fade = ctx.createLinearGradient(0, portraitBottom - 95, 0, portraitBottom);
+  fade.addColorStop(0,'#10192c00');
+  fade.addColorStop(1,'#10192c');
+  ctx.fillStyle = fade;
+  ctx.fillRect(portraitLeft,portraitBottom-95,width-portraitLeft,95);
+  ctx.restore();
  }
- label('Rachas de ' + markets[metric].toLowerCase(), pad, 220, 63, ink, 800);
- label('NBA · ' + dailyDate(day), pad, 274, 30, muted, 600);
+ const titleWidth = hasPortrait ? 603 : content;
+ label('Rachas de', pad, 163, 36, muted, 700, titleWidth);
+ label(markets[metric], pad, 230, 62, ink, 800, titleWidth);
+ label('NBA · ' + dailyDate(day), pad, 275, 28, muted, 600, titleWidth);
  rows.forEach((row, i) => {
   const y = 320 + i * 85, logo = images[row.team];
   tile(pad, y, content, 69);
@@ -111,4 +123,3 @@ export function drawDailyCard(canvas: HTMLCanvasElement, report: DailyTrends, me
   ctx!.setLineDash([]);
  }
 }
-
