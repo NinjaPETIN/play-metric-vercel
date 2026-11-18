@@ -6,9 +6,12 @@ html[data-theme=light] .app {--muted:#52617a;}
 .filter-drawer-backdrop {position:fixed;inset:0;z-index:119;background:#050c19a8;backdrop-filter:blur(3px);cursor:default;}
 .app .right-panel.is-filters {position:fixed!important;inset:0 0 0 auto!important;width:min(410px,100vw)!important;height:100dvh;max-height:100dvh;z-index:120!important;display:block!important;background:var(--panel)!important;overflow-y:auto;overscroll-behavior:contain;padding:22px!important;box-shadow:-20px 0 70px #0005;}
 .right-panel.is-filters .right-heading {position:sticky;top:-22px;z-index:2;background:var(--panel);padding:14px 0;border-bottom:1px solid var(--border);}
-.right-panel.is-filters .filter-panel {display:grid;grid-template-columns:1fr;gap:16px;margin-top:16px;}
-.right-panel.is-filters .filter-panel label {display:grid;gap:8px;}
-.right-panel.is-filters .filter-panel select,.right-panel.is-filters .filter-panel input:not([type=range]) {width:100%;min-height:44px;font-size:14px;padding:10px 12px;}
+.app .right-panel.is-filters .filter-panel {display:grid;grid-template-columns:minmax(0,1fr);gap:14px;margin-top:16px;}
+.app .right-panel.is-filters .filter-panel label {display:grid;grid-template-columns:minmax(0,1fr);justify-items:stretch;gap:6px;padding:0 0 12px;position:relative;min-height:0;height:auto;}
+.app .right-panel.is-filters .filter-panel select,.app .right-panel.is-filters .filter-panel input:not([type=range]) {width:100%;max-width:none;min-height:44px;font-size:14px;padding:10px 12px;}
+.app .right-panel.is-filters .filter-panel input[type=range] {width:100%;max-width:none;}
+.app .right-panel.is-filters .field-value {position:absolute;right:0;top:0;width:auto;background:transparent;padding:0;}
+.app .right-panel.is-filters .filter-side button.selected {background:#555be0;color:#fff;}
 .right-panel.is-filters .filter-actions {position:sticky;bottom:-22px;background:var(--panel);display:flex;flex-wrap:wrap;gap:8px;padding:14px 0 calc(14px + env(safe-area-inset-bottom));border-top:1px solid var(--border);z-index:2;}
 .filter-actions .apply-filters {flex:1 0 100%;justify-content:center;}
 .line-origin {display:block;font-size:11px;line-height:1.6;margin-top:5px;color:var(--muted);font-weight:500;}

@@ -1,7 +1,8 @@
 import type {Player} from './data';
 import type {Calendar} from './nba-snapshot';
 import {scoreboardPriority} from './scoreboard-order';
-export const argentinaDay=(date:string)=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Argentina/Buenos_Aires',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(date));
+const dayFormatter=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Argentina/Buenos_Aires',year:'numeric',month:'2-digit',day:'2-digit'});
+export const argentinaDay=(date:string)=>dayFormatter.format(new Date(date));
 export function followedAgenda(players:Player[],ids:string[],calendar:Calendar|null,now:number){
  const wanted=new Set(ids.map(id=>id.replace(/^nba:/,'').split(':')[0]));
  const today=argentinaDay(new Date(now).toISOString());
