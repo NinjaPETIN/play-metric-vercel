@@ -379,6 +379,22 @@ html:has(.live-score-dock.is-collapsed) { scroll-padding-bottom: calc(48px + env
 .profile-side-context select { min-width: 0; max-width: 100%; }
 .profile-side-context .teammate-comparison label { display: grid; gap: 6px; }
 
+.live-following-disclosure {
+ margin-block: 12px;
+ border: 1px solid var(--border);
+ border-radius: 12px;
+ background: var(--panel);
+}
+.live-following-disclosure > summary { cursor: pointer; padding: 12px 16px; font-weight: 700; }
+.live-following-disclosure .sl-following.card { margin: 0; border-width: 1px 0 0; border-radius: 0 0 12px 12px; }
+.live-recent-panel figure.recent-court { margin: 16px auto 0; }
+.recent-court figcaption { color: var(--muted); text-align: center; font-size: .75rem; padding-top: 8px; }
+.recent-court .court-shot-made { color: #4ce6b2; }
+.recent-court .court-shot-missed { color: #ff8397; }
+@media (prefers-reduced-motion: reduce) {
+ .court-flight-ball { display: none; }
+}
+
 html[data-theme='dark'] .app.editorial .skeleton {
  background: linear-gradient(90deg,var(--soft),var(--border),var(--soft));
  background-size: 200% 100%;

@@ -58,7 +58,7 @@ export default function MatchPlayerSheet({data,person,team,status,profileId,foll
   <div className="match-player-sheet-content">
    <header>
     <Portrait person={person}/>
-    <div><h2 id={title}>{person.name}</h2><p><TeamLogo team={team} size={22}/> {team} · {status}</p></div>
+    <div><h2 id={title}>{person.name}</h2><p><TeamLogo team={team} size={22}/> {team}{status&&' · '+status}</p></div>
     <FollowButton item={followKey} name={person.name}/>
     <button className="icon" type="button" onClick={onClose} aria-label="Cerrar ficha"><X size={20}/></button>
    </header>

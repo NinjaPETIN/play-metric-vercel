@@ -15,3 +15,16 @@ test('official timeouts never invent a team, empty feeds are safe and technical 
  assert.equal(recentCourt([shot],['LAC','GSW']).timeout,false);
  assert.equal(recentCourt([],['LAC','GSW']).action,undefined);
 });
+
+test('a shot remains visible after a rebound, with its own clock and outcome',()=>{
+ const miss={...shot,shot:{made:false,value:3 as const}};
+ const rebound={...shot,id:'2',text:'Defensive rebound',clock:'1:49',shotLocation:null};
+ const result=recentCourt([miss,rebound],['LAC','GSW']);
+ assert.equal(result.action?.id,'2');
+ assert.deepEqual(result.shot,{play:miss,made:false,value:3});
+ const made={...shot,id:'3',period:2,text:'Player makes layup',pointsAdded:2,shotLocation:null};
+ assert.equal(recentCourt([miss,{...rebound,period:2}],['LAC','GSW']).shot,null);
+ const basket=recentCourt([miss,made],['LAC','GSW']).shot;
+ assert.equal(basket?.made,true);
+ assert.equal(basket?.play.shotLocation,null);
+});
