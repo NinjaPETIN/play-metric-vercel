@@ -10,6 +10,7 @@ import { matchupGrade, type DefenseRank } from '../lib/team-defense';
 import { teamNames } from '../lib/team-overview';
 import { useReadingPreferences } from './reading-preferences';
 import TeamLogo from './team-logo';
+import PositionDefenseView from './position-defense';
 
 const number = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 1 });
 const percent = new Intl.NumberFormat('es-AR', { style: 'percent', maximumFractionDigits: 0 });
@@ -75,6 +76,7 @@ export default function PlayerMatchupContext({ games, history, teamGames, team, 
      <p>El 1.º permite menos. La nota cruza el puesto con «{side === 'over' ? 'Más de' : 'Menos de'}».</p>
     </> : <p role="status">{result?.scope === scope ? 'Ranking no disponible para esta temporada y rival.' : 'Consultando el ranking defensivo…'}</p>}
    </div>}
+   {!reduced&&<PositionDefenseView opponent={opponent} season={season} competition={competition}/>}
    <div className="profile-rival-results">
     <h4>Últimos partidos de {opponent}</h4>
     {recent.length ? <ul>{recent.map(game => {

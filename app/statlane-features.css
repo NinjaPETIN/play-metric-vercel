@@ -379,6 +379,24 @@ html:has(.live-score-dock.is-collapsed) { scroll-padding-bottom: calc(48px + env
 .profile-side-context select { min-width: 0; max-width: 100%; }
 .profile-side-context .teammate-comparison label { display: grid; gap: 6px; }
 
+.nba-context-controls { display: flex; flex-wrap: wrap; gap: 10px; margin-block: 10px; }
+.nba-context-controls label { display: grid; gap: 4px; min-width: 0; color: var(--muted); }
+.daily-trends-controls select, .nba-context-controls select {
+ min-width: 0; max-width: 100%; min-height: 36px; padding: 5px 9px;
+ border: 1px solid var(--border); border-radius: 8px; background: var(--soft); color: var(--text);
+}
+.position-defense { border-top: 1px solid var(--border); padding-block: 10px; }
+.position-defense summary, .match-market-lines summary { cursor: pointer; font-weight: 700; }
+.position-defense-results { display: grid; gap: 6px; margin-block: 12px; }
+.position-defense-results > div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 10px; }
+.position-defense-results dd { margin: 0; color: var(--muted); }
+.position-defense > small, .match-market-lines > small { color: var(--muted); }
+.match-market-lines .history { white-space: nowrap; }
+.match-market-lines .table-scroll { margin-block: 10px; }
+.nba-search-answer { margin-block: 10px; color: var(--muted); }
+.nba-search-answer a { text-decoration: underline; text-underline-offset: 3px; }
+.daily-trends-controls .segmented button[aria-pressed='true'] { background: var(--brand-action); color: white; }
+
 .live-following-disclosure {
  margin-block: 12px;
  border: 1px solid var(--border);

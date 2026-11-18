@@ -6,15 +6,16 @@ import { defenseMetrics, matchupGrade, rankTeamDefense, type DefenseMetric, type
 export const dailyMarkets = defenseMetrics;
 export const minimumDailyGames = 10;
 
-const streakThresholds: Record<DefenseMetric, number[]> = {
+export const streakThresholds: Record<DefenseMetric, number[]> = {
  points:[5, 8, 10, 12, 15, 20, 25, 30, 35, 40],
  rebounds:[2, 3, 4, 5, 6, 8, 10, 12, 15],
  assists:[2, 3, 4, 5, 6, 8, 10, 12],
  threes:[1, 2, 3, 4, 5, 6],
 };
 export const minimumStreak = 4;
-export type DailyStreak = {id:string;name:string;team:string;opponent:string;threshold:number;count:number};
+export type DailyStreak = {id:string;name:string;team:string;opponent:string;threshold:number;count:number;windows?:Array<{hits:number;n:number}>};
 type DailyStreaks = Record<DefenseMetric, DailyStreak[]>;
+export type StreakFilter = {metric:DefenseMetric;threshold:number;side:'atLeast'|'below'};
 
 export function activeStreak(games: readonly Game[], metric: DefenseMetric) {
  const recent: number[] = [];
@@ -31,7 +32,7 @@ export function activeStreak(games: readonly Game[], metric: DefenseMetric) {
  return {threshold, count: miss < 0 ? recent.length : miss};
 }
 
-export function dailyTrends(fixtures: Calendar['games'], players: Player[], previous: Player[], finals: TeamGame[], day: string, streaks?: DailyStreaks) {
+export function dailyTrends(fixtures: Calendar['games'], players: Player[], previous: Player[], finals: TeamGame[], day: string, streaks?: DailyStreaks, filter?:StreakFilter) {
  const opponents = new Map<string,{code:string;home:boolean}>(fixtures.flatMap(game => [[game.home,{ code: game.away, home: true }], [game.away,{ code: game.home, home: false }]] as const));
  const cutoff = new Set(fixtures.map(game => game.id));
  const beforeDay = (game: { date: string; gameId?: string }) => game.date < day && !cutoff.has(game.gameId ?? '');
@@ -48,7 +49,7 @@ export function dailyTrends(fixtures: Calendar['games'], players: Player[], prev
   const history = [...season, ...valid(older.get(player.id) ?? [])].filter((game, index, rows) =>
    !game.gameId || rows.findIndex(row => row.gameId === game.gameId) === index);
   for (const metric of dailyMarkets) {
-   const streak = streaks && activeStreak(season, metric);
+   const streak = streaks && (filter && filter.metric===metric ? compareStreak(season,filter) : activeStreak(season, metric));
    if (streak && streaks) streaks[metric].push({id:player.id, name:player.name, team, opponent:opponent.code, ...streak});
    const average = summarizeGames(season, metric, 0).average;
    if (average === null) continue;
@@ -71,6 +72,17 @@ export function dailyTrends(fixtures: Calendar['games'], players: Player[], prev
  return reports;
 }
 
+export function compareStreak(games:Game[], {metric,threshold,side}:StreakFilter) {
+ const values = games.filter(game=>game.played && game.minutes>0).map(game=>value(game,metric));
+ const hit = (stat:number|null) => stat!==null && (side==='atLeast'?stat>=threshold:stat<threshold);
+ const end=values.findIndex(stat=>!hit(stat));
+ const windows=[5,10,20].map(size=>{
+  const sample=values.slice(0,size).filter(stat=>stat!==null);
+  return {hits:sample.filter(hit).length,n:sample.length};
+ });
+ return windows[0].n ? {threshold,count:end<0?values.length:end,windows} : null;
+}
+
 type Sample = ReturnType<typeof summarizeGames>;
 export type DailyTrendRow = {
  id:string; name:string; team:string; opponent:string; home:boolean; line:number;
@@ -78,4 +90,3 @@ export type DailyTrendRow = {
  recent:{value:number|null;opponent:string}[];
 };
 export type DailyTrends = { day:string; season:number; games:number; reports:ReturnType<typeof dailyTrends> | null; streaks?:DailyStreaks };
-

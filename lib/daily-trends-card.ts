@@ -8,7 +8,7 @@ export const dailyPercent = (sample: DailyTrendRow['form']) => sample.rate === n
 export const dailyNumber = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 1 });
 export const dailyDate = (day: string) => new Date(day + 'T12:00:00Z').toLocaleDateString('es-AR', {day:'numeric',month:'long',timeZone:'UTC'});
 
-export function drawStreakCard(canvas: HTMLCanvasElement, day: string, metric: DefenseMetric, rows: DailyStreak[], images: Record<string, HTMLImageElement | undefined>) {
+export function drawStreakCard(canvas: HTMLCanvasElement, day: string, metric: DefenseMetric, rows: DailyStreak[], images: Record<string, HTMLImageElement | undefined>, direction?:'atLeast'|'below') {
  const width = 1080, height = 1350;
  canvas.width = width;
  canvas.height = height;
@@ -50,8 +50,10 @@ export function drawStreakCard(canvas: HTMLCanvasElement, day: string, metric: D
   if (logo?.naturalWidth) ctx.drawImage(logo, pad + 29, y + 4, 60, 60);
   else label(row.team, pad + 59, y + 44, 27, '#fff', 800, 100, 'center');
   ctx.restore();
-  label(row.name + ' · ' + row.threshold + '+', pad + 139, y + 44, 32, ink, 800, content - 315);
-  label(row.count + '/' + row.count + ' PJ', width-pad-20, y+44, 31, highlight, 800, 150, 'right');
+  const threshold=direction==='below'?'<'+row.threshold:row.threshold+'+';
+  label(row.name + ' · ' + threshold, pad + 139, y + (row.windows?31:44), 32, ink, 800, content - 315);
+  if(row.windows)label(row.windows.map((s,i)=>'L'+[5,10,20][i]+' '+(s.n?s.hits+'/'+s.n:'—')).join(' · '),pad+139,y+56,17,muted,600,content-315);
+  label(row.count ? row.count + '/' + row.count + ' PJ' : 'Sin racha', width-pad-20, y+44, 31, highlight, 800, 150, 'right');
  });
  label('Partidos jugados consecutivos · Temporada regular', pad, height - 108, 25, muted, 600);
  label('El umbral indicado se alcanzó en todos los partidos de la racha.', pad, height - 68, 22, muted, 600);

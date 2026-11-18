@@ -5,6 +5,7 @@ import {linkLiveCalendar,normalizeLiveScores} from '../../../../../lib/live-scor
 import {cachedNbaRead} from '../../../../../lib/read-cache';
 import {loadCalendar} from '../../../../../lib/provider';
 import type {Calendar} from '../../../../../lib/nba-snapshot';
+import {readOfficialReport} from '../../../../../lib/nba-official-report';
 
 export const maxDuration=30;
 const headers = {'Cache-Control':'public, max-age=0, s-maxage=60'};
@@ -27,7 +28,10 @@ export async function GET(_request:Request,{params}:{params:Promise<{id:string}>
       }
       if (games.length!==1) return null;
       const game=games[0];
-      return normalizeMatchAvailability(await readEspn('summary?event='+game.id),game);
+      const [summary,officialReport]=await Promise.all([
+        readEspn('summary?event='+game.id),readOfficialReport(match.date).catch(()=>null),
+      ]);
+      return {...normalizeMatchAvailability(summary,game),officialReport};
     });
     return Response.json({data},{headers});
   } catch {

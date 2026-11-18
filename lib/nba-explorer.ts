@@ -16,8 +16,16 @@ for (const [alias, market] of Object.entries({pts:'points', reb:'rebounds', ast:
 }
 
 export function parseNbaSearch(query: string) {
+  const natural=normalizeSearch(query).replace(/[¿?]/g,'').trim().match(
+    /^(?:cuantos?|cuantas?) (puntos|rebotes|asistencias|triples|robos|bloqueos|perdidas) promedio (.+?) en (?:sus )?ultimos (5|10|20) partidos(?: (?:de )?(local|visitante))?$/,
+  );
+  const criteria: {market?: Market; last?: ExplorerWindow; venue?:'all'|'home'|'away'; answer?:true} = {};
+  if(natural){
+    const [,stat,player,count,venue]=natural;
+    return {name:player,criteria:{market:marketAliases.get(stat),last:Number(count) as ExplorerWindow,
+      venue:venue==='local'?'home':venue==='visitante'?'away':'all',answer:true} as typeof criteria};
+  }
   const [name, ...parts] = query.split(',');
-  const criteria: {market?: Market; last?: ExplorerWindow} = {};
   if (!parts.length) return {name, criteria};
   for (const part of parts) {
     const token = normalizeSearch(part.trim());
@@ -25,6 +33,7 @@ export function parseNbaSearch(query: string) {
     const market = marketAliases.get(token);
     const windowMatch = /^(?:(?:ultimos?|l)\s*)?(5|10|20)(?:\s+(?:partidos|pj))?$/.exec(token);
     if (market) criteria.market = market;
+    else if (token==='local'||token==='visitante')criteria.venue=token==='local'?'home':'away';
     else if (windowMatch && isExplorerWindow(Number(windowMatch[1]))) criteria.last = Number(windowMatch[1]) as ExplorerWindow;
     else return {name:query, criteria:{} as typeof criteria};
   }
