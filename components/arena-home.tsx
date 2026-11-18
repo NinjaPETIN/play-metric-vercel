@@ -34,6 +34,7 @@ export default function ArenaHome({guest=false}:{guest?:boolean}){
    </div>
    <Link className="arena-calendar-link" href="/?view=calendar">Ver calendario<ChevronRight size={15}/></Link>
   </section>
+  </LiveScoreStrip>
   <section className="arena-hero" aria-labelledby="arena-title">
    <div className="arena-hero-content"><span className="arena-eyebrow">NBA · EL JUEGO, EN DATOS</span><h1 id="arena-title">El juego, en contexto<span>.</span></h1><p>Estadísticas, tendencias y noticias para entender más que el resultado.</p><div className="arena-hero-links"><a className="arena-context-link" href="#news-context">Noticias y contexto<ArrowUpRight size={16}/></a>{guest&&<Link className="arena-join-link" href="/login?return_to=%2F">Crear cuenta gratis<ChevronRight size={14}/></Link>}</div></div>
    <span className="arena-hero-mark" aria-hidden="true">STAT<br/>LANE</span>
