@@ -113,11 +113,9 @@ export default function ExplorerLineTracker({match,initial=null,selection=null,i
   const picked = selection && people.get(selection.playerId);
   const active = selection && saved.some(item => key(item) === key(selection));
   if (reduced || live && !saved.length) return null;
-  const fetchedAt = live ? live.fetchedAt : feed?.fetchedAt;
   return <section className={'card sl-explorer-tracker'+(live?' sl-live-tracker':'')} aria-label="Seguimiento de líneas">
     <div className="sl-tracker-header"><div><h3>{live?'Tus líneas guardadas':'Seguimiento de líneas'}</h3>
-      {live ? fetchedAt&&<small>Última lectura · {time.format(new Date(fetchedAt))} ARG{!fresh&&' · Datos sin actualizar'}</small> :
-        <small>Guardadas para este partido en este navegador</small>}</div>
+      {!live&&<small>Tus referencias para este partido</small>}</div>
       {selection&&<button className="button subtle" type="button" aria-pressed={!!active} disabled={!active&&saved.length>=12}
         onClick={() => save(active ? saved.filter(item => key(item)!==key(selection)) : [...saved,selection])}>
         {active ? 'Quitar línea actual' : 'Guardar línea actual'}

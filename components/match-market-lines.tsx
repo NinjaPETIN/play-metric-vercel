@@ -31,7 +31,7 @@ export default function MatchMarketLines({id}:{id:string}){
  const selected=names.includes(player)?player:names[0];
  const rows=data?.lines.filter(row=>row.player===selected&&row.market===market)??[];
  return <details className="card match-market-lines" onToggle={e=>setOpen(e.currentTarget.open)}><summary>Líneas de mercado</summary>
-  {open&&(!rows.length&&data?.state!=='ready'?<p role="status">{!data?'Consultando líneas…':data.state==='unconfigured'?'El proveedor de líneas todavía no está configurado.':'No hay líneas disponibles para este partido.'}</p>:<>
+  {open&&(!rows.length&&data?.state!=='ready'?<p role="status">{!data?'Consultando líneas…':data.state==='unconfigured'?'Las líneas estarán disponibles próximamente.':'No hay líneas disponibles para este partido.'}</p>:<>
    <div className="nba-context-controls">
     <label>Estadística<select value={market} onChange={e=>setMarket(e.target.value as MarketLine['market'])}>{Object.entries(labels).map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></label>
     {selected&&<label>Jugador<select value={selected} onChange={e=>setPlayer(e.target.value)}>{names.map(name=><option key={name}>{name}</option>)}</select></label>}
@@ -41,8 +41,6 @@ export default function MatchMarketLines({id}:{id:string}){
      <td title={row.firstAt?time.format(new Date(row.firstAt))+' ARG':undefined}>{row.firstLine===null?'—':number.format(row.firstLine)}</td>
      <td>{number.format(row.line)}</td><td>{row.firstLine===null?'—':number.format(row.line-row.firstLine)}</td><td>{number.format(row.price)}</td><td>{time.format(new Date(row.updatedAt))}</td></tr>)}
    </tbody></table></div>:<p>Sin precios publicados para esta estadística.</p>}
-   <small>Fuente: The Odds API · Casas de EE. UU. · La primera línea observada puede ser posterior a la apertura.</small>
-   {data?.dataStale&&<p role="status">Mostrando la última lectura disponible.</p>}
   </>)}
  </details>;
 }

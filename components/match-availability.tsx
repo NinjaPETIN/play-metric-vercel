@@ -45,8 +45,7 @@ export default function MatchAvailability({id,away,home,date,season,competition,
       <h2 id="sl-match-availability">Bajas y alineaciones</h2>
       <a href={feed?.officialReport?.url??injuryReportUrl(date)} target="_blank" rel="noopener noreferrer">Informe oficial NBA{feed?.officialReport?' · '+feed.officialReport.clock:''} ↗</a>
     </div>
-    {feed&&<p>ESPN · Lectura del {timestamp.format(new Date(feed.fetchedAt))} ARG{(feed.dataStale||failed)&&' · Datos sin actualizar'}</p>}
-    {!feed&&<p role="status">{failed?'La fuente no está disponible en este momento.':feed===undefined?'Consultando los equipos…':'Sin datos de disponibilidad para este partido.'}</p>}
+    {!feed&&<p role="status">{failed?'No pudimos cargar la disponibilidad.':feed===undefined?'Consultando los equipos…':'Sin datos de disponibilidad para este partido.'}</p>}
     <div className="sl-match-availability-grid">
       {[away,home].map(code=>{
         const team=feed?.teams.find(entry=>entry.code===code);

@@ -130,7 +130,6 @@ export default function ShareCardDialog({ title, triggerLabel, text, path, filen
   <div className="sl-share-options">
    <h2 id={heading}>{title}</h2>{controls}
    {images&&Object.entries(assets).some(([key,src])=>src&&!images[key])&&<div className="ux-export-warning" role="status">No se pudieron cargar algunas fotos o escudos. <button type="button" className="button subtle" onClick={()=>{setImages(null);setSharedFile(null);setAssetRevision(v=>v+1);}}>Reintentar imágenes</button></div>}
-   <p className="ux-export-warning">El PNG conserva el diseño de esta vista previa en su resolución original.</p>
    <div className="sl-share-setting">
     <span>Formato · {width} × {height} px</span>
     <div className="segmented" role="group" aria-label="Formato de la imagen">

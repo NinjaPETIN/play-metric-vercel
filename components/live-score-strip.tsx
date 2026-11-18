@@ -15,7 +15,7 @@ export default function LiveScoreStrip({children}:{children:ReactNode}){
  const day=new Date(feed.games[0].startsAt).toLocaleDateString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',day:'numeric',month:'short'});
  return <>
   <section className={'arena-schedule arena-live'+(stale?' arena-live-stale':'')} aria-label="Marcadores NBA en vivo">
-   <div className="arena-schedule-label"><Radio size={17}/><strong>{stale?'Última lectura':inProgress?'NBA en vivo':'Jornada NBA'}</strong><small>{day}</small></div>
+   <div className="arena-schedule-label"><Radio size={17}/><strong>{stale?'Jornada NBA':inProgress?'NBA en vivo':'Jornada NBA'}</strong><small>{day}</small></div>
    <div className="arena-match-strip" tabIndex={0} aria-label="Deslizar para ver marcadores">
     {orderScoreboardGames(feed.games).map(g=>{
      const label=`${g.awayName} contra ${g.homeName}, ${g.homeScore!==null?`${g.awayScore} a ${g.homeScore}, `:''}${g.detail}${stale?', lectura atrasada':''}`;
