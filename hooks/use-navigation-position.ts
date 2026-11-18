@@ -21,8 +21,8 @@ export function useNavigationPosition(ref:RefObject<HTMLElement|null>,ready:bool
   }
   function stop(){stopped=true;restored=true;cancelAnimationFrame(frame);}
   frame=requestAnimationFrame(restore);
-  main?.addEventListener('scroll',scheduleSave,{passive:true});window.addEventListener('scroll',save,{passive:true});window.addEventListener('pagehide',save);window.addEventListener('statlane:remember-position',save);
+  main?.addEventListener('scroll',scheduleSave,{passive:true});window.addEventListener('scroll',scheduleSave,{passive:true});window.addEventListener('pagehide',save);window.addEventListener('statlane:remember-position',save);
   document.addEventListener('click',save,true);window.addEventListener('wheel',stop,{passive:true,once:true});window.addEventListener('touchstart',stop,{passive:true,once:true});
-  return()=>{save();cancelAnimationFrame(frame);cancelAnimationFrame(writeFrame);main?.removeEventListener('scroll',scheduleSave);window.removeEventListener('scroll',save);window.removeEventListener('pagehide',save);window.removeEventListener('statlane:remember-position',save);document.removeEventListener('click',save,true);window.removeEventListener('wheel',stop);window.removeEventListener('touchstart',stop);history.scrollRestoration=prior;};
+  return()=>{save();cancelAnimationFrame(frame);cancelAnimationFrame(writeFrame);main?.removeEventListener('scroll',scheduleSave);window.removeEventListener('scroll',scheduleSave);window.removeEventListener('pagehide',save);window.removeEventListener('statlane:remember-position',save);document.removeEventListener('click',save,true);window.removeEventListener('wheel',stop);window.removeEventListener('touchstart',stop);history.scrollRestoration=prior;};
  },[ref,ready,scope]);
 }

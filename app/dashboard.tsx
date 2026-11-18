@@ -218,8 +218,8 @@ export default function Dashboard({user,initialLiveBox=null,initialMatch=null,in
  useEffect(()=>{const t=setInterval(()=>{if(document.visibilityState==='visible')setReload(n=>n+1);},5*60_000);const focus=()=>setReload(n=>n+1);window.addEventListener('focus',focus);return()=>{clearInterval(t);window.removeEventListener('focus',focus);};},[]);
  useEffect(()=>{let active=true;queueMicrotask(()=>{if(!active)return;try{const saved=localStorage.getItem('playmetric:filters:v1');if(saved)setSavedConfig(validFilters(JSON.parse(saved)));}catch{/* Storage is optional. */}});return()=>{active=false;};},[]);
  useEffect(()=>{const key=(e:KeyboardEvent)=>{if(e.key==='Escape'){setLimitReached(false);setSettings(false);setMobile(false);setFilters(false);}if(e.key==='/'&&!e.isComposing&&!(e.target instanceof HTMLInputElement)&&!(e.target instanceof HTMLSelectElement)&&!(e.target instanceof HTMLTextAreaElement)&&!(e.target instanceof HTMLElement&&e.target.isContentEditable)){e.preventDefault();searchRef.current?.focus();}};document.addEventListener('keydown',key);return()=>document.removeEventListener('keydown',key);},[]);
- const [pageFilters,setPageFilters]=useState({deferredQuery,f,view});
- if(pageFilters.deferredQuery!==deferredQuery||pageFilters.f!==f||pageFilters.view!==view){setPageFilters({deferredQuery,f,view});setPage(1);}
+ const [pageFilters,setPageFilters]=useState({query,f,view,ready:stateReady});
+ if(pageFilters.query!==query||pageFilters.f!==f||pageFilters.view!==view||pageFilters.ready!==stateReady){setPageFilters({query,f,view,ready:stateReady});if(pageFilters.ready&&stateReady)setPage(1);}
  useEffect(()=>{mainRef.current?.scrollTo({top:0});},[selected,page,view]);
  useNavigationPosition(mainRef,stateReady&&!loading,JSON.stringify([initialPlayer,initialTeam,initialMatch?.id,view,listPage,page,query,competition,season]));
  useEffect(()=>{if(!toast)return;const t=setTimeout(()=>setToast(''),4500);return()=>clearTimeout(t);},[toast]);
