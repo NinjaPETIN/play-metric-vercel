@@ -9,7 +9,7 @@ const number=new Intl.NumberFormat('es-AR',{maximumFractionDigits:2});
 const time=new Intl.DateTimeFormat('es-AR',{timeZone:'America/Argentina/Buenos_Aires',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
 
 export default function MatchMarketLines({id}:{id:string}){
- const [open,setOpen]=useState(false);
+ const [open,setOpen]=useState(false),[failed,setFailed]=useState(false),[retry,setRetry]=useState(0);
  const [data,setData]=useState<Data|null>(null);
  const [player,setPlayer]=useState('');
  const [market,setMarket]=useState<MarketLine['market']>('player_points');
@@ -18,19 +18,20 @@ export default function MatchMarketLines({id}:{id:string}){
   let active=true;
   const refresh=(force=false)=>{
    if(document.hidden)return;
-   loadCachedData<Data>('/api/nba/market-lines/'+id,force).then(data=>{if(active)setData(data);})
-    .catch(()=>{if(active)setData({state:'unavailable',lines:[]});});
+   loadCachedData<Data>('/api/nba/market-lines/'+id,force).then(data=>{if(active){setData(data);setFailed(false);}})
+    .catch(()=>{if(active){setFailed(true);setData(previous=>previous??{state:'unavailable',lines:[]});}});
   };
-  refresh();
+  refresh(retry>0);
   const timer=setInterval(()=>refresh(true),180_000);
   const resume=()=>refresh();
   document.addEventListener('visibilitychange',resume);
   return()=>{active=false;clearInterval(timer);document.removeEventListener('visibilitychange',resume);};
- },[id,open]);
+ },[id,open,retry]);
  const names=[...new Set(data?.lines.filter(row=>row.market===market).map(row=>row.player))].sort((a,b)=>a.localeCompare(b,'es'));
  const selected=names.includes(player)?player:names[0];
  const rows=data?.lines.filter(row=>row.player===selected&&row.market===market)??[];
  return <details className="card match-market-lines" onToggle={e=>setOpen(e.currentTarget.open)}><summary>Líneas de mercado</summary>
+  {open&&failed&&<p role="status">No pudimos actualizar las líneas. <button type="button" className="button subtle" onClick={()=>setRetry(n=>n+1)}>Reintentar</button></p>}
   {open&&(!rows.length&&data?.state!=='ready'?<p role="status">{!data?'Consultando líneas…':data.state==='unconfigured'?'Las líneas estarán disponibles próximamente.':'No hay líneas disponibles para este partido.'}</p>:<>
    <div className="nba-context-controls">
     <label>Estadística<select value={market} onChange={e=>setMarket(e.target.value as MarketLine['market'])}>{Object.entries(labels).map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></label>
@@ -44,3 +45,4 @@ export default function MatchMarketLines({id}:{id:string}){
   </>)}
  </details>;
 }
+

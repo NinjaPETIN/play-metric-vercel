@@ -1,0 +1,22 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {followedAgenda,argentinaDay} from '../lib/followed-agenda';
+import type {Calendar} from '../lib/nba-snapshot';
+import type {Player} from '../lib/data';
+test('favorites agenda uses Argentina days, prioritizes live games and does not assign an unconfirmed team',()=>{
+ const now=Date.parse('2026-11-18T23:30:00Z');
+ const player=(id:string,team:string,currentTeam:string|null=team)=>({id,name:id,team,currentTeam,games:[],position:'G',color:'#fff',base:[0,0,0,0],lines:{}} as unknown as Player);
+ const game=(id:string,home:string,startsAt:string,status:number)=>({id,home,away:'BOS',startsAt,status,date:startsAt.slice(0,10)} as Calendar['games'][number]);
+ const calendar={games:[game('1','LAL','2026-11-19T01:00:00Z',1),game('2','NYK','2026-11-18T23:00:00Z',2),game('3','MIA','2026-11-19T23:00:00Z',1),game('4','LAL','2026-11-18T15:00:00Z',3)]} as Calendar;
+ const players=[player('1','LAL'),player('2','NYK'),player('3','MIA'),player('4','LAL',null),player('5','MIL')];
+ const rows=followedAgenda(players,['1:points','nba:2','3:assists','nba:4','nba:5'],calendar,now);
+ assert.equal(argentinaDay('2026-11-19T01:00:00Z'),'2026-11-18');
+ assert.deepEqual(rows.map(r=>r.player.id),['2','1','3','4','5']);
+ assert.equal(rows[1].game?.id,'1','an upcoming game is selected before an earlier final from the same day');
+ assert.equal(rows[0].today,true);assert.equal(rows[1].today,true);assert.equal(rows[2].today,false);
+ assert.equal(rows.find(r=>r.player.id==='4')?.game,undefined,'an old team is not used when the current team is explicitly unknown');
+ assert.equal(followedAgenda(players,['1:points','1:rebounds'],calendar,now).length,1,'multiple saved stats do not duplicate players');
+ const midnight=Date.parse('2026-11-19T03:30:00Z');
+ const overtime={games:[game('6','LAL','2026-11-19T02:00:00Z',2),game('7','LAL','2026-11-20T01:00:00Z',1)]} as Calendar;
+ assert.equal(followedAgenda(players,['1:points'],overtime,midnight)[0].game?.id,'6','a game still live after local midnight stays ahead of the next scheduled game');
+});
