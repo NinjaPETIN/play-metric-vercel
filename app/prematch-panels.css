@@ -1,4 +1,14 @@
 /* Prematch context uses the same spacing and controls as the player workspace. */
+.prematch-board .card { min-width: 0; max-width: 100%; }
+.prematch-team-form { min-width: 0; grid-template-columns: repeat(2,minmax(0,1fr)); }
+.prematch-team-form > article, .prematch-team-form > article > div { min-width: 0; }
+.prematch-team-form .calendar-form > span { display: flex; flex-wrap: wrap; gap: 5px; }
+.prematch-form .sl-preview-filter { flex-wrap: wrap; }
+.prematch-form .calendar-form .match-form-result { min-width: 0; }
+@media (max-width: 1350px) {
+ .prematch-board { grid-template-columns: minmax(0,1fr); }
+ .prematch-board .prematch-side { grid-template-columns: minmax(0,1fr); }
+}
 .sl-match-availability.card { padding: 20px; }
 .sl-match-availability .sl-explorer-heading {
  display: grid; gap: 10px; align-items: start; margin-bottom: 8px;
