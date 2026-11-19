@@ -1,3 +1,4 @@
+import {referenceLabel,type AnalysisReference} from './market-reference';
 import {gameKey} from './analysis-selection';
 import { markets, summarizeGames, value, type Game, type Market } from './analytics';
 import { cardSizes, socialCardStyle, type CardFormat } from './performance-card';
@@ -24,7 +25,7 @@ function cardImage(ctx: CanvasRenderingContext2D, image: HTMLImageElement | unde
 
 const number = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 1 });
 type CardData = {
- name: string; team: string; teamCode?: string; position?: string; games: Game[]; market: Market; line: number; side: 'over' | 'under';
+ reference?:AnalysisReference; name: string; team: string; teamCode?: string; position?: string; games: Game[]; market: Market; line: number; side: 'over' | 'under';
  season: number; competition: string; filters: string;windowGames?:Game[];excluded?:string[];
 };
 
@@ -71,7 +72,7 @@ export function drawAnalysisCard(canvas: HTMLCanvasElement, format: CardFormat, 
   ['PROMEDIO', summary.average === null ? '—' : number.format(summary.average)],
   ['PARTIDOS', String(summary.n)],
  ] : [
-  ['ESTADÍSTICA', markets[data.market]], ['REFERENCIA', reference],
+  ['ESTADÍSTICA', markets[data.market]], [referenceLabel(data.reference??{kind:'automatic'}).toUpperCase(), reference],
   ['PROMEDIO', summary.average === null ? '—' : number.format(summary.average)],
   ['CUMPLEN', summary.hits + '/' + summary.n],
  ];
@@ -131,6 +132,7 @@ export function drawAnalysisCard(canvas: HTMLCanvasElement, format: CardFormat, 
  }
  ctx.fillStyle = border;
  ctx.fillRect(pad, height - 128, content, 2);
+ if(!reduced){const origin=data.reference;const source=referenceLabel(origin??{kind:'automatic'})+(origin?.kind==='market'?' · Cuota '+origin.price.toLocaleString('es-AR',{maximumFractionDigits:2})+' · '+new Date(origin.updatedAt).toLocaleString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})+' ARG':'');text(source,pad,height-137,16,accent,600);}
  text(data.competition + (reduced ? '' : ' · ' + data.filters), pad, height - 86, 20, ink, 600);
  if (reduced) return;
  text(rival ? 'Cruce según defensa de equipo' : 'Frecuencia histórica', pad, height - 48, 22, muted, 600, content - 440);
@@ -201,7 +203,7 @@ function drawEditorialAnalysis(canvas: HTMLCanvasElement, light: boolean, data: 
  tile(pad,502,content,150);
  label(line,pad+30,605,90,ink,800,210);
  label(markets[data.market].toUpperCase(),pad+246,563,34,ink,800,325);
- label(side + ' · Línea de referencia',pad+246,608,22,muted,600,335);
+ label(side + ' · '+referenceLabel(data.reference??{kind:'automatic'}),pad+246,608,22,muted,600,335);
  label('FRECUENCIA',width-pad-253,558,22,muted,800,158,'right');
  label(sample.hits + ' de ' + sample.n,width-pad-253,602,22,muted,700,150,'right');
  label(pct,width-pad-28,607,78,highlight,800,206,'right');
@@ -249,7 +251,9 @@ function drawEditorialAnalysis(canvas: HTMLCanvasElement, light: boolean, data: 
  ctx.stroke();
  ctx.setLineDash([]);
  label(data.name+' cumplió la línea en '+sample.hits+' de '+sample.n+' partidos de la muestra.',pad,1225,28,ink,700);
- label(data.competition+' · '+data.filters,pad,1273,20,muted,600);
+ const source=data.reference?.kind==='market'?data.reference.book+' · Cuota '+data.reference.price.toLocaleString('es-AR',{maximumFractionDigits:2})+' · '+new Date(data.reference.updatedAt).toLocaleString('es-AR',{timeZone:'America/Argentina/Buenos_Aires',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})+' ARG':referenceLabel(data.reference??{kind:'automatic'});
+ label(source,pad,1253,18,accent,600);
+ label(data.competition+' · '+data.filters,pad,1282,18,muted,600);
  label('Frecuencia histórica · Statlane',pad,1310,21,muted,600);
 }
 
@@ -309,5 +313,3 @@ export function drawDefenseCard(canvas: HTMLCanvasElement, format: CardFormat, l
  ctx.restore();
  label('STATLANE', width - pad, height - 54, 31, ink, 800, 174, 'right');
 }
-
-

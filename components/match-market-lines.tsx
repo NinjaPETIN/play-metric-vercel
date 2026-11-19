@@ -2,6 +2,8 @@
 
 import {useEffect,useState} from 'react';
 import {loadCachedData} from '../lib/client-data-cache';
+import {offerIsCurrent} from '../lib/market-reference';
+import {useReadingPreferences} from './reading-preferences';
 import type {MarketLines as Data,MarketLine} from '../lib/market-lines';
 
 const labels:Record<MarketLine['market'],string>={player_points:'Puntos',player_rebounds:'Rebotes',player_assists:'Asistencias',player_threes:'Triples'};
@@ -9,6 +11,7 @@ const number=new Intl.NumberFormat('es-AR',{maximumFractionDigits:2});
 const time=new Intl.DateTimeFormat('es-AR',{timeZone:'America/Argentina/Buenos_Aires',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
 
 export default function MatchMarketLines({id}:{id:string}){
+ const {now}=useReadingPreferences();
  const [open,setOpen]=useState(false),[failed,setFailed]=useState(false),[retry,setRetry]=useState(0);
  const [data,setData]=useState<Data|null>(null);
  const [player,setPlayer]=useState('');
@@ -31,8 +34,8 @@ export default function MatchMarketLines({id}:{id:string}){
  const selected=names.includes(player)?player:names[0];
  const rows=data?.lines.filter(row=>row.player===selected&&row.market===market)??[];
  return <details className="card match-market-lines" onToggle={e=>setOpen(e.currentTarget.open)}><summary>Líneas de mercado</summary>
-  {open&&failed&&<p role="status">No pudimos actualizar las líneas. <button type="button" className="button subtle" onClick={()=>setRetry(n=>n+1)}>Reintentar</button></p>}
-  {open&&(!rows.length&&data?.state!=='ready'?<p role="status">{!data?'Consultando líneas…':data.state==='unconfigured'?'Las líneas estarán disponibles próximamente.':'No hay líneas disponibles para este partido.'}</p>:<>
+  {open&&<div className="market-feed-heading"><p>Precios publicados por cada casa · Cuotas decimales · Horarios ARG</p><button type="button" className="button subtle" onClick={()=>setRetry(n=>n+1)}>Actualizar cuotas</button></div>}{open&&failed&&<p role="status">No pudimos actualizar las líneas. <button type="button" className="button subtle" onClick={()=>setRetry(n=>n+1)}>Reintentar</button></p>}
+  {open&&(!rows.length&&data?.state!=='ready'?<p role="status">{!data?'Consultando líneas…':data.state==='unconfigured'?'Cuotas de mercado sin conectar. Las líneas manuales de las fichas son referencias de análisis.':'No hay líneas disponibles para este partido.'}</p>:<>
    <div className="nba-context-controls">
     <label>Estadística<select value={market} onChange={e=>setMarket(e.target.value as MarketLine['market'])}>{Object.entries(labels).map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></label>
     {selected&&<label>Jugador<select value={selected} onChange={e=>setPlayer(e.target.value)}>{names.map(name=><option key={name}>{name}</option>)}</select></label>}
@@ -40,9 +43,8 @@ export default function MatchMarketLines({id}:{id:string}){
    {rows.length?<div className="table-scroll"><table className="history"><thead><tr>{['Casa','Dirección','Primera observada','Actual','Cambio','Cuota decimal','Actualizada (ARG)'].map(label=><th key={label} scope="col">{label}</th>)}</tr></thead><tbody>
     {rows.map(row=><tr key={row.book+row.side}><th scope="row">{row.book}</th><td>{row.side==='Over'?'Más de':'Menos de'}</td>
      <td title={row.firstAt?time.format(new Date(row.firstAt))+' ARG':undefined}>{row.firstLine===null?'—':number.format(row.firstLine)}</td>
-     <td>{number.format(row.line)}</td><td>{row.firstLine===null?'—':number.format(row.line-row.firstLine)}</td><td>{number.format(row.price)}</td><td>{time.format(new Date(row.updatedAt))}</td></tr>)}
+     <td>{number.format(row.line)}</td><td>{row.firstLine===null?'—':number.format(row.line-row.firstLine)}</td><td>{number.format(row.price)}</td><td>{time.format(new Date(row.updatedAt))}{!offerIsCurrent(row,now,data?.dataStale||failed)&&<small className="offer-stale">Pendiente de actualización</small>}</td></tr>)}
    </tbody></table></div>:<p>Sin precios publicados para esta estadística.</p>}
   </>)}
  </details>;
 }
-

@@ -9,11 +9,13 @@ import { drawAnalysisCard, drawDefenseCard } from '../lib/analysis-card';
 import type { DefenseRank } from '../lib/team-defense';
 import { teamNames } from '../lib/team-overview';
 import { loadCachedData } from '../lib/client-data-cache';
+import {reportPath} from '../lib/report-context';
+import {referenceLabel,type AnalysisReference} from '../lib/market-reference';
 import {useReadingPreferences} from './reading-preferences';
 import ShareCardDialog from './share-card-dialog';
 
 type Props = {
- name: string; playerId: string; team: string; teamCode?: string; games: Game[]; market: Market;
+ reference:AnalysisReference; name: string; playerId: string; team: string; teamCode?: string; games: Game[]; market: Market;
  line: number; side: 'over' | 'under'; season: number; competition: string; competitionKey: Competition;
  windowGames?:Game[];excluded?:string[];sampleKeys?:string[];contextRival?:string;initialRival?: string; position?: string; filters: string;
 };
@@ -25,7 +27,7 @@ export default function ShareAnalysis(props: Props) {
 
  return <>
   <button className="button subtle" type="button" aria-haspopup="dialog" disabled={!props.games.length} onClick={() => {
-   const query=new URLSearchParams(window.location.search);query.set('season',String(props.season));query.set('competition',props.competitionKey);query.set('stat',props.market);query.set('line',String(props.line));query.set('side',props.side);query.set('snapshot','1');if(props.sampleKeys?.length)query.set('sample',props.sampleKeys.join(','));if(props.contextRival&&props.contextRival!=='all')query.set('contextRival',props.contextRival);setPath(window.location.pathname+'?'+query);
+   const query=new URL(reportPath(window.location.pathname+window.location.search),'https://statlane.invalid').searchParams;query.set('season',String(props.season));query.set('competition',props.competitionKey);query.set('stat',props.market);query.set('line',String(props.line));query.set('side',props.side);query.set('snapshot','1');if(props.sampleKeys?.length)query.set('sample',props.sampleKeys.join(','));if(props.contextRival&&props.contextRival!=='all')query.set('contextRival',props.contextRival);setPath(window.location.pathname+'?'+query);
    setOpen(true);
   }}><Share2 size={16}/> Compartir análisis</button>
   {open && <AnalysisDialog props={props} reduced={reduced} path={path} onClose={() => setOpen(false)}/>}
@@ -59,7 +61,7 @@ function AnalysisDialog({ props, reduced, path, onClose }: { props: Props; reduc
  const reference = (side === 'over' ? 'Más de ' : 'Menos de ') + line.toLocaleString('es-AR');
  const text = reduced ? [name + ' · ' + markets[market], 'Promedio: ' + (stats.average?.toLocaleString('es-AR', {maximumFractionDigits: 1}) ?? '—') + ' · ' + stats.n + ' partidos'].join('\n') : view === 'defense'
   ? [name + ' vs. ' + rivalName + ' · Defensa del rival', ...(rows ?? []).map(row => markets[row.metric] + ': ' + row.rank + '.º de ' + row.teams)].join('\n')
-  : [name + ' · ' + markets[market], reference, stats.hits + '/' + stats.n + ' cumplen la referencia en esta muestra.',props.filters].join('\n');
+  : [name + ' · ' + markets[market], reference,referenceLabel(props.reference),...(props.reference.kind==='market'?['Cuota decimal '+props.reference.price.toLocaleString('es-AR',{maximumFractionDigits:2})+' · Actualizada '+new Date(props.reference.updatedAt).toLocaleString('es-AR',{timeZone:'America/Argentina/Buenos_Aires'})+' ARG']:[]), stats.hits + '/' + stats.n + ' cumplen la referencia en esta muestra.',props.filters].join('\n');
 
  const sharedUrl=new URL(path,'https://statlane.invalid');if(rival)sharedUrl.searchParams.set('contextRival',rival);else sharedUrl.searchParams.delete('contextRival');const sharedPath=sharedUrl.pathname+sharedUrl.search;
  const recentOpponents = reduced ? [] : [...new Set(games.filter(game=>game.played && game.minutes > 0).slice(0,10).map(game=>game.opponent))];
@@ -80,5 +82,3 @@ function AnalysisDialog({ props, reduced, path, onClose }: { props: Props; reduc
   </div>}
   draw={draw} onClose={onClose}/>;
 }
-
-

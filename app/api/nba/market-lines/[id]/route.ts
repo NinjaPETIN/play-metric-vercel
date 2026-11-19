@@ -1,6 +1,6 @@
 import {readMarketLines} from '../../../../../lib/market-lines';
 import {loadCalendar} from '../../../../../lib/provider';
-import {cachedNbaRead} from '../../../../../lib/read-cache';
+import {cachedNbaRead,forceNbaRead} from '../../../../../lib/read-cache';
 import type {Calendar} from '../../../../../lib/nba-snapshot';
 
 export async function GET(_request:Request,{params}:{params:Promise<{id:string}>}){
@@ -10,7 +10,7 @@ export async function GET(_request:Request,{params}:{params:Promise<{id:string}>
   const calendar=await cachedNbaRead<Calendar|null>('calendar',loadCalendar);
   const game=calendar?.games.find(game=>game.id===id);
   if(!game)return Response.json({error:'Partido no encontrado.'},{status:404});
-  return Response.json(await cachedNbaRead('market-lines:'+id,()=>readMarketLines(game)));
+  return Response.json(await cachedNbaRead('market-lines:'+id,()=>readMarketLines(game),forceNbaRead(_request)));
  }catch{
   return Response.json({state:'unavailable',lines:[]},{status:503});
  }

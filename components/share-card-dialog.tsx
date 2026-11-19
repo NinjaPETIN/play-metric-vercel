@@ -36,6 +36,7 @@ export default function ShareCardDialog({ title, triggerLabel, text, path, filen
  const [format, setFormat] = useState<CardFormat>(initialFormat);
  const [light, setLight] = useState(false);
  const [message, setMessage] = useState('');
+ const [draft,setDraft]=useState<{base:string;text:string}|null>(null);
  const [assetRevision, setAssetRevision] = useState(0);
  const [loadedAssets, setImages] = useState<{ key: string; images: Record<string, HTMLImageElement | undefined> } | null>(null);
  const [rendered, setSharedFile] = useState<{ file: File; draw: typeof draw; name: string; light: boolean } | null>(null);
@@ -107,7 +108,7 @@ export default function ShareCardDialog({ title, triggerLabel, text, path, filen
  async function share() {
   if (!sharedFile) return;
   try {
-   await navigator.share({ files: [sharedFile], title, text: post });
+   await navigator.share({ files: [sharedFile], title, text: editablePost });
   } catch (error) {
    if (!(error instanceof DOMException && error.name === 'AbortError')) setMessage('No pudimos compartir. Podés descargar la imagen.');
   }
@@ -115,7 +116,14 @@ export default function ShareCardDialog({ title, triggerLabel, text, path, filen
 
  const url = path ? window.location.origin + path : '';
  const post = url ? text + '\n\n' + url : text;
+ const editablePost=draft?.base===post?draft.text:post;
  const canShare = Boolean(sharedFile && navigator.canShare?.({ files: [sharedFile] }) && navigator.share);
+ const canCopyImage=typeof ClipboardItem!=='undefined'&&Boolean(navigator.clipboard?.write);
+ async function copyImage(){
+  if(!sharedFile)return;
+  try{await navigator.clipboard.write([new ClipboardItem({'image/png':sharedFile})]);setMessage('Imagen copiada. Podés pegarla en tu publicación.');}
+  catch{setMessage('No pudimos copiar la imagen. Podés descargar el PNG.');}
+ }
 
  return <dialog ref={dialog} className="sl-share-dialog" aria-labelledby={heading} onCancel={event => { event.preventDefault(); onClose(); }} onClick={event => {
   if (event.target !== event.currentTarget) return;
@@ -126,6 +134,7 @@ export default function ShareCardDialog({ title, triggerLabel, text, path, filen
   <div className="sl-share-preview">
    <canvas ref={canvas} width={width} height={height} aria-label={triggerLabel} hidden={!images}/>
    {!images && <p role="status">Preparando vista previa…</p>}
+   {sharedFile&&<p className="share-ready">Vista previa y PNG · {width} × {height} px</p>}
   </div>
   <div className="sl-share-options">
    <h2 id={heading}>{title}</h2>{controls}
@@ -142,11 +151,12 @@ export default function ShareCardDialog({ title, triggerLabel, text, path, filen
      {[false, true].map(value => <button type="button" key={String(value)} aria-pressed={light === value} className={light === value ? 'selected' : ''} onClick={() => { if (light !== value) { setSharedFile(null); setLight(value); setMessage(''); } }}>{value ? 'Claro' : 'Oscuro'}</button>)}
     </div>
    </div>
-   <label>Texto del post<textarea readOnly value={post}/></label>
+   <label>Texto del post<textarea aria-label="Texto del post" maxLength={4000} value={editablePost} onChange={event=>setDraft({base:post,text:event.target.value})}/></label>
    <div className="sl-share-actions">
     <button type="button" className="button sl-share-download" disabled={!sharedFile} onClick={download}><Download size={17}/> Descargar PNG</button>
     {canShare && <button type="button" className="button subtle" onClick={share}><Share2 size={17}/> Compartir imagen</button>}
-    <button type="button" className="button subtle" onClick={() => copy(post, 'Texto copiado.')}><Copy size={17}/> Copiar texto</button>
+    {canCopyImage&&<button type="button" className="button subtle" disabled={!sharedFile} onClick={()=>void copyImage()}><Copy size={17}/> Copiar imagen</button>}
+    <button type="button" className="button subtle" onClick={() => copy(editablePost, 'Texto copiado.')}><Copy size={17}/> Copiar texto</button>
     {url && <button type="button" className="button subtle" onClick={() => copy(url, 'Enlace copiado.')}><Link size={17}/> Copiar enlace</button>}
    </div>
    <p className="sl-share-message" role="status">{message}</p>
