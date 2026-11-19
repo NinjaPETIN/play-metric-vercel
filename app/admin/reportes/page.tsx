@@ -1,0 +1,5 @@
+import Link from 'next/link';
+import {codeAdmin} from '../../../lib/pro-codes';
+import {database} from '../../../lib/database-env';
+export const dynamic='force-dynamic';
+export default async function Page(){if(!await codeAdmin())return <main className="info-page"><h1>Acceso privado</h1><Link href="/">Volver</Link></main>;const rows=await database.prepare("select payload from provider_cache where key like 'pm:problem:%' and expires_at>? order by json_extract(payload,'$.submittedAt') desc limit 100").bind(new Date().toISOString()).all<{payload:string}>();return <main className="info-page"><Link href="/">← Volver</Link><h1>Reportes de usuarios</h1><p>Últimos 14 días</p>{rows.results.map((r,i)=>{const d=JSON.parse(r.payload) as {description:string;path:string;image?:string;submittedAt:string};return <article className="card" key={i}><time>{d.submittedAt}</time><p style={{whiteSpace:'pre-wrap'}}>{d.description}</p><a href={d.path}>Abrir selección reportada</a>{d.image&&<img src={d.image} alt="Captura adjunta al reporte" style={{display:'block',maxWidth:'100%'}}/>}</article>;})}{!rows.results.length&&<p>No hay reportes recientes.</p>}</main>;}

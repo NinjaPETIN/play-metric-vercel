@@ -24,6 +24,8 @@ test('teammate splits exclude incomplete games, dates outside the shared stint a
  }));
  const result = teammateSplits(players, finals, 'BOS', '2026-11-06').compare('subject','teammate');
  assert.equal(result?.with.games, 2);
+ assert.equal(Object.hasOwn(result!.with,'gameIds'),false);
+ assert.deepEqual(teammateSplits(players,finals,'BOS','2026-11-06').compare('subject','teammate',true)?.with.gameIds,[id(2),id(5)]);
  assert.equal(result?.without.games, 1);
  assert.equal(teammateSplits(players, finals, 'BOS', '2026-11-07', true).compare('subject','teammate')?.without.games, 2);
  assert.deepEqual(result?.with.metrics.find(row => row.key === 'fieldGoalsAttempted'), { key:'fieldGoalsAttempted', value:12, games:1 });

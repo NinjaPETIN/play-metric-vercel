@@ -4,9 +4,10 @@ import type { TeamGame } from './nba-snapshot';
 
 const metrics = ['minutes', 'fieldGoalsAttempted', 'points', 'rebounds', 'assists'] as const;
 
-function summarize(games: Game[]) {
+function summarize(games: Game[], includeIds = false) {
  return {
   games: games.length,
+  ...(includeIds ? {gameIds:games.map(game=>game.gameId!)} : {}),
   metrics: metrics.map(key => {
    const values = games.flatMap(game => game[key] === undefined ? [] : [game[key]]);
    return { key, value: values.length ? values.reduce((sum, n) => sum + n, 0) / values.length : null, games: values.length };
@@ -39,7 +40,7 @@ export function teammateSplits(players: Player[], finals: TeamGame[], team: stri
  });
  return {
   players: eligible.map(({ id, name }) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name)),
-  compare(subjectId: string, teammateId: string) {
+  compare(subjectId: string, teammateId: string, includeIds = false) {
    const subject = eligible.find(player => player.id === subjectId);
    const teammate = eligible.find(player => player.id === teammateId);
    if (!subject || !teammate || subject === teammate) return null;
@@ -48,8 +49,8 @@ export function teammateSplits(players: Player[], finals: TeamGame[], team: stri
    const end = teammate.games.at(-1)!.date;
    const stillOnTeam = currentRoster && teammate.currentTeam === team && teammate.latestTeam === team;
    return {
-    with: summarize(subject.games.filter(game => ids.has(game.gameId))),
-    without: summarize(subject.games.filter(game => !ids.has(game.gameId) && game.date > start && (game.date < end || stillOnTeam && game.date > end))),
+    with: summarize(subject.games.filter(game => ids.has(game.gameId)),includeIds),
+    without: summarize(subject.games.filter(game => !ids.has(game.gameId) && game.date > start && (game.date < end || stillOnTeam && game.date > end)),includeIds),
    };
   },
  };

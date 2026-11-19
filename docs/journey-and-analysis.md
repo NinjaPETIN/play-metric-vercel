@@ -1,0 +1,11 @@
+# Jornada y análisis compartido
+
+- Mi jornada: acceso desde la barra de ayuda o Favoritos. Reúne agenda, estadísticas seguidas y resultados de referencias guardadas. Los resultados distinguen cumplimiento, incumplimiento y empate solamente con una estadística final verificada.
+- La ficha ofrece localía, período y con/sin compañero. El filtro de compañero usa partidos con box score completo verificado; nunca interpreta un registro faltante como ausencia. Las lecturas individuales respetan el acceso gratuito/Pro y el ejemplo público existente.
+- En Últimos partidos, desmarcar un encuentro lo excluye del gráfico, los indicadores principales y la descarga sin reemplazarlo silenciosamente por otro encuentro. La tabla conserva el encuentro para volver a incluirlo. Limpiar muestra restaura los filtros.
+- Compartir fija los identificadores de los partidos seleccionados, exclusiones, compañero, línea, dirección, filtros, temporada y rival del contexto. Las nuevas jornadas no desplazan la muestra compartida. Las correcciones posteriores de una estadística del proveedor sí se reflejan; no es una captura inmutable de los valores.
+- La comparación permite hasta tres jugadores con una estadística y línea común, mismo período, localía, rival y mínimo de minutos. Las muestras disponibles de cada jugador pueden diferir; se indican por separado. Este comparador es independiente del filtro de compañero o exclusiones de una ficha individual.
+- La guía de tres pasos es opcional y se abre desde Guía rápida. La frecuencia tiene ayuda contextual.
+- Reportar un problema requiere cuenta. Siempre se revisa el texto y la selección antes de enviar. Captura opcional PNG/JPEG/WebP, comprimida localmente a JPEG; nunca se captura la pantalla automáticamente. Se eliminan búsqueda libre y parámetros desconocidos del contexto. Hasta tres reportes diarios por cuenta, lecturas administrativas en `/admin/reportes`, caducidad de 14 días y limpieza al recibir reportes nuevos. No se envían correos ni avisos externos.
+
+Validación: pruebas de muestras fijadas, exclusión/restauración, carga de compañero sin fallback, serialización acotada, privacidad del reporte, IDs de compañero opcionales y compilación de producción. Los recorridos autenticados requieren sesión real para su comprobación visual completa.

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { markets, type Market } from '../lib/analytics';
 import { useReadingPreferences } from './reading-preferences';
 
@@ -43,6 +43,8 @@ export function GameReferenceHistory() {
  const [rows, setRows] = useState<Row[] | null>(null);
  const [message, setMessage] = useState('');
  const [busy, setBusy] = useState(false);
+ const [open,setOpen]=useState(false);
+ useEffect(()=>{if(!open)return;const timer=setInterval(()=>{if(document.visibilityState==='visible')void load();},60_000);return()=>clearInterval(timer);},[open]);
  if (reduced) return null;
  async function load() {
   setBusy(true);
@@ -68,8 +70,8 @@ export function GameReferenceHistory() {
   } catch { setMessage('No pudimos eliminar la referencia.'); }
   finally { setBusy(false); }
  }
- return <details className="card teammate-comparison" onToggle={event => { if (event.currentTarget.open && rows === null && !busy) void load(); }}>
-  <summary>Referencias guardadas</summary>
+ return <details className="card teammate-comparison" onToggle={event => { setOpen(event.currentTarget.open); if (event.currentTarget.open && !busy) void load(); }}>
+  <summary>Resultados de mis líneas guardadas</summary>
   <div><button type="button" className="button subtle" disabled={busy} onClick={() => void load()}>Consultar resultados</button>
   {busy && <p role="status">Consultando…</p>}
   {message && <p role="status">{message}</p>}
@@ -80,7 +82,7 @@ export function GameReferenceHistory() {
    <th scope="row"><a href={'/partidos/' + row.matchId + '?matchTab=live'}>{row.name} vs. {row.opponent}</a></th>
    <td>{referenceLabel(row)} · {markets[row.market]}</td>
    <td><time dateTime={row.savedAt}>{date.format(new Date(row.savedAt))} ARG</time></td>
-   <td>{row.result !== null ? amount(row.result) : row.state === 'upcoming' ? 'Pendiente' : row.state === 'final' ? 'Sin estadística verificada' : 'Esperando resultado oficial'}</td>
+   <td>{row.state==='final'&&row.result!==null ? <span className={row.result===row.line?'muted':(row.side==='over'?row.result>row.line:row.result<row.line)?'positive':'negative'}>{amount(row.result)} · {row.result===row.line?'= Empate':(row.side==='over'?row.result>row.line:row.result<row.line)?'✓ Cumplió':'× No cumplió'}</span> : row.state === 'upcoming' ? 'Pendiente' : row.state === 'final' ? 'Sin estadística verificada' : 'Esperando resultado oficial'}</td>
    <td>{row.state !== 'upcoming' && <button type="button" className="button subtle" disabled={busy} onClick={() => void remove(row)}>Eliminar</button>}</td>
   </tr>)}</tbody></table></div>}
   </div>
