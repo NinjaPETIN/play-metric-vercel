@@ -15,7 +15,7 @@ import ShareCardDialog from './share-card-dialog';
 type Props = {
  name: string; playerId: string; team: string; teamCode?: string; games: Game[]; market: Market;
  line: number; side: 'over' | 'under'; season: number; competition: string; competitionKey: Competition;
- sampleKeys?:string[];contextRival?:string;initialRival?: string; position?: string; filters: string;
+ windowGames?:Game[];excluded?:string[];sampleKeys?:string[];contextRival?:string;initialRival?: string; position?: string; filters: string;
 };
 
 export default function ShareAnalysis(props: Props) {

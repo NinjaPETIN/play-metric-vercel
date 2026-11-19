@@ -1,3 +1,4 @@
+import {gameKey} from './analysis-selection';
 import { markets, summarizeGames, value, type Game, type Market } from './analytics';
 import { cardSizes, socialCardStyle, type CardFormat } from './performance-card';
 
@@ -24,7 +25,7 @@ function cardImage(ctx: CanvasRenderingContext2D, image: HTMLImageElement | unde
 const number = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 1 });
 type CardData = {
  name: string; team: string; teamCode?: string; position?: string; games: Game[]; market: Market; line: number; side: 'over' | 'under';
- season: number; competition: string; filters: string;
+ season: number; competition: string; filters: string;windowGames?:Game[];excluded?:string[];
 };
 
 export function drawAnalysisCard(canvas: HTMLCanvasElement, format: CardFormat, light: boolean, data: CardData, images: Images, rival: string, ranks: DefenseRank[], reduced = false) {
@@ -154,7 +155,8 @@ function drawEditorialAnalysis(canvas: HTMLCanvasElement, light: boolean, data: 
  const red = light ? '#aa3956' : '#ff7489';
  const games = data.games.filter(game=>game.played && game.minutes > 0);
  const summarize = (rows:Game[]) => summarizeGames(rows,data.market,data.line,data.side);
- const sample = summarize(games), last5 = summarize(games.slice(0,5)), last10 = summarize(games.slice(0,10));
+ const window=data.windowGames??games,include=(rows:Game[])=>rows.filter(game=>!data.excluded?.includes(gameKey(game)));
+ const sample = summarize(games), last5 = summarize(include(window.slice(0,5))), last10 = summarize(include(window.slice(0,10)));
  const entries = games.slice(0,10).reverse();
  const pct = sample.rate === null ? '—' : Math.round(sample.rate * 100) + '%';
  const line = number.format(data.line);

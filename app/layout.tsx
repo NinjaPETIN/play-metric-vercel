@@ -13,7 +13,13 @@ import './match-player-sheet.css';
 import './match-boxscore.css';
 import './statlane-features.css';
 import './prematch-panels.css';
+import './experience.css';
+import './experience-quality.css';
+import './workspace-cleanup.css';
+import './usability.css';
+import './journey.css';
 import {WorkspaceTheme} from '../components/workspace-theme';
 export const dynamic='force-dynamic';
 export const metadata:Metadata={metadataBase:new URL(process.env.APP_URL??'https://play-metric-vercel.vercel.app'),openGraph:{title:'Statlane — Estadísticas NBA con contexto',description:'Tendencias, minutos e históricos de jugadores NBA en español.',locale:'es_AR',type:'website'},title:'Statlane — El deporte, en contexto',description:'Entendé las estadísticas NBA: tendencias, minutos, históricos y seguimiento de jugadores en español.',icons:{icon:'/favicon.svg'}};
 export default async function RootLayout({children}:{children:React.ReactNode}){const nonce=(await headers()).get('x-nonce')??undefined;return <html lang="es" suppressHydrationWarning><head><link nonce={nonce} rel="preload" href="/fonts/poppins-400.woff" as="font" type="font/woff" crossOrigin="anonymous"/><link nonce={nonce} rel="preload" href="/fonts/poppins-800.woff" as="font" type="font/woff" crossOrigin="anonymous"/></head><body><WorkspaceTheme nonce={nonce}><ReadingPreferencesProvider><WatchlistProvider>{children}</WatchlistProvider></ReadingPreferencesProvider></WorkspaceTheme></body></html>;}
+
