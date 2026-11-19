@@ -24,6 +24,7 @@ function cardImage(ctx: CanvasRenderingContext2D, image: HTMLImageElement | unde
 }
 
 const number = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 1 });
+const positionLabel=(position:string)=>position.split('-').map(part=>({Guard:'Base / Escolta',Forward:'Alero',Center:'Pívot'}[part.trim()]??part.trim())).join(' / ');
 type CardData = {
  reference?:AnalysisReference; name: string; team: string; teamCode?: string; position?: string; games: Game[]; market: Market; line: number; side: 'over' | 'under';
  season: number; competition: string; filters: string;windowGames?:Game[];excluded?:string[];
@@ -58,7 +59,7 @@ export function drawAnalysisCard(canvas: HTMLCanvasElement, format: CardFormat, 
  text('ANÁLISIS DEL JUGADOR', pad, 155, 24, accent, 800, nameLimit);
  text(data.name, pad, 211, 67, ink, 800, nameLimit);
  text(data.team, pad, 246, 23, muted, 600, nameLimit);
- if (data.position && format !== 'wide') text(data.position, pad, 276, 21, muted, 600, nameLimit);
+ if (data.position && format !== 'wide') text(positionLabel(data.position), pad, 276, 21, muted, 600, nameLimit);
  if (rival && format !== 'wide') {
   const y = heroEnd - 70;
   if (!cardImage(ctx, images.team, pad, y, 56, border)) text(data.teamCode ?? '—', pad + 28, y + 35, 22, ink, 800, 55, 'center');
@@ -114,7 +115,7 @@ export function drawAnalysisCard(canvas: HTMLCanvasElement, format: CardFormat, 
    ctx.fillStyle = color;
    ctx.fillRect(x - bar / 2, Math.min(y(stat), bottom - 3), bar, Math.max(3, bottom - y(stat)));
   }
-  text(stat === null ? '—' : number.format(stat), x, y(stat ?? 0) - 10, 23, ink, 800, step - 7, 'center');
+  text(stat === null ? '—' : number.format(stat), x, !reduced&&Math.abs(y(stat??0)-10-y(data.line))<27?y(data.line)-20:y(stat??0)-10, 23, ink, 800, step - 7, 'center');
   text((game.home ? 'vs ' : '@ ') + game.opponent, x, bottom + 34, 19, ink, 700, step - 7, 'center');
   text(game.date.slice(8) + '/' + game.date.slice(5, 7), x, bottom + 61, 17, muted, 600, step - 7, 'center');
  });
@@ -189,7 +190,7 @@ function drawEditorialAnalysis(canvas: HTMLCanvasElement, light: boolean, data: 
  }
  ctx.restore();
  const teamName = data.teamCode ? teamNames[data.teamCode] ?? data.teamCode : '';
- label([data.position,teamName].filter(Boolean).join(' · '),pad+34,184,24,accent,700,nameWidth);
+ label([data.position?positionLabel(data.position):'',teamName].filter(Boolean).join(' · '),pad+34,184,24,accent,700,nameWidth);
  if (given.length) label(given.reverse().join(' '),pad+34,249,44,muted,700,nameWidth);
  label(surname.toLocaleUpperCase('es-AR'),pad+34,353,91,ink,800,nameWidth);
  cardImage(ctx,mark,pad+34,395,45,border);
@@ -239,7 +240,7 @@ function drawEditorialAnalysis(canvas: HTMLCanvasElement, light: boolean, data: 
    ctx.roundRect(x-bar/2, Math.min(1095,y(stat)),bar,Math.max(5,1100-y(stat)),5);
    ctx.fill();
   }
-  label(stat === null ? '—' : number.format(stat),x,y(stat??0)-12,24,ink,800,step-8,'center');
+  label(stat === null ? '—' : number.format(stat),x,Math.abs(y(stat??0)-12-y(data.line))<28?y(data.line)-20:y(stat??0)-12,24,ink,800,step-8,'center');
   if (!cardImage(ctx,images[game.opponent],x-18,1115,36,border)) label(game.opponent,x,1140,16,muted,700,step-6,'center');
  });
  ctx.strokeStyle=accent;

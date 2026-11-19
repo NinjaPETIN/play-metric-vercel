@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Share2 } from 'lucide-react';
 import { markets, summarizeGames, type Game, type Market } from '../lib/analytics';
 import type { Competition } from '../lib/competitions';
@@ -9,6 +9,7 @@ import { drawAnalysisCard, drawDefenseCard } from '../lib/analysis-card';
 import type { DefenseRank } from '../lib/team-defense';
 import { teamNames } from '../lib/team-overview';
 import { loadCachedData } from '../lib/client-data-cache';
+import type {Calendar} from '../lib/nba-snapshot';
 import {reportPath} from '../lib/report-context';
 import {referenceLabel,type AnalysisReference} from '../lib/market-reference';
 import {useReadingPreferences} from './reading-preferences';
@@ -36,11 +37,21 @@ export default function ShareAnalysis(props: Props) {
 
 function AnalysisDialog({ props, reduced, path, onClose }: { props: Props; reduced: boolean; path: string; onClose: () => void }) {
  const [rival, setRival] = useState(props.initialRival ?? '');
+ const rivalChosen=useRef(false);
  const [view, setView] = useState<'analysis' | 'defense'>('analysis');
  const [response, setResponse] = useState<{ teams: Record<string, DefenseRank[]> } | null>(null);
  const [failed, setFailed] = useState(false);
  const { name, playerId, games, market, line, side, season, competitionKey, teamCode } = props;
  const needsDefense = !reduced && Boolean(rival);
+ useEffect(()=>{
+  if(props.initialRival||!teamCode||reduced)return;
+  let active=true;
+  void loadCachedData<Calendar>('/api/nba/calendar').then(calendar=>{
+   const game=calendar.games.filter(g=>g.status===1&&(g.home===teamCode||g.away===teamCode)&&g.competition===competitionKey&&g.startsAt&&Date.parse(g.startsAt)>Date.now()-600_000).sort((a,b)=>a.startsAt!.localeCompare(b.startsAt!))[0];
+   if(active&&game&&!rivalChosen.current)setRival(game.home===teamCode?game.away:game.home);
+  }).catch(()=>{});
+  return()=>{active=false;};
+ },[props.initialRival,teamCode,competitionKey,reduced]);
  useEffect(() => {
   if (!needsDefense) return;
   let active = true;
@@ -71,6 +82,7 @@ function AnalysisDialog({ props, reduced, path, onClose }: { props: Props; reduc
    ...Object.fromEntries(recentOpponents.map(code=>[code,'/api/nba/team-logo/'+code])) }}
   controls={!reduced&&<div className="sl-share-setting">
    <label>Rival del cruce <select value={rival} onChange={event => {
+    rivalChosen.current=true;
     setRival(event.target.value);
     setView('analysis');
    }}><option value="">Elegir rival</option>{Object.entries(teamNames).filter(([code]) => code !== teamCode).sort((a,b) => a[1].localeCompare(b[1])).map(([code, title]) => <option key={code} value={code}>{title}</option>)}</select></label>

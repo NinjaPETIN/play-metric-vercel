@@ -40,6 +40,7 @@ export default function ShareCardDialog({ title, triggerLabel, text, path, filen
  const [assetRevision, setAssetRevision] = useState(0);
  const [loadedAssets, setImages] = useState<{ key: string; images: Record<string, HTMLImageElement | undefined> } | null>(null);
  const [rendered, setSharedFile] = useState<{ file: File; draw: typeof draw; name: string; light: boolean } | null>(null);
+ const [downloadAsset,setDownloadAsset]=useState<{file:File;url:string}|null>(null);
  const dialog = useRef<HTMLDialogElement>(null);
  const canvas = useRef<HTMLCanvasElement>(null);
  const heading = useId();
@@ -48,6 +49,14 @@ export default function ShareCardDialog({ title, triggerLabel, text, path, filen
  const [width, height] = cardSizes[format];
  const fileName = filename + '-' + format + '.png';
  const sharedFile = images && rendered?.draw === draw && rendered.name === fileName && rendered.light === light ? rendered.file : null;
+ const downloadUrl=downloadAsset?.file===sharedFile?downloadAsset?.url:null;
+ useEffect(()=>{
+  if(!sharedFile)return;
+  let active=true;
+  const url=URL.createObjectURL(sharedFile);
+  queueMicrotask(()=>{if(active)setDownloadAsset({file:sharedFile,url});});
+  return()=>{active=false;URL.revokeObjectURL(url);};
+ },[sharedFile]);
 
  useEffect(() => {
   const element = dialog.current;
@@ -84,17 +93,6 @@ export default function ShareCardDialog({ title, triggerLabel, text, path, filen
   }
   return () => { active = false; };
  }, [draw, fileName, format, images, light]);
-
- function download() {
-  if (!sharedFile) return;
-  const url = URL.createObjectURL(sharedFile);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = sharedFile.name;
-  link.click();
-  window.setTimeout(() => URL.revokeObjectURL(url), 5000);
-  setMessage('Imagen descargada.');
- }
 
  async function copy(value: string, success: string) {
   try {
@@ -153,7 +151,7 @@ export default function ShareCardDialog({ title, triggerLabel, text, path, filen
    </div>
    <label>Texto del post<textarea aria-label="Texto del post" maxLength={4000} value={editablePost} onChange={event=>setDraft({base:post,text:event.target.value})}/></label>
    <div className="sl-share-actions">
-    <button type="button" className="button sl-share-download" disabled={!sharedFile} onClick={download}><Download size={17}/> Descargar PNG</button>
+    <a className="button sl-share-download" href={downloadUrl??undefined} download={sharedFile?.name} aria-disabled={!downloadUrl} onClick={event=>{if(!downloadUrl){event.preventDefault();return;}setMessage('Descarga iniciada.');}}><Download size={17}/> Descargar PNG</a>
     {canShare && <button type="button" className="button subtle" onClick={share}><Share2 size={17}/> Compartir imagen</button>}
     {canCopyImage&&<button type="button" className="button subtle" disabled={!sharedFile} onClick={()=>void copyImage()}><Copy size={17}/> Copiar imagen</button>}
     <button type="button" className="button subtle" onClick={() => copy(editablePost, 'Texto copiado.')}><Copy size={17}/> Copiar texto</button>

@@ -35,7 +35,7 @@ export default function MatchMarketLines({id}:{id:string}){
  const rows=data?.lines.filter(row=>row.player===selected&&row.market===market)??[];
  return <details className="card match-market-lines" onToggle={e=>setOpen(e.currentTarget.open)}><summary>Líneas de mercado</summary>
   {open&&<div className="market-feed-heading"><p>Precios publicados por cada casa · Cuotas decimales · Horarios ARG</p><button type="button" className="button subtle" onClick={()=>setRetry(n=>n+1)}>Actualizar cuotas</button></div>}{open&&failed&&<p role="status">No pudimos actualizar las líneas. <button type="button" className="button subtle" onClick={()=>setRetry(n=>n+1)}>Reintentar</button></p>}
-  {open&&(!rows.length&&data?.state!=='ready'?<p role="status">{!data?'Consultando líneas…':data.state==='unconfigured'?'Cuotas de mercado sin conectar. Las líneas manuales de las fichas son referencias de análisis.':'No hay líneas disponibles para este partido.'}</p>:<>
+  {open&&(!rows.length&&data?.state!=='ready'?<p role="status">{!data?'Consultando líneas…':data.state==='unconfigured'?'No hay cuotas de mercado disponibles. Las líneas manuales de las fichas son referencias de análisis.':'No hay líneas disponibles para este partido.'}</p>:<>
    <div className="nba-context-controls">
     <label>Estadística<select value={market} onChange={e=>setMarket(e.target.value as MarketLine['market'])}>{Object.entries(labels).map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></label>
     {selected&&<label>Jugador<select value={selected} onChange={e=>setPlayer(e.target.value)}>{names.map(name=><option key={name}>{name}</option>)}</select></label>}
