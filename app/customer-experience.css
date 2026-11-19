@@ -20,3 +20,10 @@
 .reference-analysis-options{scroll-margin-top:24px}
 .app.editorial :is(.comparison-controls select,.comparison-controls input,.ux-chart-bar,.compare-toggle):focus-visible{outline:2px solid var(--brand-link,#929bff);outline-offset:3px}
 @media(prefers-reduced-motion:reduce){.workspace-recent-grid>a{transition:none}}
+.route-recovery{width:min(560px,calc(100% - 32px));margin:clamp(32px,12vh,120px) auto;padding:clamp(24px,5vw,40px);border:1px solid var(--border);border-radius:16px;background:var(--panel);color:var(--text)}
+.route-recovery h1{font-size:clamp(24px,4vw,32px);line-height:1.3;margin:18px 0 14px}
+.route-recovery p{font-size:14px;line-height:1.8;color:var(--muted);margin:0 0 24px}
+.route-recovery>div{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.route-recovery :is(button,a){min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+.route-recovery a{font-size:13px;color:var(--brand-link,#6570ed);text-underline-offset:4px}
+.route-recovery :is(button,a):focus-visible{outline:2px solid var(--brand-link,#6570ed);outline-offset:3px}
