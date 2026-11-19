@@ -81,7 +81,9 @@ export async function loadCachedData<T>(url:string,force=false):Promise<T> {
   const active=pending.get(url);
   if(active)return active as Promise<T>;
  }
- const request=fetch(url,{cache:refresh?'no-store':'default',...(refresh?{headers:{'x-playmetric-refresh':'1'}}:{})})
+ const controller=new AbortController();
+ const timeout=setTimeout(()=>controller.abort(),20_000);
+ const request=fetch(url,{signal:controller.signal,cache:refresh?'no-store':'default',...(refresh?{headers:{'x-playmetric-refresh':'1'}}:{})})
   .then(async response=>{
    if(!response.ok){
     const body=await response.json().catch(()=>null) as {error?:unknown}|null;
@@ -94,7 +96,11 @@ export async function loadCachedData<T>(url:string,force=false):Promise<T> {
     if(/^\/api\/(v1\/|nba\/calendar)/.test(url))persist(url,entry);
    }
    return value as T;
+  }).catch(error=>{
+   if(controller.signal.aborted)throw new DataReadError(408,'La consulta está tardando más de lo esperado. Volvé a intentar.');
+   throw error;
   }).finally(()=>{
+   clearTimeout(timeout);
    if(pending.get(url)===request)pending.delete(url);
   });
  if(!isSensitive)pending.set(url,request);

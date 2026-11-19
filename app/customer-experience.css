@@ -3,3 +3,20 @@
 .app.editorial .analysis-quick{background:var(--panel);border-color:var(--border)}
 .app.editorial .analysis-quick select,.app.editorial .player-comparator input{background:var(--panel);color:var(--text);border-color:var(--border)}
 .app.editorial .workspace-help-actions{background:var(--panel);color:var(--text);border-color:var(--border)}
+
+/* Keep analysis controls readable in both themes and at narrow widths. */
+.app.editorial *{scrollbar-color:var(--border) transparent}
+.app.editorial :is(.segmented button.selected,.market-nav button.selected){background:var(--brand,#5965e9);color:#fff;border-color:transparent}
+.account-workspace:has(.workspace-recents[open]){grid-template-columns:minmax(0,1fr)}
+.workspace-recent-grid>a{transition:border-color .15s,background-color .15s}
+.workspace-recent-grid>a:hover{background:var(--soft)}
+.workspace-recent-grid small{font-variant-numeric:tabular-nums}
+.workspace-start select,.comparison-controls :is(select,input){min-height:44px}
+.app.editorial .player-comparator{min-width:0}
+.app.editorial .comparison-controls label{display:grid;gap:8px;min-width:0;line-height:1.6}
+.app.editorial .comparison-controls :is(select,input){width:100%;min-width:0;padding:10px 12px;border:1px solid var(--border);border-radius:9px;font:inherit;font-size:13px}
+.comparison-chart-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr))}
+.comparison-chart-grid .ux-chart-scroll{overscroll-behavior-x:contain}
+.reference-analysis-options{scroll-margin-top:24px}
+.app.editorial :is(.comparison-controls select,.comparison-controls input,.ux-chart-bar,.compare-toggle):focus-visible{outline:2px solid var(--brand-link,#929bff);outline-offset:3px}
+@media(prefers-reduced-motion:reduce){.workspace-recent-grid>a{transition:none}}
