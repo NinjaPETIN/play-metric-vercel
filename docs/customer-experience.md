@@ -2,7 +2,7 @@
 
 ## Inicio por cuenta
 
-En Personalizar mi inicio se puede elegir Jugadores, Partidos o Mi jornada. Se aplica al entrar a `/` con una cuenta; un enlace explícito a otra sección o con filtros conserva su destino. Se guarda por identidad verificada en el servidor y funciona tanto para cuentas gratuitas como Pro/administrador.
+En Personalizar mi inicio se puede elegir Jugadores, Partidos, Mi jornada o Estadísticas. Se aplica al entrar a `/` con una cuenta; un enlace explícito a otra sección o con filtros conserva su destino. Se guarda por identidad verificada en el servidor y funciona tanto para cuentas gratuitas como Pro/administrador.
 
 ## Consultas recientes
 

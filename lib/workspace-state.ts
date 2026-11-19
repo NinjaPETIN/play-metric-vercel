@@ -1,6 +1,6 @@
 import {markets,type Market} from './analytics';
 import {reportPath} from './report-context';
-export const homeViews={explore:'Jugadores',calendar:'Partidos',favorites:'Mi jornada'} as const;
+export const homeViews={explore:'Jugadores',calendar:'Partidos',favorites:'Mi jornada',markets:'Estadísticas'} as const;
 export type HomeView=keyof typeof homeViews;
 export type RecentAnalysis={path:string;name:string;market:Market;summary:string;visitedAt:string};
 export type WorkspaceState={home:HomeView;recents:RecentAnalysis[]};
