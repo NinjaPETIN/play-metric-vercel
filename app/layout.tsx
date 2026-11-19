@@ -19,6 +19,7 @@ import './workspace-cleanup.css';
 import './usability.css';
 import './journey.css';
 import './historical-boxscore.css';
+import './customer-experience.css';
 import {WorkspaceTheme} from '../components/workspace-theme';
 export const dynamic='force-dynamic';
 export const metadata:Metadata={metadataBase:new URL(process.env.APP_URL??'https://play-metric-vercel.vercel.app'),openGraph:{title:'Statlane — Estadísticas NBA con contexto',description:'Tendencias, minutos e históricos de jugadores NBA en español.',locale:'es_AR',type:'website'},title:'Statlane — El deporte, en contexto',description:'Entendé las estadísticas NBA: tendencias, minutos, históricos y seguimiento de jugadores en español.',icons:{icon:'/favicon.svg'}};

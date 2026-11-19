@@ -4,19 +4,19 @@ import { markets, value, type Game, type Market } from '../lib/analytics';
 import { useReadingPreferences } from './reading-preferences';
 import type { TeamGame } from '../lib/nba-snapshot';
 const number = (n: number) => n.toLocaleString('es-AR', { maximumFractionDigits: 1 });
-export default function InteractiveHistoryChart({ games, market, line, side, teamGames = [], referenceKind = 'automatic', book }: {
+export default function InteractiveHistoryChart({ games, market, line, side, teamGames = [], referenceKind = 'automatic', book,sharedMax }: {
     games: Game[];
     market: Market;
     line: number;
     side: 'over' | 'under';
     teamGames?: TeamGame[];
     referenceKind?: 'automatic'|'custom'|'market';
-    book?:string;
+    book?:string;sharedMax?:number;
 }) {
     const { reduced } = useReadingPreferences();
     const [selected, setSelected] = useState<string | null>(null);
     const rows = [...games].filter(g => g.played && g.minutes > 0 && value(g, market) !== null).sort((a, b) => a.date.localeCompare(b.date));
-    const max = Math.max(1, line, ...rows.map(g => value(g, market)!)) * 1.15;
+    const max = sharedMax&&Number.isFinite(sharedMax)&&sharedMax>0?sharedMax:Math.max(1, line, ...rows.map(g => value(g, market)!)) * 1.15;
     const active = rows.find(g => (g.gameId ?? g.date) === selected);
     const result = active ? teamGames.find(g => active.gameId ? g.id === active.gameId : g.date === active.date && (active.home ? g.away : g.home) === active.opponent && (!active.team || (active.home ? g.home : g.away) === active.team)) : null;
     return <div className="ux-chart"><div className="ux-chart-caption"><div><strong>{markets[market]}</strong>{!reduced&&<small className="line-origin">{referenceKind==='market'?'Línea de '+book+' · seleccionada':referenceKind==='custom'?'Tu línea personalizada':'Referencia de análisis'}</small>}</div><span>{rows.length} PJ{!reduced && <> · {side === 'over' ? 'Más de' : 'Menos de'} <b>{number(line)}</b></>}</span></div><div className="ux-chart-scroll"><div className="ux-chart-plot" style={{ minWidth: Math.max(280, rows.length * 36) }}>
