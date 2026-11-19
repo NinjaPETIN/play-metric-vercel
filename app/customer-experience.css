@@ -2,3 +2,4 @@
 .recent-save-error{display:flex;align-items:center;flex-wrap:wrap;justify-content:space-between;gap:12px;padding:12px 16px;margin:0 0 16px;border:1px solid var(--border);border-radius:10px;background:var(--panel);color:var(--muted);font-size:12px;line-height:1.6}
 .app.editorial .analysis-quick{background:var(--panel);border-color:var(--border)}
 .app.editorial .analysis-quick select,.app.editorial .player-comparator input{background:var(--panel);color:var(--text);border-color:var(--border)}
+.app.editorial .workspace-help-actions{background:var(--panel);color:var(--text);border-color:var(--border)}
