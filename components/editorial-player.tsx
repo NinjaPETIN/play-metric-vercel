@@ -7,7 +7,7 @@ import {teamNames} from '../lib/team-overview';
 export default function EditorialPlayer({player,profile,status,action,season,competition}:{player:Player;profile:PlayerProfile|null;status:'loading'|'ready'|'unavailable';action:ReactNode;season?:number;competition?:string}){
  const [loaded,setLoaded]=useState(false);
  const [failed,setFailed]=useState(false),[lowResolution,setLowResolution]=useState(false);
- const words=player.name.trim().split(' '),first=words.slice(0,-1).join(' ')||words[0],last=words.length>1?words.at(-1):'';
+ const words=player.name.trim().split(' ');
  const currentTeam=player.currentTeam??null;
  const position=profile?.position?.split('-').map(p=>({Guard:'Base / Escolta',Forward:'Alero',Center:'Pívot'}[p.trim()]??p.trim())).join(' / ');
  return <section className="editorial-player" aria-label={`Ficha de ${player.name}`}>

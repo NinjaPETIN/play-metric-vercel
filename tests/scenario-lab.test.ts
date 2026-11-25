@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {scenarioGames,resultDistribution} from '../lib/scenario-lab';
+import {scenarioGames,resultDistribution,compareDistributions} from '../lib/scenario-lab';
 import type {Game} from '../lib/analytics';
 const games=[4,3,2,1].map(n=>({gameId:String(n),date:'2026-11-0'+n,minutes:n*10,home:n%2===0,points:(n-1)*10,played:true}) as Game);
 const initial={venue:'all' as const,minutes:0,teammate:''};
@@ -10,3 +10,9 @@ test('teammate scenario fails closed and intersects the existing pool',()=>{asse
 test('distribution retains zero, interpolates quartiles and treats ties separately',()=>{const d=resultDistribution(games,'points',20,'over');assert.equal(d.n,4);assert.equal(d.median,15);assert.equal(d.q1,7.5);assert.equal(d.q3,22.5);assert.equal(d.minimum,0);assert.equal(d.hits,1);assert.equal(d.pushes,1);assert.equal(d.bins.reduce((n,b)=>n+b.count,0),4);});
 test('missing statistics and unplayed games do not become zero results',()=>{const d=resultDistribution([...games,{...games[0],played:false},{...games[0],minutes:0}],'steals',1,'over');assert.equal(d.n,0);assert.equal(d.minimum,null);assert.equal(d.average,null);assert.deepEqual(d.bins,[]);const zero=resultDistribution([{...games[0],steals:0}],'steals',1,'under');assert.equal(zero.n,1);assert.equal(zero.minimum,0);assert.equal(zero.maximum,0);});
 test('comparison distributions share intervals and retain every result',()=>{const base=resultDistribution(games,'points',20,'over',30),scenario=resultDistribution([games[3]],'points',20,'over',30);assert.deepEqual(base.bins.map(({from,to})=>({from,to})),scenario.bins.map(({from,to})=>({from,to})));assert.equal(scenario.bins.reduce((n,b)=>n+b.count,0),1);});
+test('shared distribution calculation preserves summaries and common scales for empty, partial and complete samples',()=>{
+ for(const side of ['over','under'] as const)for(const sample of [[],games.slice(2),games]){
+  const result=compareDistributions(games,sample,'points',20,side);
+  assert.deepEqual(result,[resultDistribution(games,'points',20,side,30),resultDistribution(sample,'points',20,side,30)]);
+ }
+});

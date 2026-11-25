@@ -13,7 +13,7 @@ import type {Calendar} from '../lib/nba-snapshot';
 import {reportPath} from '../lib/report-context';
 import {referenceLabel,type AnalysisReference} from '../lib/market-reference';
 import {useReadingPreferences} from './reading-preferences';
-import ShareCardDialog from './share-card-dialog';
+import ShareCardDialog from './lazy-share-card-dialog';
 
 type Props = {
  reference:AnalysisReference; name: string; playerId: string; team: string; teamCode?: string; games: Game[]; market: Market;

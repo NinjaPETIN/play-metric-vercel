@@ -5,7 +5,7 @@ import { Download } from 'lucide-react';
 import { loadCachedData } from '../lib/client-data-cache';
 import { dailyMarkets, minimumStreak, streakThresholds, type DailyTrendRow, type DailyTrends } from '../lib/daily-trends';
 import { markets } from '../lib/analytics';
-import { dailyDate, dailyNumber, dailyPercent, drawDailyCard, drawStreakCard } from '../lib/daily-trends-card';
+import { dailyDate, dailyNumber, dailyPercent } from '../lib/daily-trends-format';
 import type { DefenseMetric } from '../lib/team-defense';
 import { playerPath } from '../lib/player-path';
 import { useReadingPreferences } from './reading-preferences';
@@ -44,6 +44,7 @@ export default function DailyTrendsPanel({day}:{day:string}) {
   setBusy(true);
   setStatus('');
   try {
+   const {drawDailyCard,drawStreakCard}=await import('../lib/daily-trends-card');
    const portrait=new Image();
    portrait.src='/api/nba/headshot/'+featured.id;
    const logos = streakMode ? [...new Set(streaks.map(row=>row.team))].map(team => {

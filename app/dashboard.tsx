@@ -1,5 +1,5 @@
 'use client';
-import ScenarioLab from '../components/scenario-lab';
+
 import AccountWorkspace,{useAccountWorkspace,RecentAnalysisRecorder} from '../components/account-workspace';
 import AnalysisSelectionSummary from '../components/analysis-selection-summary';
 import AnalysisEmptyState from '../components/analysis-empty-state';
@@ -12,8 +12,8 @@ import ContextComparison from '../components/context-comparison';
 import PlayerNextGame from '../components/player-next-game';
 import ProfileFocus from '../components/profile-focus';
 import {analysisReference,offerIsCurrent,type SelectedMarketLine} from '../lib/market-reference';
-import PlayerNotes from '../components/player-notes';
-import SavedAnalysisViews from '../components/saved-analysis-views';
+
+
 import {useNavigationPosition} from '../hooks/use-navigation-position';
 import {useFilterDrawer} from '../hooks/use-filter-drawer';
 import FavoritesToday from '../components/favorites-today';
@@ -21,6 +21,7 @@ import FollowedPlayers from '../components/followed-players';
 import SaveMenu from '../components/save-menu';
 import GlobalSearch from '../components/global-search';
 import dynamic from 'next/dynamic';
+import HistorySpark from '../components/history-spark';
 import Link from 'next/link';
 import {isExplorerWindow,parseNbaSearch,type ExplorerWindow,type LineSide} from '../lib/nba-explorer';
 import {useWatchlist} from '../components/watchlist-provider';
@@ -34,9 +35,9 @@ import CatalogContext from '../components/catalog-context';
 import {catalogStat,summarizeCatalogPlayer,type CatalogOptions} from '../lib/catalog-summary';
 import CollectionCatalog from '../components/collection-catalog';
 import ArenaHome from '../components/arena-home';
-import TeammateComparison from '../components/teammate-comparison';
+
 import {GameReferenceHistory,SaveGameReference} from '../components/game-references';
-import PlayerPeriodComparison from '../components/player-period-comparison';
+
 import PlayerShootingProfile from '../components/player-shooting-profile';
 import BetaMetrics from '../components/beta-metrics';
 import {trackBeta} from '../lib/beta-events';
@@ -53,7 +54,7 @@ import TeamNavigation from '../components/team-navigation';
 import PlayerHistory from '../components/player-history';
 import RivalSummary from '../components/rival-summary';
 import {safeReturnPath} from '../lib/navigation';
-import {DataReadError,loadCachedData,readCachedData,seedCachedData} from '../lib/client-data-cache';
+import {DataReadError,loadCachedData,readCachedData} from '../lib/client-data-cache';
 import {memo,useCallback,useDeferredValue,useEffect,useMemo,useRef,useState} from 'react';
 import {normalizeSearch,createPlayerSearchIndex,matchesPlayerSearch} from '../lib/player-search';
 import {playersForSelection} from '../lib/player-scope';
@@ -67,9 +68,9 @@ import LiveScoreDock from '../components/live-score-dock';
 import type {BoxFeed} from '../lib/live-boxscore';
 import type {ScheduledGame} from '../components/calendar-panel';
 import {competitions,type Competition} from '../lib/competitions';
-import {CalendarDays,Star,SlidersHorizontal,ArrowUpRight,ChevronRight,ArrowLeft,BarChart3,LayoutGrid,Settings,Menu,X,TrendingUp,Info,Check,RefreshCw,Clock,Bookmark,ChevronDown,LockKeyhole} from 'lucide-react';
+import {CalendarDays,Star,SlidersHorizontal,ArrowUpRight,ChevronRight,ArrowLeft,BarChart3,LayoutGrid,Menu,X,TrendingUp,Info,Check,RefreshCw,Bookmark,LockKeyhole} from 'lucide-react';
 import {type Player} from '../lib/data';
-import {analyze,summarizeGames,value,markets,type Market,type Game} from '../lib/analytics';
+import {analyze,summarizeGames,markets,type Market,type Game} from '../lib/analytics';
 
 const pct=(n:number|null)=>n===null?'—':Math.round(n*100)+'%';
 const num=(n:number|null)=>n===null?'—':n.toLocaleString('es-AR',{maximumFractionDigits:1});
@@ -78,6 +79,11 @@ const formatDate=(s:string)=>new Date(s+'T12:00:00Z').toLocaleDateString('es-AR'
 const formatTime=(s:string)=>s?new Date(s).toLocaleString('es-AR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',timeZone:'America/Argentina/Buenos_Aires'}):'—';
 const sizeOptions=[5,10,20,30];
 const searchKey=normalizeSearch;
+const ScenarioLab=dynamic(()=>import('../components/scenario-lab'));
+const PlayerNotes=dynamic(()=>import('../components/player-notes'));
+const SavedAnalysisViews=dynamic(()=>import('../components/saved-analysis-views'));
+const TeammateComparison=dynamic(()=>import('../components/teammate-comparison'));
+const PlayerPeriodComparison=dynamic(()=>import('../components/player-period-comparison'));
 const NbaMatchExplorer=dynamic(()=>import('../components/nba-match-explorer'),{loading:()=> <p role="status">Cargando explorador…</p>});
 const FollowingChanges=dynamic(()=>import('../components/following-changes'));
 const ShareAnalysis=dynamic(()=>import('../components/share-analysis'));
@@ -98,19 +104,7 @@ type Dataset={source?:string;publicPreview?:boolean;catalogScope?:CatalogOptions
 function Logo(){return <Link className="logo" href="/" aria-label="Statlane, inicio" prefetch={false}><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M21 2 3 8v5l12 4-12 4v3l18-6v-5L9 9l12-4Z"/></svg><span>STATLANE</span></Link>;}
 function Avatar({p}:{p:Player}){return <span className="avatar"><span>{p.name.split(' ').map(s=>s[0]).slice(0,2).join('')}</span><img src={`https://cdn.nba.com/headshots/nba/latest/260x190/${p.id}.png`} decoding="async" alt="" loading="lazy" onError={e=>{e.currentTarget.style.display='none';}}/></span>;}
 const MemoAvatar=memo(Avatar);
-function Bars({games,market,line,side,large=false}:{games:Game[];market:Market;line:number;side:'over'|'under';large?:boolean}){
- const {reduced}=useReadingPreferences();
- const chartRef=useRef<SVGSVGElement>(null),[chartWidth,setChartWidth]=useState(1020);
- useEffect(()=>{if(!large||!chartRef.current)return;const observer=new ResizeObserver(([entry])=>{const width=Math.round(entry.contentRect.width);if(width>0)setChartWidth(width);});observer.observe(chartRef.current);return()=>observer.disconnect();},[large]);
- const barColor=(v:number)=>reduced?'var(--brand)':v===line?'#94a3b8':(side==='over'?v>line:v<line)?'#19965b':'#d94b55';
- const vals=[...games].reverse().flatMap(g=>{const v=value(g,market);return v===null?[]:[{g,v}];}),max=Math.max(reduced?0:line+3,...vals.map(x=>x.v),1)*(large?1.15:1),h=large?(chartWidth<500?190:230):38,w=large?chartWidth:120,gap=Math.min(large?10:2,(large?chartWidth:120)/Math.max(vals.length,1)*.18),bw=vals.length?(w-gap*(vals.length-1))/vals.length:w;
- return <svg ref={chartRef} className={large?'chart':'spark'} viewBox={`0 0 ${w} ${h+(large?45:0)}`} preserveAspectRatio="xMidYMid meet" role="img" aria-label={`Últimos ${games.length} partidos`+(reduced?'':`, línea ${line}`)}>
- {large&&[0,.25,.5,.75,1].map(t=><g key={t}><line x1="0" x2={w} y1={h-h*t} y2={h-h*t} stroke="var(--border)" strokeDasharray="4 5"/><text x="3" y={Math.max(12,h-h*t-5)} fill="var(--muted)" fontSize="11">{Math.round(max*t)}</text></g>)}
- {large&&!reduced&&<line x1="0" x2={w} y1={h-h*line/max} y2={h-h*line/max} stroke="var(--green)" opacity=".65" strokeDasharray="5 5"/>}
- {vals.map(({g,v},i)=><g key={g.date}><rect x={i*(bw+gap)} y={h-h*v/max} width={Math.max(1,bw)} height={Math.max(v?1:0,h*v/max)} rx={large?4:1} fill={barColor(v)}><title>{formatDate(g.date)} · {g.home?'vs.':'@'} {g.opponent} · {v} · {num(g.minutes)} min</title></rect>{!v&&<line x1={i*(bw+gap)} x2={i*(bw+gap)+bw} y1={h-1} y2={h-1} stroke={barColor(v)} strokeWidth="2"/>}{large&&(vals.length<=20||i%Math.ceil(vals.length/10)===0||i===vals.length-1)&&<><text x={i*(bw+gap)+bw/2} y={Math.max(12,h-h*v/max-8)} textAnchor="middle" fill="var(--text)" fontSize="12">{bw>15?v:''}</text><text x={i*(bw+gap)+bw/2} y={h+20} textAnchor="middle" fill="var(--muted)" fontSize="10">{g.opponent}</text><text x={i*(bw+gap)+bw/2} y={h+36} textAnchor="middle" fill="var(--muted)" fontSize="9">{g.date.slice(5)}</text></>}</g>)}
- </svg>;
-}
-const MemoBars=memo(Bars);
+
 function validFilters(raw:unknown):FilterState|null{
  if(!raw||typeof raw!=='object')return null;const r=raw as Record<string,unknown>;
  if(!['team','venue','opponent','market','side','sort'].every(k=>typeof r[k]==='string'))return null;
@@ -134,7 +128,7 @@ export default function Dashboard({user,initialLiveBox=null,initialMatch=null,in
  useEffect(()=>{if(!limitReached)return;const prior=document.activeElement as HTMLElement|null;const trap=(e:KeyboardEvent)=>{if(e.key!=='Tab')return;const nodes=limitDialog.current?.querySelectorAll<HTMLElement>('button,a[href]');if(!nodes?.length)return;const first=nodes[0],last=nodes[nodes.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}};document.addEventListener('keydown',trap);return()=>{document.removeEventListener('keydown',trap);prior?.focus();};},[limitReached]);
  useEffect(()=>{const refresh=()=>fetch('/api/account/usage',{cache:'no-store'}).then(r=>r.json()).then(d=>setPro((d as {plan?:string}).plan==='pro')).catch(()=>{});refresh();window.addEventListener('pm:usage',refresh);return()=>window.removeEventListener('pm:usage',refresh);},[]);
  const {watch:watchlist}=useWatchlist();
- const [data,setData]=useState<Dataset|null>(null),[loading,setLoading]=useState(true),[refreshing,setRefreshing]=useState(false),[error,setError]=useState(''),[season,setSeason]=useState(initialSeason),[competition,setCompetition]=useState<Competition>(initialCompetition??initialMatch?.competition??'regular'),[match,setMatch]=useState<ScheduledGame|null>(initialMatch),[availableSeasons,setAvailableSeasons]=useState<number[]>([]),[reload,setReload]=useState(0),[query,setQuery]=useState(''),[f,setF]=useState<FilterState>({...defaults,team:initialTeam??'all',minGames:defaults.minGames}),[view,setView]=useState<'explore'|'favorites'|'markets'|'calendar'>(initialView),[selected,setSelected]=useState<{id:string;m:Market;name?:string}|null>(initialPlayer?{id:initialPlayer,m:initialMarket}:null),[overrides,setOverrides]=useState<Record<string,number>>({}),[fav,setFav]=useState<string[]>([]),[pending,setPending]=useState<string[]>([]),[toast,setToast]=useState(''),[filters,setFilters]=useState(false),[mobile,setMobile]=useState(false),[settings,setSettings]=useState(false),[page,setPage]=useState(1),[savedConfig,setSavedConfig]=useState<FilterState|null>(null);
+ const [data,setData]=useState<Dataset|null>(null),[loading,setLoading]=useState(true),[refreshing,setRefreshing]=useState(false),[error,setError]=useState(''),[season,setSeason]=useState(initialSeason),[competition,setCompetition]=useState<Competition>(initialCompetition??initialMatch?.competition??'regular'),[match]=useState<ScheduledGame|null>(initialMatch),[availableSeasons,setAvailableSeasons]=useState<number[]>([]),[reload,setReload]=useState(0),[query,setQuery]=useState(''),[f,setF]=useState<FilterState>({...defaults,team:initialTeam??'all',minGames:defaults.minGames}),[view,setView]=useState<'explore'|'favorites'|'markets'|'calendar'>(initialView),[selected,setSelected]=useState<{id:string;m:Market;name?:string}|null>(initialPlayer?{id:initialPlayer,m:initialMarket}:null),[overrides,setOverrides]=useState<Record<string,number>>({}),[fav,setFav]=useState<string[]>([]),[pending,setPending]=useState<string[]>([]),[toast,setToast]=useState(''),[filters,setFilters]=useState(false),[mobile,setMobile]=useState(false),[settings,setSettings]=useState(false),[page,setPage]=useState(1),[savedConfig,setSavedConfig]=useState<FilterState|null>(null);
  useEffect(()=>{if(!initialPlayer||!user||samplePlayer(initialPlayer,initialCompetition??'regular'))return;let active=true;fetch('/api/account/usage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({playerId:initialPlayer,competition:initialCompetition??'regular',season:initialSeason?Number(initialSeason):undefined})}).then(async r=>{const b=await r.json() as {error?:string};if(!active)return;if(r.ok){setApprovedScope(profileScope);window.dispatchEvent(new Event('pm:usage'));}else{setLoading(false);setData(null);setError(b.error??'No pudimos verificar el acceso.');if(r.status===401)setAuthRequired(true);if(r.status===429)setLimitReached(true);}}).catch(()=>{if(active){setLoading(false);setError('No pudimos verificar tus usos. Intentá nuevamente.');}});return()=>{active=false;};},[initialPlayer,initialCompetition,initialSeason,profileScope,user]);
  const [analysisSelection,setAnalysisSelection]=useState<AnalysisSelection>({excluded:[],sample:[],teammate:'',mode:'with'});
  const [lineOrigin,setLineOrigin]=useState<SelectedMarketLine|null>(null);
@@ -198,7 +192,6 @@ export default function Dashboard({user,initialLiveBox=null,initialMatch=null,in
  const explorerScopeMismatch=!!data?.publicPreview&&(data.catalogScope?.market!==explorerMarket||data.catalogScope?.last!==explorerLast||data.catalogScope?.venue!==f.venue||data.catalogScope?.minutes!==f.minMinutes||data.catalogScope?.opponent!==f.opponent);
  const searchIndex=useMemo(()=>createPlayerSearchIndex(players),[players]);
  const favoriteIds=useMemo(()=>new Set(fav),[fav]);
- const teamCounts=useMemo(()=>{const counts=new Map<string,number>();for(const p of players)counts.set(p.team,(counts.get(p.team)??0)+1);if(data?.teams)for(const t of data.teams)counts.set(t.code,t.playerCount);return counts;},[players,data?.teams]);
  const scopedPlayers=useMemo(()=>playersForSelection(players,match,f.team),[players,match,f.team]);
  const searchedPlayers=useMemo(()=>scopedPlayers.filter(p=>matchesPlayerSearch(searchIndex.get(p.id)??'',deferredQuery)),[scopedPlayers,searchIndex,deferredQuery]);
  const searchedIds=useMemo(()=>new Set(searchedPlayers.map(p=>p.id)),[searchedPlayers]);
@@ -361,7 +354,7 @@ export default function Dashboard({user,initialLiveBox=null,initialMatch=null,in
  const l5=summarizeGames(all.slice(0,5),m,line,f.side);
  const l20=summarizeGames(all.slice(0,20),m,line,f.side);
  const sa=(p as Player&{seasonStats?:Record<Market,ReturnType<typeof summarizeGames>>}).seasonStats?.[m]??summarizeGames(all,m,line,f.side);
- return <tr key={p.id+':'+m}><td>{favoriteButton(p,m)}</td><td><button className="player-button" onClick={()=>open(p,m)}><MemoAvatar p={p}/><div><strong>{p.name}<small className="team-label"><TeamLogo team={p.team} size={16}/>{p.team}</small></strong><span><b className="direction">{f.side==='over'?'O':'U'}</b> {num(line)} <span className="muted">{markets[m]}</span></span></div></button></td><td><button className="chart-link" aria-label={`Ver detalle de ${p.name}, ${markets[m]}`} onClick={()=>open(p,m)}><MemoBars games={games} market={m} line={line} side={f.side}/></button></td><td className={rateColor(l5.rate)}>{pct(l5.rate)}</td><td className={rateColor(l20.rate)}>{pct(l20.rate)}</td><td className={rateColor(sa.rate)}>{pct(sa.rate)}</td><td><span className={'rate '+rateColor(a.rate)}>{pct(a.rate)}</span><span className="rate-track"><i style={{width:Math.round((a.rate??0)*100)+'%'}}/></span></td><td>{num(a.average)}</td><td className="muted">{a.hits}/{a.n}{a.pushes>0&&<small title="Empates"> · {a.pushes} E</small>}</td><td><button className="icon row-open" aria-label={`Abrir ${p.name}, ${markets[m]}`} onClick={()=>open(p,m)}><ChevronRight size={14}/></button></td></tr>})}</tbody></table></div><div className="pagination"><span>{(safePage-1)*50+1}–{Math.min(safePage*50,rows.length)} de {rows.length.toLocaleString('es-AR')} líneas</span><div><button className="icon" disabled={safePage===1} aria-label="Página anterior" onClick={()=>setPage(safePage-1)}><ArrowLeft size={15}/></button><span>{safePage} / {maxPages}</span><button className="icon" disabled={safePage===maxPages} aria-label="Página siguiente" onClick={()=>setPage(safePage+1)}><ChevronRight size={16}/></button></div></div></>:<div className="empty"><Star size={30}/><h2>{view==='favorites'&&!fav.length?'Armá tu lista de seguimiento':'No encontramos líneas'}</h2><p>{view==='favorites'&&!fav.length?'Guardá una línea con la estrella para volver a verla acá.':'Probá otra búsqueda, bajá la muestra mínima o quitá algunos filtros.'}</p><button className="button" onClick={()=>{reset();setView('explore');}}>Explorar jugadores</button></div>}
+ return <tr key={p.id+':'+m}><td>{favoriteButton(p,m)}</td><td><button className="player-button" onClick={()=>open(p,m)}><MemoAvatar p={p}/><div><strong>{p.name}<small className="team-label"><TeamLogo team={p.team} size={16}/>{p.team}</small></strong><span><b className="direction">{f.side==='over'?'O':'U'}</b> {num(line)} <span className="muted">{markets[m]}</span></span></div></button></td><td><button className="chart-link" aria-label={`Ver detalle de ${p.name}, ${markets[m]}`} onClick={()=>open(p,m)}><HistorySpark games={games} market={m} line={line} side={f.side}/></button></td><td className={rateColor(l5.rate)}>{pct(l5.rate)}</td><td className={rateColor(l20.rate)}>{pct(l20.rate)}</td><td className={rateColor(sa.rate)}>{pct(sa.rate)}</td><td><span className={'rate '+rateColor(a.rate)}>{pct(a.rate)}</span><span className="rate-track"><i style={{width:Math.round((a.rate??0)*100)+'%'}}/></span></td><td>{num(a.average)}</td><td className="muted">{a.hits}/{a.n}{a.pushes>0&&<small title="Empates"> · {a.pushes} E</small>}</td><td><button className="icon row-open" aria-label={`Abrir ${p.name}, ${markets[m]}`} onClick={()=>open(p,m)}><ChevronRight size={14}/></button></td></tr>})}</tbody></table></div><div className="pagination"><span>{(safePage-1)*50+1}–{Math.min(safePage*50,rows.length)} de {rows.length.toLocaleString('es-AR')} líneas</span><div><button className="icon" disabled={safePage===1} aria-label="Página anterior" onClick={()=>setPage(safePage-1)}><ArrowLeft size={15}/></button><span>{safePage} / {maxPages}</span><button className="icon" disabled={safePage===maxPages} aria-label="Página siguiente" onClick={()=>setPage(safePage+1)}><ChevronRight size={16}/></button></div></div></>:<div className="empty"><Star size={30}/><h2>{view==='favorites'&&!fav.length?'Armá tu lista de seguimiento':'No encontramos líneas'}</h2><p>{view==='favorites'&&!fav.length?'Guardá una línea con la estrella para volver a verla acá.':'Probá otra búsqueda, bajá la muestra mínima o quitá algunos filtros.'}</p><button className="button" onClick={()=>{reset();setView('explore');}}>Explorar jugadores</button></div>}
    {!initialPlayer&&!initialTeam&&!match&&data?.pagination&&data.pagination.pages>1&&<div className="pagination player-pages"><span>{data.pagination.total} jugadores · página {data.pagination.page} de {data.pagination.pages}</span><div><button className="button subtle" disabled={listPage<=1||loading} onClick={()=>setListPage(n=>n-1)}>Anterior</button><button className="button subtle" disabled={listPage>=data.pagination.pages||loading} onClick={()=>setListPage(n=>n+1)}>Siguiente</button></div></div>}<footer><span><a href="/beta/prueba">Probar la beta y dejar comentarios</a><BetaMetrics/>Statlane © 2026</span></footer>
    </>}
    {match&&!selected&&<>{matchTab!=='live'&&<div className="match-preview-actions"><button className="button subtle" onClick={()=>setMatchTab('live')}>Volver al partido</button>{matchTab==='summary'?<button className="button subtle" onClick={()=>setMatchTab('players')}>Explorador</button>:<button className="button subtle" onClick={()=>setMatchTab('summary')}>Resumen histórico</button>}</div>}</>}

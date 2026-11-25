@@ -5,10 +5,10 @@ import type {PlayerProfile} from './player-profile';
 import {competitions,snapshotKey,type Competition} from './competitions';
 import {getDb} from '../db';
 import {providerCache} from '../db/schema';
-import {and,eq,gt,gte,lt,like,inArray,or,sql} from 'drizzle-orm';
+import {and,eq,gt,gte,lt,like,or,sql} from 'drizzle-orm';
 import {type Player} from './data';
 import {type TeamGame,type Snapshot} from './nba-snapshot';
-import {analyze,value,markets,type Market} from './analytics';
+import {value,markets,type Market} from './analytics';
 const marketKeys = Object.keys(markets) as Market[];
 const dashboardCache=new Map<string,{prefix:string;profileVersion:string;value:Awaited<ReturnType<typeof buildDashboard>>}>();
 export async function loadDashboard(season?:number,competition:Competition='regular',catalog=false){

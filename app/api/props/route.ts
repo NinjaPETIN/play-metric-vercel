@@ -1,6 +1,4 @@
 import {collectorOnly} from '../../../lib/service-access';
-import {getChatGPTUser} from '../../chatgpt-auth';
-import {accountPlan,basicPlayer} from '../../../lib/account-plan';
 import {compactDashboard} from '../../../lib/compact-dashboard';
 import {isCompetition} from '../../../lib/competitions';
 import {loadDashboard} from '../../../lib/provider';

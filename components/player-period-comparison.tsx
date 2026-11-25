@@ -5,7 +5,7 @@ import { Share2 } from 'lucide-react';
 import { comparePeriods } from '../lib/period-comparison';
 import { cardSizes, type CardFormat } from '../lib/performance-card';
 import type { Game } from '../lib/analytics';
-import ShareCardDialog from './share-card-dialog';
+import ShareCardDialog from './lazy-share-card-dialog';
 
 const num = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 1 });
 const show = (n: number | null, suffix = '') => n === null ? '—' : num.format(n) + suffix;

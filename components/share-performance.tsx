@@ -5,7 +5,7 @@ import { Share2 } from 'lucide-react';
 import type { BoxData } from '../lib/live-boxscore';
 import { nbaPlayerId } from '../lib/player-identity';
 import { drawSocialCard, matchCardLink, type CardFormat, type CardPlayer } from '../lib/performance-card';
-import ShareCardDialog from './share-card-dialog';
+import ShareCardDialog from './lazy-share-card-dialog';
 
 export default function SharePerformance({ person, team, data }: { person: CardPlayer; team: string; data: BoxData }) {
  const [open, setOpen] = useState(false);
@@ -29,4 +29,3 @@ export default function SharePerformance({ person, team, data }: { person: CardP
    draw={draw} onClose={() => setOpen(false)}/>}
  </>;
 }
-

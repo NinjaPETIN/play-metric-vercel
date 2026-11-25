@@ -1,7 +1,6 @@
 'use client';
 import FollowedSchedule from './followed-schedule';
 import {useEffect,useState} from 'react';
-import Link from 'next/link';
 import type {Player} from '../lib/data';
 import type {Calendar} from '../lib/nba-snapshot';
 import {useLiveScores} from '../lib/use-live-scores';
@@ -9,7 +8,6 @@ import {loadCachedData} from '../lib/client-data-cache';
 import {boxFeedSchema,type BoxFeed} from '../lib/live-boxscore';
 import {LIVE_POLL_MS} from '../lib/live-refresh';
 import {useWatchlist} from './watchlist-provider';
-import Portrait from './match-player-portrait';
 import LiveFollowing from './live-following';
 export default function FollowedPlayers({catalog}:{catalog:Player[]}){
  const {watch}=useWatchlist(),[expanded,setExpanded]=useState(false);

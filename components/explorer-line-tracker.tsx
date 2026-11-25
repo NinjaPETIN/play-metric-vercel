@@ -16,7 +16,6 @@ const storageEvent = 'statlane:match-lines';
 const storeKey = (matchId:string) => 'statlane:match-lines:' + matchId;
 const label = (side:LineSide) => side === 'over' ? 'Más de' : 'Menos de';
 const number = new Intl.NumberFormat('es-AR',{maximumFractionDigits:2});
-const time = new Intl.DateTimeFormat('es-AR',{timeZone:'America/Argentina/Buenos_Aires',hour:'2-digit',minute:'2-digit',hour12:false});
 const key = (line:Line) => [line.playerId,line.market,line.side,line.line].join(':');
 const empty = () => '[]';
 function readLines(snapshot:string):Line[] {

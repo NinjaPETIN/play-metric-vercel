@@ -1,9 +1,11 @@
 import {value,type Game,type Market} from './analytics';
 export function lineSensitivity(games:Game[],market:Market,line:number,side:'over'|'under'){
  const values=games.filter(g=>g.played&&g.minutes>0).map(g=>value(g,market)).filter((v):v is number=>v!==null&&Number.isFinite(v));
+ values.sort((a,b)=>a-b);
+ const bound=(reference:number,inclusive:boolean)=>{let low=0,high=values.length;while(low<high){const mid=(low+high)>>>1;if(values[mid]<reference||(inclusive&&values[mid]===reference))low=mid+1;else high=mid;}return low;};
  const step=Math.max(1,Math.round(Math.max(line,...values,0)/12));
  const lines=[...new Set([0,line,...Array.from({length:9},(_,i)=>Math.max(0,line+(i-4)*step))])].sort((a,b)=>a-b);
- return lines.map(reference=>{const hits=values.filter(v=>side==='over'?v>reference:v<reference).length,pushes=values.filter(v=>v===reference).length;return {line:reference,n:values.length,hits,pushes,rate:values.length?hits/values.length:null};});
+ return lines.map(reference=>{const below=bound(reference,false),through=bound(reference,true),hits=side==='over'?values.length-through:below,pushes=through-below;return {line:reference,n:values.length,hits,pushes,rate:values.length?hits/values.length:null};});
 }
 export function trendDrivers(games:Game[]){
  const sorted=games.filter(g=>g.played&&g.minutes>0).slice().sort((a,b)=>b.date.localeCompare(a.date));
