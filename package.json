@@ -12,8 +12,8 @@
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test tests/*.test.ts",
     "db:init": "node --import tsx scripts/init-db.ts",
-    "lint": "node scripts/lint-baseline.mjs",
-    "lint:strict": "eslint .",
+    "lint": "eslint . --max-warnings=0",
+    "lint:strict": "eslint . --max-warnings=0",
     "check": "npm run lint && npm run typecheck && npm test",
     "audit:production": "npm audit --omit=dev --audit-level=moderate"
   },

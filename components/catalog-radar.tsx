@@ -1,4 +1,5 @@
 'use client';
+import NextImage from 'next/image';
 import {useEffect,useState} from 'react';
 import type {Player} from '../lib/data';
 import {markets,type Market} from '../lib/analytics';
@@ -7,7 +8,7 @@ import TeamLogo from './team-logo';
 type Row={p:Player;m:Market;a:CatalogStat};
 const currentTeam=(p:Player)=>p.currentTeam??'—';
 const number=(n:number|null)=>n===null?'—':n.toLocaleString('es-AR',{maximumFractionDigits:1});
-function Photo({p}:{p:Player}){return <span className="avatar"><span>{p.name.split(' ').map(s=>s[0]).slice(0,2).join('')}</span><img src={`https://cdn.nba.com/headshots/nba/latest/260x190/${p.id}.png`} alt="" loading="lazy" onError={e=>{e.currentTarget.style.display='none';}}/></span>;}
+function Photo({p}:{p:Player}){return <span className="avatar"><span>{p.name.split(' ').map(s=>s[0]).slice(0,2).join('')}</span><NextImage sizes="64px" width={260} height={190} src={`https://cdn.nba.com/headshots/nba/latest/260x190/${p.id}.png`} alt="" loading="lazy" onError={e=>{e.currentTarget.style.display='none';}}/></span>;}
 export default function CatalogRadar({rows,market,last,loading,onOpen,opponent}:{rows:Row[];market:Market;last:number;loading:boolean;onOpen:(p:Player,m:Market)=>void;opponent:string}){
  const [popular,setPopular]=useState<string[]>([]),[popularStatus,setPopularStatus]=useState('loading');
  useEffect(()=>{const c=new AbortController();fetch('/api/v1/popular-players',{signal:c.signal}).then(async r=>{if(!r.ok)throw Error();return r.json() as Promise<{playerIds:string[]}>;}).then(d=>{setPopular(d.playerIds);setPopularStatus('ready');}).catch(()=>{if(!c.signal.aborted)setPopularStatus('unavailable');});return()=>c.abort();},[]);

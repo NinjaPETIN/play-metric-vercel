@@ -1,4 +1,5 @@
 'use client';
+import NextImage from 'next/image';
 import {useEffect,useState} from 'react';
 import {ExternalLink,Newspaper,RefreshCw} from 'lucide-react';
 import {distinctNewsStories,newsImageUrl,type NewsArticle,type NewsCategory,type NewsFeed} from '../lib/news';
@@ -18,8 +19,7 @@ function NewsStory({article:a,featured}:{article:NewsArticle;featured:boolean}){
  return <article className={'news-item news-story'+(featured?' news-story-featured':'')+(showImage?'':' news-story-text-only')}>
   {showImage&&<div className="news-story-media">
    {/* Images are supplied by the news provider; no article scraping or server-side proxy. */}
-   {/* eslint-disable-next-line @next/next/no-img-element */}
-    <img src={image} alt="" width={480} height={270} loading="lazy" decoding="async" referrerPolicy="no-referrer" onError={()=>setFailed(image)}/>
+    <NextImage unoptimized src={image} alt="" width={480} height={270} loading="lazy" decoding="async" referrerPolicy="no-referrer" onError={()=>setFailed(image)}/>
   </div>}
   <div className="news-story-copy"><div className="news-story-meta"><span>{a.source}</span>{a.category!=='general'&&<span className={'news-category '+a.category}>{categories[a.category]}</span>}</div><a className="news-story-title" href={a.url} target="_blank" rel="noopener noreferrer"><strong>{a.title}</strong><ExternalLink size={13} aria-hidden="true"/></a><time dateTime={a.publishedAt??a.indexedAt}>{date(a.publishedAt??a.indexedAt)} ARG</time></div>
  </article>;

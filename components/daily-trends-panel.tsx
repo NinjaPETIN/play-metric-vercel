@@ -1,4 +1,5 @@
 'use client';
+import NextImage from 'next/image';
 
 import { useEffect, useState } from 'react';
 import { Download } from 'lucide-react';
@@ -87,13 +88,13 @@ export default function DailyTrendsPanel({day}:{day:string}) {
     </div>
     {streakMode ? <>
      {streaks.length ? <div className="streak-board">
-      <header><div><h3>Rachas de {markets[market].toLowerCase()}</h3><p>{dailyDate(day)} · {data.games} partidos programados</p></div><img src={'/api/nba/headshot/'+streaks[0].id} alt="" width="172" height="126" onError={event=>{event.currentTarget.hidden=true;}}/></header>
+      <header><div><h3>Rachas de {markets[market].toLowerCase()}</h3><p>{dailyDate(day)} · {data.games} partidos programados</p></div><NextImage src={'/api/nba/headshot/'+streaks[0].id} alt="" width="172" height="126" onError={event=>{event.currentTarget.hidden=true;}}/></header>
       <ol>{streaks.map(row=><li key={row.id}><TeamLogo team={row.team} size={38}/><a href={playerPath(row)}>{row.name}<small>{row.team} · vs. {row.opponent}</small>{row.windows&&<small>{row.windows.map((sample,i)=>'L'+[5,10,20][i]+': '+(sample.n?sample.hits+'/'+sample.n:'—')).join(' · ')}</small>}</a><strong>{filter&&direction==='below'?'<'+row.threshold:row.threshold+'+'}</strong><b>{row.count} seguidos</b></li>)}</ol>
      </div> : <p>Sin rachas de al menos {minimumStreak} partidos para esta estadística.</p>}
      <p className="daily-trends-note">{filter?'Mismo umbral para todos. L5, L10 y L20 usan los partidos con datos de la temporada.':<>Por jugador se muestra el mayor umbral alcanzado en sus últimos {minimumStreak} partidos jugados y cuántos partidos consecutivos lleva cumpliéndolo.</>}</p>
     </> : leader ? <>
      <article className="daily-leader">
-      <div className="daily-leader-identity"><img src={'/api/nba/headshot/'+leader.id} alt="" width="140" height="105" onError={event=>{event.currentTarget.hidden=true;}}/><div><small>{data.games} partidos · {markets[market]}</small><h3><a href={playerPath(leader)}>{leader.name}</a></h3><span><TeamLogo team={leader.team} size={20}/> {leader.team} {leader.home?'vs.':'@'} {leader.opponent}</span></div></div>
+      <div className="daily-leader-identity"><NextImage src={'/api/nba/headshot/'+leader.id} alt="" width="140" height="105" onError={event=>{event.currentTarget.hidden=true;}}/><div><small>{data.games} partidos · {markets[market]}</small><h3><a href={playerPath(leader)}>{leader.name}</a></h3><span><TeamLogo team={leader.team} size={20}/> {leader.team} {leader.home?'vs.':'@'} {leader.opponent}</span></div></div>
       <div className="daily-leader-result"><strong>{leader.form.hits}/{leader.form.n} · {dailyPercent(leader.form)}</strong><span>L20</span><small>Más de {dailyNumber.format(leader.line)} · Cruce {leader.grade??'—'}</small></div>
       <Spark row={leader} large/>
      </article>

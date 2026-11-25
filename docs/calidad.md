@@ -2,13 +2,17 @@
 
 ## Controles automáticos
 
-El workflow `Calidad del repositorio` ejecuta instalación reproducible, ESLint con base heredada, TypeScript, pruebas Node/Python, auditoría de producción, build y pruebas HTTP de importación contra una base temporal sintética. No necesita secretos de producción.
+El workflow `Calidad del repositorio` ejecuta instalación reproducible, ESLint sin errores ni advertencias, TypeScript, pruebas Node/Python, auditoría de producción, build y pruebas HTTP de importación contra una base temporal sintética. No necesita secretos de producción.
 
-`npm run lint:strict` ejecuta ESLint directamente: **todavía falla por deuda heredada**. `npm run lint` identifica cada error heredado por archivo, regla, mensaje y huella de la línea; informa el total y falla ante cualquier error nuevo. No se desactivaron reglas. `node scripts/lint-baseline.mjs --prune` solo puede quitar entradas que ya no aparecen: nunca incorpora errores nuevos.
+`npm run lint` y `npm run lint:strict` ejecutan `eslint . --max-warnings=0`: cualquier error o advertencia hace fallar el control. El antiguo punto de entrada `scripts/lint-baseline.mjs` también es estricto y ya no utiliza excepciones heredadas.
+
+## Estado actual · 25/11/2026
+
+Las advertencias de imágenes, dependencias de efectos y parámetros sin uso fueron corregidas. Las imágenes NBA usan Next Image con dimensiones y orígenes permitidos; las capturas privadas y noticias conservan su carga directa. Los efectos usan dependencias explícitas y la carga de datos lee la última respuesta mediante una referencia para no generar recargas cíclicas.
 
 ## Pendientes conocidos (29/10/2026)
 
-- 39 errores ESLint heredados y 35 advertencias después de corregir 15 errores de la revisión inicial. Predominan tipos `any` en límites JSON, sincronización de estado con recursos externos y enlaces con navegación completa. La lista exacta está en `eslint-baseline.json`; el total puede disminuir con correcciones futuras.
+- La deuda ESLint registrada en octubre fue resuelta. El archivo histórico `eslint-baseline.json` está vacío y no participa en los controles actuales.
 - Noticias GDELT: conectividad y límites externos. No se ha demostrado disponibilidad sostenida y no se publican titulares de muestra como reales.
 - Falta validación con participantes reales y una revisión de penetración independiente. Las pruebas automatizadas no sustituyen esas actividades.
 

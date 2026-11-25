@@ -7,7 +7,7 @@ const defaults = { statsOnly: false, pauseUntil: 0 };
 type PreferencesValue = typeof defaults;
 type AccountPreferences = { preferences: PreferencesValue | null; authenticated: boolean };
 const endpoint = '/api/account/reading-preferences';
-const Preferences = createContext({ ...defaults, reduced: false, now: 0, syncError: false, setStatsOnly: (_value: boolean) => {}, pause: (_days: number) => {} });
+const Preferences = createContext<PreferencesValue&{reduced:boolean;now:number;syncError:boolean;setStatsOnly:(value:boolean)=>void;pause:(days:number)=>void}>({ ...defaults, reduced: false, now: 0, syncError: false, setStatsOnly: () => {}, pause: () => {} });
 
 function localPreferences(): PreferencesValue {
  try {

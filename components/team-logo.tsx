@@ -1,4 +1,5 @@
 'use client';
+import NextImage from 'next/image';
 import {memo,useState} from 'react';
 
 import {teamLogoUrl} from '../lib/team-logo-url';
@@ -9,7 +10,7 @@ function TeamLogo({team,size=24}:{team:string;size?:number}){
  const [failedSource,setFailedSource]=useState('');
  const src=teamLogoUrl(code);
  return <span className="team-logo" style={{width:size,height:size}} aria-hidden="true">
- {src&&failedSource!==src?<img src={src} alt="" width={size} height={size} loading="lazy" decoding="async" onError={()=>setFailedSource(src)}/>:<span className="team-logo-fallback">{code.slice(0,3)}</span>}
+ {src&&failedSource!==src?<NextImage src={src} alt="" width={size} height={size} loading="lazy" decoding="async" onError={()=>setFailedSource(src)}/>:<span className="team-logo-fallback">{code.slice(0,3)}</span>}
  </span>;
 }
 
