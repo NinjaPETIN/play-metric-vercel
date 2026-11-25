@@ -9,6 +9,7 @@ Se revisó la estructura de aplicación, componentes, bibliotecas de datos, API,
 - Carga separada de módulos exclusivos de la ficha. El diálogo común de exportación se carga al abrirlo. Las funciones que dibujan las tarjetas diarias se importan al descargar, separadas del formato de números y fechas utilizado por la pantalla.
 - Distribuciones: una sola lectura y ordenación por muestra, conteo de intervalos en una pasada y reutilización de ambos resultados con escala común. La comparación se memoriza según sus entradas.
 - Sensibilidad: conteo sobre valores ordenados mediante límites binarios, conservando referencia exacta, dirección, ceros, empates y datos faltantes.
+- Actualización de Next.js y eslint-config-next de 16.4.2 a 16.4.6, con lockfile coherente, tras detectar avisos de seguridad en la auditoría de producción. `npm run audit:production` pasa sin vulnerabilidades reportadas para dependencias de producción; no equivale a una auditoría de seguridad completa.
 - Los estilos y el orden de su cascada se conservan para evitar regresiones visuales. No se compacta el código fuente para reducir artificialmente sus líneas.
 
 ## Validación local
@@ -23,3 +24,5 @@ Comparación local con la implementación anterior, Node 24.19.0: historial sint
 | Sensibilidad a la línea | 170,20 ms | 154,65 ms |
 
 Son mediciones del cálculo con un historial grande, no tiempos de carga ni mejoras porcentuales de la web completa. La red, la base de datos, el dispositivo y la muestra real pueden dominar el tiempo percibido. La compilación de producción y la revisión de los flujos en navegador se verifican durante el despliegue.
+
+En navegador se verificaron la distribución, comparación de escenarios, cambios L5/L10, apertura y cierre del diálogo de compartir, generación y descarga PNG de análisis, navegación al calendario y descarga del informe diario. Las muestras y los resultados se conservaron.
