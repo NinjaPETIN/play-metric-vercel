@@ -9,6 +9,7 @@ import { markets, value, type Market } from '../../../../lib/analytics';
 import { isCompetition, type Competition } from '../../../../lib/competitions';
 import { teamNames } from '../../../../lib/team-overview';
 import type { Calendar } from '../../../../lib/nba-snapshot';
+import {reviewMetrics} from '../../../../lib/analysis-experience';
 import {freezeSample,type FrozenSample} from '../../../../lib/research-context';
 
 type Reference = {
@@ -47,9 +48,9 @@ export async function GET() {
    const final = data?.teamGames.find(game => game.id === ref.matchId &&
      ((game.away === ref.team && game.home === ref.opponent) || (game.home === ref.team && game.away === ref.opponent)));
    const game = final && data?.players.find(player => player.id === ref.playerId)?.games.find(game =>
-    game.gameId === ref.matchId && game.team === ref.team && game.played && game.minutes > 0);
+    game.gameId === ref.matchId && (game.team===ref.team||!game.team&&game.opponent===ref.opponent&&(game.home?final.home:final.away)===ref.team) && game.played && game.minutes > 0);
    const scheduled = calendar?.games.find(game => game.id === ref.matchId);
-   return { ...ref, result: game ? value(game, ref.market) : null, state: final || scheduled?.status === 3 ? 'final' : 'pending' };
+   return { ...ref, actual:game?reviewMetrics([game]):null, result: game ? value(game, ref.market) : null, state: final || scheduled?.status === 3 ? 'final' : 'pending' };
   }));
   return reply({ rows });
  } catch (error) { return fail(error); }

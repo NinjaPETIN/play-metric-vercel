@@ -1,0 +1,21 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+process.env.TURSO_DATABASE_URL='file::memory:';
+const {database}=await import('../lib/database-env');
+const {visitCheckpoint}=await import('../lib/visit-checkpoints');
+test('visit checkpoints isolate accounts and scopes, preserve the original until marked and bound retained contexts',async()=>{
+ await database.prepare('CREATE TABLE provider_cache(key TEXT PRIMARY KEY,payload TEXT NOT NULL,expires_at TEXT NOT NULL)').run();
+ const p={line:20.5,minutes:30,average:20,n:10,lastDate:'2026-11-20'};
+ await visitCheckpoint('alice','2544:points:home',p,false);
+ assert.equal((await visitCheckpoint('alice','2544:points:home',{...p,line:22.5},false)).point.line,20.5);
+ assert.equal((await visitCheckpoint('bob','2544:points:home',{...p,line:30.5},false)).point.line,30.5);
+ assert.equal((await visitCheckpoint('alice','2544:points:away',{...p,line:40.5},false)).point.line,40.5);
+ assert.equal((await visitCheckpoint('alice','2544:points:home',{...p,line:22.5},true)).point.line,22.5);
+ for(let i=0;i<52;i++)await visitCheckpoint('alice','scope:'+i,p,false);
+ const rows=await database.prepare("select key from provider_cache where key like 'pm:visit-checkpoint:alice:%'").all();assert.equal(rows.results.length,50);
+ assert.equal((await visitCheckpoint('bob','2544:points:home',p,false)).point.line,30.5);
+ await database.prepare("update provider_cache set expires_at='2000' where key like 'pm:visit-checkpoint:bob:%'").run();
+ assert.equal((await visitCheckpoint('bob','2544:points:home',p,false)).point.line,20.5);
+ const simultaneous=await Promise.all(Array.from({length:8},(_,i)=>visitCheckpoint('concurrent','same-scope',{...p,line:i+.5},false)));
+ assert.equal(new Set(simultaneous.map(r=>r.point.line)).size,1);
+});

@@ -1,5 +1,6 @@
 import {value,type Game,type Market} from './analytics';
 import {gameKey} from './analysis-selection';
+import {reviewMetrics} from './analysis-experience';
 export function regularity(values:readonly (number|null)[]){
  const valid=values.filter((v):v is number=>v!==null&&Number.isFinite(v));
  if(!valid.length)return null;
@@ -19,5 +20,5 @@ export function freezeSample(input:unknown,games:Game[],market:Market,line:numbe
  const results=s.keys.map(key=>{const game=lookup.get(key);if(!game)throw Error('La muestra cambió o no pertenece a esta temporada. Volvé a seleccionar el período.');return {key,date:game.date,opponent:game.opponent,minutes:game.minutes,result:value(game,market)};});
  const stats=regularity(results.map(g=>g.result));
  const hits=results.filter(g=>g.result!==null&&(side==='over'?g.result>line:g.result<line)).length;
- return {season:s.season,competition:s.competition,history:s.history??'season',filters:s.filters,results,n:stats?.n??0,average:stats?.average??null,hits};
+ return {season:s.season,competition:s.competition,history:s.history??'season',filters:s.filters,results,n:stats?.n??0,average:stats?.average??null,hits,metrics:reviewMetrics(s.keys.map(key=>lookup.get(key)!))};
 }

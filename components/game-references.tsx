@@ -4,10 +4,11 @@ import { useEffect, useState } from 'react';
 import { markets, type Market } from '../lib/analytics';
 import { useReadingPreferences } from './reading-preferences';
 import type {FrozenSample,freezeSample} from '../lib/research-context';
+import {referenceOutcome,type ReviewMetrics} from '../lib/analysis-experience';
 
 type Reference = { matchId: string; playerId: string; name: string; team: string; opponent: string; market: Market;
  line: number; side: 'over' | 'under'; savedAt: string; startsAt: string; snapshot?:ReturnType<typeof freezeSample>;note?:string };
-type Row = Reference & { result: number | null; state: 'upcoming' | 'pending' | 'final' };
+type Row = Reference & { result: number | null; state: 'upcoming' | 'pending' | 'final';actual?:ReviewMetrics|null };
 const date = new Intl.DateTimeFormat('es-AR', { timeZone: 'America/Argentina/Buenos_Aires', dateStyle: 'short', timeStyle: 'short' });
 const amount = (n: number) => n.toLocaleString('es-AR', { maximumFractionDigits: 2 });
 const referenceLabel = (row: Reference) => (row.side === 'over' ? 'Más de ' : 'Menos de ') + amount(row.line);
@@ -44,7 +45,9 @@ export function GameReferenceHistory() {
  const [rows, setRows] = useState<Row[] | null>(null);
  const [message, setMessage] = useState('');
  const [busy, setBusy] = useState(false);
- const [open,setOpen]=useState(false);
+ const [open,setOpen]=useState(false),[market,setMarket]=useState('all'),[period,setPeriod]=useState('all'),[outcome,setOutcome]=useState('all');
+ const now=Date.now(),filtered=rows?.filter(row=>(market==='all'||row.market===market)&&(period==='all'||Date.parse(row.savedAt)>=now-Number(period)*86400000)&&(outcome==='all'||referenceOutcome(row.result,row.state,row.line,row.side)===outcome));
+ const finalRows=filtered?.filter(r=>r.state==='final'&&r.result!==null)??[],hits=finalRows.filter(r=>referenceOutcome(r.result,r.state,r.line,r.side)==='hit').length,misses=finalRows.filter(r=>referenceOutcome(r.result,r.state,r.line,r.side)==='miss').length,pushes=finalRows.length-hits-misses;
  useEffect(()=>{if(!open)return;const timer=setInterval(()=>{if(document.visibilityState==='visible')void load();},60_000);return()=>clearInterval(timer);},[open]);
  if (reduced) return null;
  async function load() {
@@ -77,14 +80,15 @@ export function GameReferenceHistory() {
   {busy && <p role="status">Consultando…</p>}
   {message && <p role="status">{message}</p>}
   {rows?.length === 0 && <p>Guardá una referencia desde la ficha de un jugador antes de su próximo partido.</p>}
-  {Boolean(rows?.length) && <div className="table-scroll"><table className="history"><thead><tr>
+  {Boolean(rows?.length)&&<><div className="analysis-history-filters"><label>Estadística del historial<select value={market} onChange={e=>setMarket(e.target.value)}><option value="all">Todas las estadísticas</option>{Object.entries(markets).map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></label><label>Período del historial<select value={period} onChange={e=>setPeriod(e.target.value)}><option value="all">Todo el historial guardado</option><option value="30">Últimos 30 días</option><option value="90">Últimos 90 días</option></select></label><label>Resultado del historial<select value={outcome} onChange={e=>setOutcome(e.target.value)}><option value="all">Todos los resultados</option><option value="hit">Cumplieron</option><option value="miss">No cumplieron</option><option value="push">Empates</option><option value="pending">Pendientes o sin dato</option></select></label></div><p className="history-balance">{filtered?.length??0} análisis · {hits} cumplieron · {misses} no cumplieron · {pushes} empates · {(filtered?.length??0)-finalRows.length} pendientes o sin dato</p>{!filtered?.length&&<p>No hay análisis con estos filtros.</p>}</>}
+  {Boolean(filtered?.length) && <div className="table-scroll"><table className="history"><thead><tr>
    {['Jugador', 'Referencia', 'Guardada', 'Resultado', 'Acción'].map(label => <th key={label} scope="col">{label}</th>)}
-  </tr></thead><tbody>{rows?.map(row => <tr key={[row.matchId, row.playerId, row.market].join(':')}>
+  </tr></thead><tbody>{filtered?.map(row => <tr key={[row.matchId, row.playerId, row.market].join(':')}>
    <th scope="row"><a href={'/partidos/' + row.matchId + '?matchTab=live'}>{row.name} vs. {row.opponent}</a></th>
    <td>{referenceLabel(row)} · {markets[row.market]}</td>
    <td><time dateTime={row.savedAt}>{date.format(new Date(row.savedAt))} ARG</time></td>
    <td>{row.state==='final'&&row.result!==null ? <span className={row.result===row.line?'muted':(row.side==='over'?row.result>row.line:row.result<row.line)?'positive':'negative'}>{amount(row.result)} · {row.result===row.line?'= Empate':(row.side==='over'?row.result>row.line:row.result<row.line)?'✓ Cumplió':'× No cumplió'}</span> : row.state === 'upcoming' ? 'Pendiente' : row.state === 'final' ? 'Sin estadística verificada' : 'Esperando resultado oficial'}</td>
-   <td>{row.snapshot&&<FrozenDetails row={row}/>} {row.state !== 'upcoming' && <button type="button" className="button subtle" disabled={busy} onClick={() => void remove(row)}>Eliminar</button>}</td>
+   <td>{row.snapshot?<FrozenDetails row={row}/>:row.state==='final'?<details className="frozen-analysis"><summary>Ver revisión del partido</summary><PostGameReview row={row}/></details>:null} {row.state !== 'upcoming' && <button type="button" className="button subtle" disabled={busy} onClick={() => void remove(row)}>Eliminar</button>}</td>
   </tr>)}</tbody></table></div>}
   </div>
  </details>;
@@ -93,5 +97,13 @@ export function GameReferenceHistory() {
 function FrozenDetails({row}:{row:Row}){
  const [note,setNote]=useState(row.note??''),[message,setMessage]=useState(''),[busy,setBusy]=useState(false);
  async function save(){setBusy(true);try{const response=await fetch('/api/account/game-references',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({matchId:row.matchId,playerId:row.playerId,market:row.market,note})});if(!response.ok)throw Error();setMessage('Nota guardada.');}catch{setMessage('No pudimos guardar la nota. Intentá nuevamente.');}finally{setBusy(false);}}
- return <details className="frozen-analysis"><summary>Ver análisis congelado</summary><p>Promedio original: {row.snapshot?.average==null?'—':amount(row.snapshot.average)} · {row.snapshot?.hits}/{row.snapshot?.n} cumplieron la línea {amount(row.line)}.</p><p>La línea y los resultados de esta muestra se conservan desde el momento de guardado.</p><details><summary>Filtros y partidos originales</summary><p>{row.snapshot?.season}/{String((row.snapshot?.season??0)+1).slice(-2)} · {row.snapshot?.history==='all'?'Todas las temporadas disponibles':'Temporada seleccionada'}</p><p>{row.snapshot?.filters}</p>{row.snapshot?.results.map(g=><p key={g.key}>{g.date} · {g.opponent} · {g.minutes} min · {g.result===null?'—':amount(g.result)}</p>)}</details><label>Nota personal<textarea value={note} maxLength={1500} onChange={e=>setNote(e.target.value)}/></label><button className="button subtle" disabled={busy} onClick={()=>void save()}>{busy?'Guardando…':'Guardar nota'}</button>{message&&<p role="status">{message}</p>}</details>;
+ return <details className="frozen-analysis"><summary>Ver análisis congelado</summary><PostGameReview row={row}/><p>Promedio original: {row.snapshot?.average==null?'—':amount(row.snapshot.average)} · {row.snapshot?.hits}/{row.snapshot?.n} cumplieron la línea {amount(row.line)}.</p><p>La línea y los resultados de esta muestra se conservan desde el momento de guardado.</p><details><summary>Filtros y partidos originales</summary><p>{row.snapshot?.season}/{String((row.snapshot?.season??0)+1).slice(-2)} · {row.snapshot?.history==='all'?'Todas las temporadas disponibles':'Temporada seleccionada'}</p><p>{row.snapshot?.filters}</p>{row.snapshot?.results.map(g=><p key={g.key}>{g.date} · {g.opponent} · {g.minutes} min · {g.result===null?'—':amount(g.result)}</p>)}</details><label>Nota personal<textarea value={note} maxLength={1500} onChange={e=>setNote(e.target.value)}/></label><button className="button subtle" disabled={busy} onClick={()=>void save()}>{busy?'Guardando…':'Guardar nota'}</button>{message&&<p role="status">{message}</p>}</details>;
+}
+
+function PostGameReview({row}:{row:Row}){
+ if(row.state!=='final')return <p>La revisión estará disponible cuando termine el encuentro y se publiquen las estadísticas.</p>;
+ if(!row.actual)return <p>No hay estadísticas individuales verificadas para revisar este encuentro. No se contabiliza como un resultado de cero.</p>;
+ const original=row.snapshot?.metrics,metrics:([keyof ReviewMetrics,string])[]=[['minutes','Minutos'],['attempts','Tiros intentados'],['efficiency','Eficacia de campo'],['freeThrows','Libres intentados'],['fouls','Faltas']];
+ const fmt=(v:number|null|undefined,key:keyof ReviewMetrics)=>v==null?'—':key==='efficiency'?Math.round(v*100)+'%':amount(v);
+ return <section className="postgame-review"><h4>Qué ocurrió en el partido</h4><p>Resultado: {row.result===null?'Sin dato':amount(row.result)} · línea original {amount(row.line)}.</p><table><thead><tr><th>Dato</th><th>Muestra original</th><th>Partido</th></tr></thead><tbody>{metrics.map(([key,label])=><tr key={key}><th>{label}</th><td>{fmt(original?.[key]??(key==='minutes'&&row.snapshot?.results.length?row.snapshot.results.reduce((s,g)=>s+g.minutes,0)/row.snapshot.results.length:null),key)}</td><td>{fmt(row.actual?.[key],key)}</td></tr>)}</tbody></table><p>— indica un dato no disponible. Los promedios usan los registros disponibles de cada estadística en la muestra original. Comparación descriptiva con partidos completos: no atribuye causas. Las faltas solo se mostrarán cuando estén disponibles en el historial.</p></section>;
 }

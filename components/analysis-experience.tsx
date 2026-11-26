@@ -1,0 +1,27 @@
+'use client';
+import {useEffect,useRef,useState,type ReactNode} from 'react';
+import {sampleStrength,visitChanges,type VisitPoint} from '../lib/analysis-experience';
+import type {Game,Market} from '../lib/analytics';
+export function SampleStrength({games,market}:{games:Game[];market:Market}){
+ const s=sampleStrength(games,market);
+ return <details className="sample-strength"><summary>Solidez de la muestra <strong>{s.label}</strong></summary><div className="experience-facts"><span><b>{s.n}</b> partidos con la estadística</span><span><b>{Math.round(s.coverage*100)}%</b> de cobertura en {s.total} partidos</span><span><b>{s.similar}/{s.n}</b> con minutos a ±5 del promedio</span></div><p>Amplia y uniforme: al menos 20 partidos, cobertura completa y 80% con minutos similares. Intermedia: al menos 10 y 90% de cobertura. El resto es limitada. Describe el historial; no mide la probabilidad de cumplir una línea ni garantiza resultados.</p></details>;
+}
+export function VisitChanges({scope,point,evidenceHref='#perfil-partidos'}:{scope:string;point:VisitPoint;evidenceHref?:string}){
+ const [saved,setSaved]=useState<{point:VisitPoint;seenAt:string}|null>(null),[error,setError]=useState(''),[retry,setRetry]=useState(0),[busy,setBusy]=useState(false);
+ const readVersion=useRef(0),serialized=JSON.stringify(point);
+ useEffect(()=>{const c=new AbortController(),version=++readVersion.current;const timer=setTimeout(()=>{void fetch('/api/account/visit-checkpoints',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({scope,point:JSON.parse(serialized),mark:false}),signal:c.signal}).then(async r=>{if(!r.ok)throw Error();return r.json() as Promise<{point:VisitPoint;seenAt:string}>;}).then(data=>{if(!c.signal.aborted&&readVersion.current===version){setSaved(data);setError('');}}).catch(()=>{if(!c.signal.aborted&&readVersion.current===version)setError('No pudimos comparar esta visita.');});},250);return()=>{clearTimeout(timer);c.abort();};},[scope,serialized,retry]);
+ async function mark(){readVersion.current++;setBusy(true);try{const r=await fetch('/api/account/visit-checkpoints',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({scope,point,mark:true})});if(!r.ok)throw Error();setSaved(await r.json());setError('');}catch{setError('No pudimos guardar esta visita.');}finally{setBusy(false);}}
+ const changes=saved?visitChanges(point,saved.point):[];
+ return <details className="visit-changes"><summary>Qué cambió desde tu referencia <span>{changes.length?changes.length+' cambios':'Consultar'}</span></summary><div>{error?<p role="status">{error} <button className="button subtle" onClick={()=>setRetry(n=>n+1)}>Reintentar comparación</button></p>:!saved?<p>Consultando tu referencia…</p>:<><p>Referencia del {new Date(saved.seenAt).toLocaleString('es-AR',{timeZone:'America/Argentina/Buenos_Aires'})} ARG · mismas condiciones de análisis.</p>{changes.length?<ul>{changes.map(c=><li key={c.label}><strong>{c.label}</strong><span>{c.before} → {c.after}</span></li>)}</ul>:<p>Sin cambios comparables respecto de esta referencia. La primera visita se recuerda automáticamente.</p>}<p><a href={evidenceHref}>Ver datos actuales →</a></p><p>Una línea distinta también puede provenir de una edición manual. Las diferencias no explican por sí solas qué las causó.</p><button className="button subtle" disabled={busy} onClick={()=>void mark()}>{busy?'Guardando…':'Tomar esta visita como referencia'}</button></>}</div></details>;
+}
+export function ProfileReading({children}:{children:ReactNode}){
+ const [quick,setQuick]=useState(false);
+ useEffect(()=>{let active=true;queueMicrotask(()=>{if(!active)return;try{setQuick(sessionStorage.getItem('statlane:quick-reading')==='1');}catch{}});return()=>{active=false;};},[]);
+ function toggle(){setQuick(v=>{try{sessionStorage.setItem('statlane:quick-reading',v?'0':'1');}catch{}return !v;});}
+ return <div className={'profile-reading'+(quick?' is-quick':'')} onClickCapture={event=>{const link=event.target instanceof Element?event.target.closest('a[href^="#perfil-"]'):null;if(quick&&link){event.preventDefault();setQuick(false);try{sessionStorage.setItem('statlane:quick-reading','0');}catch{}const target=link.getAttribute('href')!.slice(1);requestAnimationFrame(()=>document.getElementById(target)?.scrollIntoView({block:'start'}));}}}><div className="reading-toolbar"><div><strong>{quick?'Lectura rápida':'Análisis completo'}</strong><small>{quick?'Línea, muestra, gráfico y contexto principal':'Todas las herramientas disponibles'}</small></div><button className="button subtle" aria-pressed={quick} onClick={toggle}>{quick?'Ver análisis completo':'Activar lectura rápida'}</button></div>{children}</div>;
+}
+export function FilterUndo({snapshot,onRestore}:{snapshot:string;onRestore:(snapshot:string)=>void}){
+ const last=useRef(snapshot),skip=useRef<string|null>(null),[undo,setUndo]=useState<string|null>(null);
+ useEffect(()=>{const previous=last.current;last.current=snapshot;if(previous===snapshot)return;if(skip.current===snapshot){skip.current=null;return;}let active=true;queueMicrotask(()=>{if(active)setUndo(previous);});return()=>{active=false;};},[snapshot]);
+ return undo!==null?<button className="button subtle filter-undo" onClick={()=>{skip.current=undo;onRestore(undo);setUndo(null);}}>↶ Deshacer último cambio de filtros</button>:null;
+}
