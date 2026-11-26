@@ -4,7 +4,7 @@ import { accountJson } from '../../../../lib/account-security';
 import { PlanError,authorizePlayer } from '../../../../lib/account-plan';
 import {gameReferencePrefix,saveFrozenNote} from '../../../../lib/frozen-analysis-store';
 import { cachedNbaRead } from '../../../../lib/read-cache';
-import { loadCalendar, loadDashboard } from '../../../../lib/provider';
+import { loadCalendar, loadDashboard, loadPlayerDashboard } from '../../../../lib/provider';
 import { markets, value, type Market } from '../../../../lib/analytics';
 import { isCompetition, type Competition } from '../../../../lib/competitions';
 import { teamNames } from '../../../../lib/team-overview';
@@ -81,8 +81,8 @@ export async function POST(request: Request) {
   if(snapshot!==undefined){
    await authorizePlayer(playerId);
    const scope=snapshot as FrozenSample;
-   if(!Number.isInteger(scope?.season)||scope.season<1946||scope.season>2100||!isCompetition(scope?.competition))throw new PlanError(400,'Muestra no válida.');
-   const source=scope.season===calendar.season&&scope.competition===match.competition?data:await history(scope.season,scope.competition);
+   if(!Number.isInteger(scope?.season)||scope.season<1946||scope.season>2100||!isCompetition(scope?.competition)||(scope.history!==undefined&&scope.history!=='all'&&scope.history!=='season'))throw new PlanError(400,'Muestra no válida.');
+   const source=await loadPlayerDashboard(playerId,scope.season,scope.competition,scope.history==='all');
    const historical=source.players.find(p=>p.id===playerId);
    const before=new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(now));
    try{reference.snapshot=freezeSample(snapshot,historical?.games??[],market as Market,line,side,before);}catch(error){throw new PlanError(400,error instanceof Error?error.message:'Muestra no válida.');}

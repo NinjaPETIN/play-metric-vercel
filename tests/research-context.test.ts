@@ -19,7 +19,7 @@ test('frozen samples use canonical values and cannot add future, duplicate, abse
  const input={season:2026,competition:'regular',keys:['01','02','03'],filters:'Local · últimos 3'};
  const saved=freezeSample(input,games,'points',20,'over','2026-11-04');assert.equal(saved.n,3);assert.equal(saved.hits,1);assert.equal(saved.average,50/3);
  games[0].points=99;assert.equal(saved.results[0].result,0);
- for(const keys of [['01','01'],['04'],['05'],['03']])assert.throws(()=>freezeSample({...input,keys},games,'points',20,'over',keys[0]==='03'?'2026-11-03':'2026-11-04'));
+ for(const keys of [['01','01'],['04'],['05'],['03']])assert.throws(()=>freezeSample({...input,keys},games,'points',20,'over',keys[0]==='03'?'2026-11-02':'2026-11-04'));
  assert.throws(()=>freezeSample({...input,keys:[]},games,'points',20,'under','2026-11-04'));
 });
 const person={didNotPlay:false,points:17,fieldGoals:'6-12',threes:'2-5',freeThrows:'3-4'} as BoxData['teams'][number]['players'][number];

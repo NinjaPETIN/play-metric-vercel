@@ -72,7 +72,7 @@ export function GameReferenceHistory() {
   finally { setBusy(false); }
  }
  return <details className="card teammate-comparison" onToggle={event => { setOpen(event.currentTarget.open); if (event.currentTarget.open && !busy) void load(); }}>
-  <summary>Resultados de mis líneas guardadas</summary>
+  <summary>Mis análisis guardados y resultados</summary>
   <div><button type="button" className="button subtle" disabled={busy} onClick={() => void load()}>Consultar resultados</button>
   {busy && <p role="status">Consultando…</p>}
   {message && <p role="status">{message}</p>}
@@ -93,5 +93,5 @@ export function GameReferenceHistory() {
 function FrozenDetails({row}:{row:Row}){
  const [note,setNote]=useState(row.note??''),[message,setMessage]=useState(''),[busy,setBusy]=useState(false);
  async function save(){setBusy(true);try{const response=await fetch('/api/account/game-references',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({matchId:row.matchId,playerId:row.playerId,market:row.market,note})});if(!response.ok)throw Error();setMessage('Nota guardada.');}catch{setMessage('No pudimos guardar la nota. Intentá nuevamente.');}finally{setBusy(false);}}
- return <details className="frozen-analysis"><summary>Ver análisis congelado</summary><p>Promedio original: {row.snapshot?.average==null?'—':amount(row.snapshot.average)} · {row.snapshot?.hits}/{row.snapshot?.n} cumplieron la línea {amount(row.line)}.</p><p>La línea y los resultados de esta muestra se conservan desde el momento de guardado.</p><details><summary>Filtros y partidos originales</summary><pre>{row.snapshot?.filters}</pre>{row.snapshot?.results.map(g=><p key={g.key}>{g.date} · {g.opponent} · {g.minutes} min · {g.result===null?'—':amount(g.result)}</p>)}</details><label>Nota personal<textarea value={note} maxLength={1500} onChange={e=>setNote(e.target.value)}/></label><button className="button subtle" disabled={busy} onClick={()=>void save()}>{busy?'Guardando…':'Guardar nota'}</button>{message&&<p role="status">{message}</p>}</details>;
+ return <details className="frozen-analysis"><summary>Ver análisis congelado</summary><p>Promedio original: {row.snapshot?.average==null?'—':amount(row.snapshot.average)} · {row.snapshot?.hits}/{row.snapshot?.n} cumplieron la línea {amount(row.line)}.</p><p>La línea y los resultados de esta muestra se conservan desde el momento de guardado.</p><details><summary>Filtros y partidos originales</summary><p>{row.snapshot?.season}/{String((row.snapshot?.season??0)+1).slice(-2)} · {row.snapshot?.history==='all'?'Todas las temporadas disponibles':'Temporada seleccionada'}</p><p>{row.snapshot?.filters}</p>{row.snapshot?.results.map(g=><p key={g.key}>{g.date} · {g.opponent} · {g.minutes} min · {g.result===null?'—':amount(g.result)}</p>)}</details><label>Nota personal<textarea value={note} maxLength={1500} onChange={e=>setNote(e.target.value)}/></label><button className="button subtle" disabled={busy} onClick={()=>void save()}>{busy?'Guardando…':'Guardar nota'}</button>{message&&<p role="status">{message}</p>}</details>;
 }
