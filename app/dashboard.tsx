@@ -247,11 +247,12 @@ export default function Dashboard({user,initialLiveBox=null,initialMatch=null,in
    return {p,m,line,all,games,a:summarizeGames(games,m,line,f.side)};
   });
  }):[],[showLegacyTable,scopedPlayers,gamesFor,lineFor,f.market,f.windowSize,f.side,supported]);
- const trackingRows=useMemo(()=>showTrackingSignals?scopedPlayers.flatMap(p=>
-  (f.market==='all'?supported:[f.market]).filter(m=>favoriteIds.has(p.id+':'+m)).map(m=>({
-   p,m,line:lineFor(p,m),games:gamesFor(p).slice(0,f.windowSize||undefined),
-  }))
- ):[],[showTrackingSignals,scopedPlayers,favoriteIds,f.market,supported,lineFor,gamesFor,f.windowSize]);
+ const trackingRows=useMemo(()=>showTrackingSignals?scopedPlayers.flatMap(p=>{
+  const selectedMarkets=(f.market==='all'?supported:[f.market]).filter(m=>favoriteIds.has(p.id+':'+m));
+  if(!selectedMarkets.length)return [];
+  const games=gamesFor(p).slice(0,f.windowSize||undefined);
+  return selectedMarkets.map(m=>({p,m,line:lineFor(p,m),games}));
+ }):[],[showTrackingSignals,scopedPlayers,favoriteIds,f.market,supported,lineFor,gamesFor,f.windowSize]);
  const orderedRows=useMemo(()=>[...analysisRows].sort((a,b)=>f.sort==='name'?a.p.name.localeCompare(b.p.name):f.sort==='average'?(b.a.average??-1)-(a.a.average??-1):(b.a.rate??-1)-(a.a.rate??-1)||b.a.n-a.a.n||a.p.name.localeCompare(b.p.name)),[analysisRows,f.sort]);
  const rows=useMemo(()=>orderedRows.filter(r=>searchedIds.has(r.p.id)&&(view!=='favorites'||favoriteIds.has(r.p.id+':'+r.m))&&r.a.n>=f.minGames&&(r.a.rate??0)>=f.minRate/100&&r.line>=f.minLine&&r.line<=f.maxLine),[orderedRows,searchedIds,view,favoriteIds,f.minGames,f.minRate,f.minLine,f.maxLine]);
  const radarMarket=f.market==='all'?'points':f.market;
