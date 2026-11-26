@@ -2,6 +2,9 @@
 
 import {useEffect,useId,useRef,useState} from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
+import type {Competition} from '../lib/competitions';
+const LivePlayerContext=dynamic(()=>import('./live-player-context'));
 import {X} from 'lucide-react';
 import type {BoxData} from '../lib/live-boxscore';
 import {matchPeriodCount,periodStats,periodLabel} from '../lib/match-period-stats';
@@ -24,13 +27,13 @@ function subtract(total: Attempts | null, part: Attempts | null): Attempts | nul
  return made >= 0 && attempted >= made ? [made,attempted] : null;
 }
 
-export default function MatchPlayerSheet({data,person,team,status,profileId,followKey,onCompare,onClose,onPlay,initialPeriod=null}: {
- data: BoxData; person: Person; team: string; status: string; profileId: string | null;
+export default function MatchPlayerSheet({data,person,team,status,profileId,followKey,onCompare,onClose,onPlay,initialPeriod=null,competition='regular'}: {
+ competition?:Competition;data: BoxData; person: Person; team: string; status: string; profileId: string | null;
  followKey: string; initialPeriod?:number|null; onCompare?: (id: string) => void; onClose: () => void; onPlay:(id:string)=>void;
 }) {
  const dialog = useRef<HTMLDialogElement>(null);
  const title = useId();
- const [copyStatus,setCopyStatus]=useState('');
+ const [copyStatus,setCopyStatus]=useState(''),[contextOpen,setContextOpen]=useState(false);
  const [quarter,setQuarter] = useState<number | null>(initialPeriod);
  useEffect(() => {
   const sheet = dialog.current;
@@ -97,6 +100,7 @@ export default function MatchPlayerSheet({data,person,team,status,profileId,foll
    <h3>{quarter===null?'Estadísticas del partido':'Estadísticas del período'}</h3>
    {quarter!==null&&(!fg||!threes||!ft||points===null)&&<p className="muted">Algunas estadísticas del período siguen sin confirmar.</p>}
    <dl>{stats.map(([label,value])=><div key={label}><dt>{label}</dt><dd>{value??'—'}</dd></div>)}</dl>
+   {quarter===null&&!person.didNotPlay&&<details className="research-panel" onToggle={e=>setContextOpen(e.currentTarget.open)}><summary>Contexto de anotación y últimos 10</summary>{contextOpen&&<LivePlayerContext key={[person.id,data.game.id,competition].join(':')} nbaId={profileId} person={person} data={data} competition={competition}/>}</details>}
   </div>
  </dialog>;
 }

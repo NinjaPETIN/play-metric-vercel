@@ -67,7 +67,7 @@ export default function LiveBoxscore({match,initialFeed=null,onHistorical,onPlay
   {navigation}
   {tracker}
   {game.state==='final'&&<ShareMatchResult data={data}/>}
-  {person&&selectedTeam&&<MatchPlayerSheet key={person.id} data={data} person={person} initialPeriod={period!==null&&period<=matchPeriodCount(data)?period:null} onPlay={id=>{closePlayer();setFocusedPlay(id);setSection('plays');}} team={selectedTeam.code} status={person.didNotPlay&&game.state==='final'?'No participó':courtKnown(selectedTeam,game.state,stale)?person.onCourt?'En cancha':'Banco':unavailableCourt} profileId={nbaPlayerId(person.name,identities)} followKey={livePlayerKey(person,identities)} onClose={closePlayer} onCompare={onCompare&&((id)=>{closePlayer();onCompare(id);})}/>}
+  {person&&selectedTeam&&<MatchPlayerSheet key={person.id} competition={match.competition} data={data} person={person} initialPeriod={period!==null&&period<=matchPeriodCount(data)?period:null} onPlay={id=>{closePlayer();setFocusedPlay(id);setSection('plays');}} team={selectedTeam.code} status={person.didNotPlay&&game.state==='final'?'No participó':courtKnown(selectedTeam,game.state,stale)?person.onCourt?'En cancha':'Banco':unavailableCourt} profileId={nbaPlayerId(person.name,identities)} followKey={livePlayerKey(person,identities)} onClose={closePlayer} onCompare={onCompare&&((id)=>{closePlayer();onCompare(id);})}/>}
   
   <MatchPlayerAlerts key={game.id} data={data} fresh={!stale}/>
   {(section==='summary'||section==='following')&&<details key={section} className="live-following-disclosure" open={section==='following'||undefined}><summary>Mis jugadores en vivo</summary><LiveFollowing embedded games={[data]} fresh={!stale} competition={match.competition} identities={identities} onOpen={id=>{setPeriod(null);setSelectedPlayer(id);}}/></details>}
@@ -132,3 +132,4 @@ function EventMark({play}:{play:NonNullable<BoxData['context']>['plays'][number]
  if(/enters the game/i.test(play.text))return <span className="recent-event-mark" title="Cambio"><ArrowRightLeft size={20}/></span>;
  return null;
 }
+
