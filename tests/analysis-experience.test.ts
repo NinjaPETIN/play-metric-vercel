@@ -30,3 +30,10 @@ test('visit changes compare published availability, actual reference and newly a
  assert.deepEqual(changes.map(r=>r.label),['Línea del análisis','Minutos por partido','Último partido disponible','Disponibilidad publicada']);
  assert.equal(visitChanges(p,p).length,0);
 });
+test('teammate changes name the player and never treat a missing report as availability',()=>{
+ const p={line:0,minutes:null,average:null,n:0,lastDate:null};
+ const changes=visitChanges({...p,teammates:{'Jugador A':'Fuera','Jugador B':'En duda'}},{...p,teammates:{'Jugador A':'En duda','Jugador C':'Fuera'}});
+ assert.equal(changes.length,3);
+ assert.deepEqual(changes.find(c=>c.label==='Disponibilidad · Jugador C'),{label:'Disponibilidad · Jugador C',before:'Fuera',after:'Sin estado individual publicado'});
+ assert.equal(visitChanges({...p,teammates:{'Jugador A':'Fuera'}},p).length,0);
+});

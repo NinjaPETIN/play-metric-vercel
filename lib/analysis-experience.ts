@@ -30,11 +30,12 @@ export function reviewMetrics(games:Game[]):ReviewMetrics{
 export function referenceOutcome(result:number|null,state:string,line:number,side:'over'|'under'){
  return state!=='final'||result===null?'pending':result===line?'push':(side==='over'?result>line:result<line)?'hit':'miss';
 }
-export type VisitPoint={line:number;minutes:number|null;average:number|null;n:number;lastDate:string|null;availability?:string|null};
+export type VisitPoint={line:number;minutes:number|null;average:number|null;n:number;lastDate:string|null;availability?:string|null;teammates?:Record<string,string>};
 export function visitChanges(current:VisitPoint,previous:VisitPoint){
  const rows:{label:string;before:string;after:string}[]=[],fmt=(n:number)=>n.toLocaleString('es-AR',{maximumFractionDigits:1});
  for(const [key,label] of [['line','Línea del análisis'],['minutes','Minutos por partido'],['average','Promedio de la muestra']] as const){const a=previous[key],b=current[key];if(a!==null&&b!==null&&Math.abs(a-b)>=.1)rows.push({label,before:fmt(a),after:fmt(b)});}
  if(current.lastDate&&previous.lastDate&&current.lastDate>previous.lastDate)rows.push({label:'Último partido disponible',before:previous.lastDate,after:current.lastDate});
  if(current.availability&&previous.availability&&current.availability!==previous.availability)rows.push({label:'Disponibilidad publicada',before:previous.availability,after:current.availability});
+ if(current.teammates&&previous.teammates){for(const name of [...new Set([...Object.keys(previous.teammates),...Object.keys(current.teammates)])].sort()){const before=previous.teammates[name]??'Sin estado individual publicado',after=current.teammates[name]??'Sin estado individual publicado';if(before!==after)rows.push({label:'Disponibilidad · '+name,before,after});}}
  return rows;
 }
