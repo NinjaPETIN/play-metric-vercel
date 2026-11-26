@@ -1,25 +1,28 @@
 import { getChatGPTUser } from '../../../chatgpt-auth';
 import { database } from '../../../../lib/database-env';
 import { accountJson } from '../../../../lib/account-security';
-import { PlanError } from '../../../../lib/account-plan';
+import { PlanError,authorizePlayer } from '../../../../lib/account-plan';
+import {gameReferencePrefix,saveFrozenNote} from '../../../../lib/frozen-analysis-store';
 import { cachedNbaRead } from '../../../../lib/read-cache';
 import { loadCalendar, loadDashboard } from '../../../../lib/provider';
 import { markets, value, type Market } from '../../../../lib/analytics';
 import { isCompetition, type Competition } from '../../../../lib/competitions';
 import { teamNames } from '../../../../lib/team-overview';
 import type { Calendar } from '../../../../lib/nba-snapshot';
+import {freezeSample,type FrozenSample} from '../../../../lib/research-context';
 
 type Reference = {
  playerId: string; name: string; team: string; opponent: string; matchId: string;
  startsAt: string; season: number; competition: Competition; market: Market;
  line: number; side: 'over' | 'under'; savedAt: string;
+ snapshot?:ReturnType<typeof freezeSample>;note?:string;
 };
 
 const reply = (data: unknown, status = 200) => Response.json(data, { status, headers: { 'Cache-Control': 'private, no-store' } });
 const fail = (error: unknown) => reply({ error: error instanceof PlanError ? error.message : 'No pudimos consultar tus referencias.' }, error instanceof PlanError ? error.status : 503);
 const history = (season: number, competition: Competition) => cachedNbaRead('preview-history:' + season + ':' + competition, () => loadDashboard(season, competition, true));
 const calendarRead = () => cachedNbaRead<Calendar | null>('calendar', loadCalendar);
-const namespace = (userId: string) => 'pm:game-reference:' + userId + ':';
+const namespace = gameReferencePrefix;
 
 export async function GET() {
  try {
@@ -56,7 +59,7 @@ export async function POST(request: Request) {
  try {
   const user = await getChatGPTUser();
   if (!user) throw new PlanError(401, 'Iniciá sesión para guardar una referencia.');
-  const { playerId, team, market, line, side, matchId } = await accountJson(request);
+  const { playerId, team, market, line, side, matchId, snapshot } = await accountJson(request,16384);
   if (typeof playerId !== 'string' || !/^\d{1,12}$/.test(playerId) || typeof team !== 'string' || !Object.hasOwn(teamNames, team) ||
       typeof market !== 'string' || !Object.hasOwn(markets, market) || typeof line !== 'number' || !Number.isFinite(line) || line < 0 || line > 200 ||
       (side !== 'over' && side !== 'under') || (matchId !== undefined && (typeof matchId !== 'string' || !/^\d{10}$/.test(matchId)))) {
@@ -75,6 +78,17 @@ export async function POST(request: Request) {
   if (Date.parse(startsAt) <= now) throw new PlanError(409, 'El partido ya está programado para comenzar o empezó.');
   const reference: Reference = { playerId, name: player.name, team, opponent: match.home === team ? match.away : match.home,
    matchId: match.id, startsAt, season: calendar.season, competition: match.competition, market: market as Market, line, side, savedAt: new Date(now).toISOString() };
+  if(snapshot!==undefined){
+   await authorizePlayer(playerId);
+   const scope=snapshot as FrozenSample;
+   if(!Number.isInteger(scope?.season)||scope.season<1946||scope.season>2100||!isCompetition(scope?.competition))throw new PlanError(400,'Muestra no válida.');
+   const source=scope.season===calendar.season&&scope.competition===match.competition?data:await history(scope.season,scope.competition);
+   const historical=source.players.find(p=>p.id===playerId);
+   const before=new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(now));
+   try{reference.snapshot=freezeSample(snapshot,historical?.games??[],market as Market,line,side,before);}catch(error){throw new PlanError(400,error instanceof Error?error.message:'Muestra no válida.');}
+  }
+  if(Date.parse(startsAt)<=Date.now())throw new PlanError(409,'El partido comenzó mientras guardabas. No se creó un análisis previo.');
+  reference.savedAt=new Date().toISOString();
   const prefix = namespace(user.userId);
   const key = prefix + [match.id, playerId, market].join(':');
   const inserted = await database.prepare(`insert into provider_cache(key,payload,expires_at)
@@ -97,4 +111,15 @@ export async function DELETE(request: Request) {
    namespace(user.userId) + [matchId, playerId, market].join(':'), new Date().toISOString()).run();
   return reply({ ok: true });
  } catch (error) { return fail(error); }
+}
+
+export async function PATCH(request:Request){
+ try{
+  const user=await getChatGPTUser();if(!user)throw new PlanError(401,'Iniciá sesión para editar tu nota.');
+  const {matchId,playerId,market,note}=await accountJson(request);
+  if(typeof matchId!=='string'||!/^\d{10}$/.test(matchId)||typeof playerId!=='string'||!/^\d{1,12}$/.test(playerId)||typeof market!=='string'||!Object.hasOwn(markets,market)||typeof note!=='string'||note.length>1500)throw new PlanError(400,'Nota no válida.');
+  const updated=await saveFrozenNote(user.userId,matchId,playerId,market,note);
+  if(!updated)throw new PlanError(404,'No encontramos este análisis.');
+  return reply({ok:true});
+ }catch(error){return fail(error);}
 }
