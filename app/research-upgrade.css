@@ -2,3 +2,7 @@
 @media(max-width:650px){.threshold-facts{grid-template-columns:1fr}.research-section-body{padding:0 12px 14px}.research-section>summary{padding:16px}.threshold-chart{height:180px;margin-left:0}.threshold-bars{gap:3px}.threshold-bars small{font-size:.55rem}.player-timeline li{grid-template-columns:1fr;gap:8px}.comparison-distribution-grid{grid-template-columns:1fr}.profile-section-nav{gap:4px}.profile-section-nav a{padding:8px 10px}.threshold-facts b{font-size:1.4rem}}
 
 .comparison-read-state{min-height:1.8em;margin:10px 0;font-size:.85rem;color:var(--muted)}.read-update-status{position:fixed;right:18px;bottom:100px;z-index:40;max-width:min(360px,calc(100vw - 36px));pointer-events:none;box-shadow:0 6px 24px #0002}
+
+.app.editorial.player-workspace .main-grid.has-player-profile{grid-template-columns:minmax(0,1fr)}
+.app.editorial.player-workspace .has-player-profile .profile-analysis-layout{grid-template-columns:minmax(0,1fr) minmax(270px,320px)}
+@media(max-width:900px){.app.editorial.player-workspace .has-player-profile .profile-analysis-layout{grid-template-columns:minmax(0,1fr)}}

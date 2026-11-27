@@ -1,5 +1,5 @@
 'use client';
-import {Component,useMemo,useState,type ReactNode} from 'react';
+import {Component,useEffect,useMemo,useRef,useState,type ReactNode} from 'react';
 import {alternativeThresholds,playerTimeline,type offensiveParticipation} from '../lib/player-research';
 import {markets,value,type Game,type Market} from '../lib/analytics';
 import {loadCachedData} from '../lib/client-data-cache';
@@ -12,8 +12,9 @@ class ResearchBoundary extends Component<{children:ReactNode},{failed:boolean;re
  render(){return this.state.failed?<div role="alert"><p>No pudimos mostrar esta sección. El resto del análisis sigue disponible.</p><button className="button subtle" onClick={()=>this.setState(s=>({failed:false,retry:s.retry+1}))}>Reintentar sección</button></div>:<div key={this.state.retry}>{this.props.children}</div>;}
 }
 export function ResearchSection({title,id,children}:{title:string;id:string;children:ReactNode}){
- const [mounted,setMounted]=useState(false);
- return <details id={id} className="card research-section" onToggle={e=>{if(e.currentTarget.open)setMounted(true);}}><summary>{title}</summary>{mounted&&<div className="research-section-body"><ResearchBoundary>{children}</ResearchBoundary></div>}</details>;
+ const [mounted,setMounted]=useState(false),sectionRef=useRef<HTMLDetailsElement>(null);
+ useEffect(()=>{if(location.hash==='#'+id&&sectionRef.current)sectionRef.current.open=true;},[id]);
+ return <details ref={sectionRef} id={id} className="card research-section" onToggle={e=>{if(e.currentTarget.open)setMounted(true);}}><summary>{title}</summary>{mounted&&<div className="research-section-body"><ResearchBoundary>{children}</ResearchBoundary></div>}</details>;
 }
 export function AlternativeLines({games,market,line}:{games:Game[];market:Market;line:number}){
  const [levels,setLevels]=useState(()=>{const center=Math.max(1,Math.ceil(line)),step=market==='points'?5:market==='threes'?1:2;return [Math.max(0,center-step),center,Math.min(200,center+step)];});
