@@ -11,5 +11,5 @@ export default async function MatchPage({params}:{params:Promise<{id:string}>}){
  const [calendar,user]=await Promise.all([loadCalendar() as Promise<Calendar|null>,getChatGPTUser()]);
  const match=calendar?.games.find(g=>g.id===id);if(!calendar||!match)notFound();
  const initialLiveBox=await readRecentNbaBoxscore(id,calendar).catch(()=>null);
- return <Dashboard initialMatch={match} initialMatchRecords={recordsBeforeMatch(calendar.games,match)} initialLiveBox={initialLiveBox} user={user?{name:user.displayName}:null}/>;
+ return <Dashboard key={user?.userId??'guest'} accountScope={user?.userId??'guest'} initialMatch={match} initialMatchRecords={recordsBeforeMatch(calendar.games,match)} initialLiveBox={initialLiveBox} user={user?{name:user.displayName}:null}/>;
 }
