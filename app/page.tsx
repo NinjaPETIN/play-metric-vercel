@@ -9,5 +9,5 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
  const [user,query]=await Promise.all([getChatGPTUser(),searchParams]);
  if (!user && Object.keys(query).length === 0) return <PublicLanding />;
  const [profile,home]=await Promise.all([user?profileFor(user):null,user?workspaceHome(user.userId).catch(()=>'explore' as const):Promise.resolve('explore' as const)]);
- return <Dashboard initialView={resolveHomeView(query,home)} user={user?{name:profile!.displayName}:null}/>;
+ return <Dashboard key={user?.userId??'guest'} accountScope={user?.userId??'guest'} initialView={resolveHomeView(query,home)} user={user?{name:profile!.displayName}:null}/>;
 }

@@ -36,6 +36,6 @@ export function visitChanges(current:VisitPoint,previous:VisitPoint){
  for(const [key,label] of [['line','Línea del análisis'],['minutes','Minutos por partido'],['average','Promedio de la muestra']] as const){const a=previous[key],b=current[key];if(a!==null&&b!==null&&Math.abs(a-b)>=.1)rows.push({label,before:fmt(a),after:fmt(b)});}
  if(current.lastDate&&previous.lastDate&&current.lastDate>previous.lastDate)rows.push({label:'Último partido disponible',before:previous.lastDate,after:current.lastDate});
  if(current.availability&&previous.availability&&current.availability!==previous.availability)rows.push({label:'Disponibilidad publicada',before:previous.availability,after:current.availability});
- if(current.teammates&&previous.teammates){for(const name of [...new Set([...Object.keys(previous.teammates),...Object.keys(current.teammates)])].sort()){const before=previous.teammates[name]??'Sin estado individual publicado',after=current.teammates[name]??'Sin estado individual publicado';if(before!==after)rows.push({label:'Disponibilidad · '+name,before,after});}}
+ if(current.teammates&&previous.teammates){for(const name of [...new Set([...Object.keys(previous.teammates),...Object.keys(current.teammates)])].sort()){const before=Object.hasOwn(previous.teammates,name)?previous.teammates[name]:'Sin estado individual publicado',after=Object.hasOwn(current.teammates,name)?current.teammates[name]:'Sin estado individual publicado';if(before!==after)rows.push({label:'Disponibilidad · '+name,before,after});}}
  return rows;
 }

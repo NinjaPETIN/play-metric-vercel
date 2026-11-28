@@ -1,5 +1,6 @@
 import { getChatGPTUser } from '../../../chatgpt-auth';
 import { database } from '../../../../lib/database-env';
+import {accountRequestBudget} from '../../../../lib/account-request-budget';
 import { accountJson } from '../../../../lib/account-security';
 import { PlanError,authorizePlayer } from '../../../../lib/account-plan';
 import {gameReferencePrefix,saveFrozenNote} from '../../../../lib/frozen-analysis-store';
@@ -29,6 +30,7 @@ export async function GET() {
  try {
   const user = await getChatGPTUser();
   if (!user) throw new PlanError(401, 'Iniciá sesión para consultar tus referencias.');
+  await accountRequestBudget(user.userId,'references');
   const prefix = namespace(user.userId);
   const saved = await database.prepare("select payload from provider_cache where key>=? and key<? order by json_extract(payload,'$.savedAt') desc limit 50").bind(prefix, prefix + '\uffff').all<{ payload: string }>();
   const references = saved.results.map(row => JSON.parse(row.payload) as Reference);
@@ -66,6 +68,7 @@ export async function POST(request: Request) {
       (side !== 'over' && side !== 'under') || (matchId !== undefined && (typeof matchId !== 'string' || !/^\d{10}$/.test(matchId)))) {
    throw new PlanError(400, 'Referencia no válida.');
   }
+  await accountRequestBudget(user.userId,'references');
   const calendar = await calendarRead();
   const match = calendar?.games.filter(game => game.status === 1 && game.startsAt && Date.parse(game.startsAt) > Date.now() &&
     (!matchId || matchId === game.id) && (game.away === team || game.home === team) && isCompetition(game.competition))
@@ -108,6 +111,7 @@ export async function DELETE(request: Request) {
   const { matchId, playerId, market } = await accountJson(request);
   if (typeof matchId !== 'string' || !/^\d{10}$/.test(matchId) || typeof playerId !== 'string' || !/^\d{1,12}$/.test(playerId) ||
       typeof market !== 'string' || !Object.hasOwn(markets, market)) throw new PlanError(400, 'Referencia no válida.');
+  await accountRequestBudget(user.userId,'references');
   await database.prepare("delete from provider_cache where key=? and json_extract(payload,'$.startsAt')<=?").bind(
    namespace(user.userId) + [matchId, playerId, market].join(':'), new Date().toISOString()).run();
   return reply({ ok: true });
@@ -119,6 +123,7 @@ export async function PATCH(request:Request){
   const user=await getChatGPTUser();if(!user)throw new PlanError(401,'Iniciá sesión para editar tu nota.');
   const {matchId,playerId,market,note}=await accountJson(request);
   if(typeof matchId!=='string'||!/^\d{10}$/.test(matchId)||typeof playerId!=='string'||!/^\d{1,12}$/.test(playerId)||typeof market!=='string'||!Object.hasOwn(markets,market)||typeof note!=='string'||note.length>1500)throw new PlanError(400,'Nota no válida.');
+  await accountRequestBudget(user.userId,'references');
   const updated=await saveFrozenNote(user.userId,matchId,playerId,market,note);
   if(!updated)throw new PlanError(404,'No encontramos este análisis.');
   return reply({ok:true});

@@ -1,0 +1,12 @@
+'use client';
+import {useMemo} from 'react';
+import {value,markets,type Game,type Market} from '../lib/analytics';
+import {resultDistribution} from '../lib/scenario-lab';
+import {productionPer36} from '../lib/player-research';
+import type {Player} from '../lib/data';
+const fmt=(n:number|null)=>n===null?'—':n.toLocaleString('es-AR',{maximumFractionDigits:1});
+export default function ComparisonDistributions({players,samples,market,line,side}:{players:(Player|undefined)[];samples:Game[][];market:Market;line:number;side:'over'|'under'}){
+ const rows=useMemo(()=>{let max=0;for(const sample of samples)for(const g of sample){const v=value(g,market);if(g.played&&g.minutes>0&&v!==null)max=Math.max(max,v);}return players.flatMap((p,i)=>p?[{p,data:resultDistribution(samples[i],market,line,side,max),rate:productionPer36(samples[i],market),games:samples[i]}]:[]);},[players,samples,market,line,side]);
+ const peak=Math.max(1,...rows.flatMap(r=>r.data.bins.map(b=>b.count)));
+ return <section className="comparison-distributions"><h3>Distribución y producción por 36 minutos</h3><p>Misma estadística y filtros; las fechas y la cantidad de encuentros pueden diferir. Los intervalos y la escala de frecuencias son comunes.</p><div className="comparison-distribution-grid">{rows.map(({p,data,rate,games})=><article key={p.id}><h4>{p.name}</h4><div className="distribution-facts"><div><small>Por 36 minutos</small><strong>{fmt(rate.value)}</strong></div><div><small>Minutos de muestra</small><strong>{fmt(rate.minutes)}</strong></div><div><small>Mitad central</small><strong>{fmt(data.q1)}–{fmt(data.q3)}</strong></div></div><p>{data.n}/{games.length} PJ con la estadística · {games.filter(g=>g.home).length} de local / {games.filter(g=>!g.home).length} de visitante · {games.at(-1)?.date??'—'} a {games[0]?.date??'—'}</p><div className="distribution-histogram" role="img" aria-label={p.name+': '+data.bins.map(b=>b.from+' a menos de '+b.to+': '+b.count+' partidos').join('; ')}>{data.bins.map(b=><div key={b.from}><strong>{b.count}</strong><div><i style={{height:b.count/peak*100+'%'}}/></div><small>{b.from}–&lt;{b.to}</small></div>)}</div></article>)}</div><p className="muted">Por 36 = suma de {markets[market].toLowerCase()} ÷ minutos de esos mismos partidos × 36. Es una normalización histórica, no una proyección de minutos o rendimiento futuro. Un partido con pocos minutos puede ser poco representativo.</p></section>;
+}

@@ -8,5 +8,5 @@ export async function generateMetadata({params}:{params:Promise<{id:string}>}){c
 export const dynamic='force-dynamic';
 export default async function Page({params,searchParams}:{params:Promise<{id:string}>;searchParams:Promise<{competition?:string;season?:string;market?:string}>}){
  const [{id},q,user]=await Promise.all([params,searchParams,getChatGPTUser()]);if(!(id.toUpperCase() in teamNames))notFound();
- return <Dashboard initialTeam={id.toUpperCase()} initialCompetition={q.competition&&isCompetition(q.competition)?q.competition:null} initialSeason={q.season&&/^20\d{2}$/.test(q.season)?q.season:''} initialMarket={q.market&&q.market in markets?q.market as Market:'points'} user={user?{name:user.displayName}:null}/>;
+ return <Dashboard key={user?.userId??'guest'} accountScope={user?.userId??'guest'} initialTeam={id.toUpperCase()} initialCompetition={q.competition&&isCompetition(q.competition)?q.competition:null} initialSeason={q.season&&/^20\d{2}$/.test(q.season)?q.season:''} initialMarket={q.market&&q.market in markets?q.market as Market:'points'} user={user?{name:user.displayName}:null}/>;
 }

@@ -60,3 +60,5 @@ html[data-theme=light] .app :where(button,a,input,select,summary):focus-visible 
  .calendar-card-actions {grid-template-columns:1fr 1fr;}
 }
 @media(prefers-reduced-motion:no-preference){.right-panel.is-filters {animation:filter-drawer-in .18s ease-out;}@keyframes filter-drawer-in{from{transform:translateX(25px);opacity:.5}to{transform:translateX(0);opacity:1}}}
+
+@media(max-width:760px){.live-boxscore>.live-tracking-tabs{display:flex;flex-wrap:nowrap;min-width:0;max-width:100%;overflow-x:auto;overscroll-behavior-x:contain}.live-boxscore>.live-tracking-tabs>button{flex:0 0 auto}}
