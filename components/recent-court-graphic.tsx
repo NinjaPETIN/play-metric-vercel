@@ -6,14 +6,15 @@ import type {recentCourt} from '../lib/recent-court';
 import TeamLogo from './team-logo';
 import Portrait from './match-player-portrait';
 import {courtShotDetails} from '../lib/court-shot-details';
+import type {CourtPlay} from '../lib/court-playback';
 import styles from './recent-court-graphic.module.css';
 
 const coordinateNumber = new Intl.NumberFormat('es-AR', {maximumFractionDigits: 2});
 
-export default function RecentCourtGraphic({event,teams,game,onPlayer}:{event:ReturnType<typeof recentCourt>;teams:BoxData['teams'];game:BoxData['game'];onPlayer:(id:string)=>void}){
+export default function RecentCourtGraphic({event,teams,game,onPlayer,frame,markers=[],onSelect}:{event:ReturnType<typeof recentCourt>;teams:BoxData['teams'];game:BoxData['game'];onPlayer:(id:string)=>void;frame?:{plays:CourtPlay[];throughId:string};markers?:Array<{play:CourtPlay;made:boolean;value:1|2|3}>;onSelect?:(play:CourtPlay)=>void}){
  const {action,timeout,timeoutTeam,shot}=event;
  const [replay,setReplay]=useState(0),[perspective,setPerspective]=useState(false);
- const details=courtShotDetails(shot,teams),rightBasket=details?.team?.code===game.home;
+ const details=courtShotDetails(shot,teams,frame),rightBasket=details?.team?.code===game.home;
  const location=shot?.value===1?null:shot?.play.shotLocation;
  // The feed measures X across the court and Y from the basket.
  const startX=location?7+.92*location.y:17;
@@ -30,7 +31,7 @@ export default function RecentCourtGraphic({event,teams,game,onPlayer}:{event:Re
   <div className={styles.cameraControls} role="group" aria-label="Vista de la cancha"><button type="button" aria-pressed={perspective} onClick={()=>setPerspective(true)}>Perspectiva</button><button type="button" aria-pressed={!perspective} onClick={()=>setPerspective(false)}>Desde arriba</button></div>
   <div className={styles.stage+(perspective?' '+styles.perspective:'')}>
   <div className={styles.scoreboard} aria-label="Marcador de la cancha"><span><TeamLogo team={game.away} size={18}/>{game.away} <b>{game.awayScore}</b></span><small>{game.state==='final'?'FINAL':(game.period<=4?'C'+game.period:'TE'+(game.period-4))+' · '+game.clock}</small><span><b>{game.homeScore}</b> {game.home}<TeamLogo team={game.home} size={18}/></span></div>
-  <svg key={shot?`${shot.play.id}:${shot.made}:${startX}:${startY}:${replay}`:'court-idle'} viewBox="0 0 94 50" role="img" aria-label={timeout?'Cancha durante el tiempo muerto':[outcome,coordinates].filter(Boolean).join(' · ')}>
+  <svg key={shot?`${shot.play.id}:${shot.made}:${startX}:${startY}:${replay}`:'court-idle'} viewBox="0 0 94 50" role={markers.length?'group':'img'} aria-label={timeout?'Cancha durante el tiempo muerto':[outcome,coordinates].filter(Boolean).join(' · ')}>
    <rect width="94" height="50" rx="1" fill="#14253d"/><rect x="3" y="17" width="18" height="16" fill="#545ce255"/><rect x="73" y="17" width="18" height="16" fill="#18b9a355"/>
    <g fill="none" stroke="white" strokeWidth=".45" opacity=".85">
     <rect x="3" y="2" width="88" height="46"/><path d="M47 2v46"/><circle cx="47" cy="25" r="6"/>
@@ -39,12 +40,13 @@ export default function RecentCourtGraphic({event,teams,game,onPlayer}:{event:Re
     <circle cx="7" cy="25" r=".8"/><circle cx="87" cy="25" r=".8"/>
    </g>
    <text x="47" y="26" textAnchor="middle" fill="white" fontSize="3" fontWeight="700">STATLANE</text>
+   {markers.map(marker=>{const point=marker.play.shotLocation;if(!point)return null;const right=marker.play.team===game.home,x=7+.92*point.y,y=2+.92*point.x;return <g key={marker.play.id} role="button" tabIndex={0} aria-label={marker.play.clock+' · '+marker.play.text} onClick={()=>onSelect?.(marker.play)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onSelect?.(marker.play);}}} className={styles.marker}><circle cx={right?94-x:x} cy={y} r="2.8" fill="transparent"/><circle cx={right?94-x:x} cy={y} r="1.1" fill={marker.made?'#4ce6b2':'#ff8397'} stroke="#14253d" strokeWidth=".3"/></g>;})}
    {shot&&<g transform={rightBasket?'translate(94 0) scale(-1 1)':undefined} key={shot.play.id+':'+shot.made} className={shot.made?'court-shot-made':'court-shot-missed'}>
     {location&&<>
      <path d={trajectory} fill="none" stroke="currentColor" strokeWidth=".38" strokeDasharray="1.15 1.1" opacity=".75"/>
      <circle cx={startX} cy={startY} r="1.7" fill="currentColor" stroke="white" strokeWidth=".55"/>
     </>}
-    {shot.made?<circle cx="7" cy="25" r="2.9" fill="none" stroke="currentColor" strokeWidth=".65"/>:
+    {shot.made?<circle className={styles.basketPulse} cx="7" cy="25" r="2.9" fill="none" stroke="currentColor" strokeWidth=".65"/>:
      <path d="m11 22 3 3m0-3-3 3" fill="none" stroke="currentColor" strokeWidth=".85" strokeLinecap="round"/>}
     <circle className="court-flight-ball" r="1.25" fill="#ffac59" stroke="#fff1df" strokeWidth=".25">
      <animateMotion path={trajectory} dur="1.1s" fill="freeze"/>
@@ -54,8 +56,8 @@ export default function RecentCourtGraphic({event,teams,game,onPlayer}:{event:Re
   </svg>
   {shot&&details&&!timeout&&<button type="button" className={styles.shotCard+(rightBasket?' '+styles.cardLeft:'')} disabled={!details.person} onClick={()=>{if(details.person)onPlayer(details.person.player.id);}} aria-label={details.person?'Ver ficha de '+details.person.player.name:'Detalle del tiro'}>
    <strong>{details.person?.player.name??details.team?.name??'Lanzamiento'}</strong>
-   <span className={styles.shotOutcome}>{shot.value===1?'Tiro libre':shot.value+' puntos'} · {shot.made?'Anotado':'Fallado'} <time>{shot.play.clock}</time></span>
-   <span className={styles.shotBody}><span><b>{details.attempts?details.attempts.join('/'):'—'}{details.percentage!==null?' ('+Math.round(details.percentage)+'%)':''}</b><small>{details.label}</small><em>Acumulado del partido</em></span>{details.person?<Portrait person={details.person.player}/>:details.team?<TeamLogo team={details.team.code} size={40}/>:null}</span>
+   <span className={styles.shotOutcome}>{shot.value===1?'Tiro libre':shot.value===3?'Triple':'Doble'} · {shot.made?'Anotado':'Fallado'} <time>{shot.play.clock}</time></span>
+   <span className={styles.shotBody}><span><b>{details.attempts?details.attempts.join('/'):'—'}{details.percentage!==null?' ('+Math.round(details.percentage)+'%)':''}</b><small>{details.label}</small><em>{frame?'Hasta esta jugada · registro disponible':'Acumulado del partido'}</em></span>{details.person?<Portrait person={details.person.player}/>:details.team?<TeamLogo team={details.team.code} size={40}/>:null}</span>
   </button>}
   {timeout&&<div className="court-timeout" role="status">
    {timeoutTeam&&<TeamLogo team={timeoutTeam} size={44}/>}<strong>TIEMPO MUERTO</strong>
