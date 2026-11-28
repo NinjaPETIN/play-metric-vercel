@@ -11,6 +11,7 @@ import MatchMarketLines from './match-market-lines';
 import TeammateComparison from './teammate-comparison';
 import TeamLogo from './team-logo';
 import Portrait from './match-player-portrait';
+import MatchCountdown from './match-countdown';
 const format=(value:number|null)=>value===null?'—':value.toLocaleString('es-AR',{maximumFractionDigits:1,minimumFractionDigits:1});
 export default function MatchPreview({match,onHistorical,onPlayers,pending=false}:{match:ScheduledGame;onHistorical?:()=>void;onPlayers?:()=>void;pending?:boolean}){
  const [venue,setVenue]=useState<'all'|'split'>('all');
@@ -42,7 +43,7 @@ export default function MatchPreview({match,onHistorical,onPlayers,pending=false
  </div><aside className="prematch-side"><section className="card prematch-info"><h2>Datos del encuentro</h2><p><TeamLogo team={match.away} size={22}/><b>{match.away} @ {match.home}</b><TeamLogo team={match.home} size={22}/></p><dl><div><dt><CalendarDays size={17}/>Inicio</dt><dd>{time}</dd></div><div><dt><Trophy size={17}/>Competición</dt><dd>{competitions[match.competition].label}</dd></div></dl></section>
  <MatchAvailability key={match.id} id={match.id} away={match.away} home={match.home} date={match.date} season={data?.season} competition={match.competition}
   leaders={data?Object.fromEntries(data.teams.map(team=>[team.team,team.leader??undefined])):undefined}/>
- <section className="card prematch-court"><svg viewBox="0 0 94 50" aria-hidden="true"><g fill="none" stroke="currentColor" strokeWidth=".4"><rect x="2" y="2" width="90" height="46"/><path d="M47 2v46M2 17h18v16H2M92 17H74v16h18"/><circle cx="47" cy="25" r="6"/><path d="M2 5h10a24 24 0 0 1 0 40H2M92 5H82a24 24 0 0 0 0 40h10"/></g></svg><div><i/><b>{pending?'Esperando el salto inicial':'El juego, en contexto'}</b><small>{pending?'Seguí el partido desde este panel':'Explorá el historial del encuentro'}</small></div></section>
+ <section className="card prematch-court"><svg viewBox="0 0 94 50" aria-hidden="true"><g fill="none" stroke="currentColor" strokeWidth=".4"><rect x="2" y="2" width="90" height="46"/><path d="M47 2v46M2 17h18v16H2M92 17H74v16h18"/><circle cx="47" cy="25" r="6"/><path d="M2 5h10a24 24 0 0 1 0 40H2M92 5H82a24 24 0 0 0 0 40h10"/></g></svg><div><i/><b>{pending?<MatchCountdown startsAt={match.startsAt}/>: 'El juego, en contexto'}</b><small>{pending?'Seguí el partido desde este panel':'Explorá el historial del encuentro'}</small></div></section>
  </aside></div>{(onHistorical||onPlayers)&&<div className="match-preview-actions">{onHistorical&&<button className="button subtle" onClick={onHistorical}>Resumen histórico</button>}{onPlayers&&<button className="button subtle" onClick={onPlayers}>Explorador</button>}</div>}
  </section>;
 }

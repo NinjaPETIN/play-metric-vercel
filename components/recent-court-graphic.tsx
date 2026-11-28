@@ -10,7 +10,7 @@ const coordinateNumber = new Intl.NumberFormat('es-AR', {maximumFractionDigits: 
 
 export default function RecentCourtGraphic({event,teams}:{event:ReturnType<typeof recentCourt>;teams:BoxData['teams']}){
  const {action,timeout,timeoutTeam,shot}=event;
- const [replay,setReplay]=useState(0);
+ const [replay,setReplay]=useState(0),[perspective,setPerspective]=useState(true);
  const location=shot?.value===1?null:shot?.play.shotLocation;
  // The feed measures X across the court and Y from the basket.
  const startX=location?7+.92*location.y:17;
@@ -24,8 +24,10 @@ export default function RecentCourtGraphic({event,teams}:{event:ReturnType<typeo
   : `M ${startX} ${startY} Q ${Math.max(startX,13)} ${Math.min(startY,22)-9} 9 24 Q 12 20 15 16`;
 
  return <figure className={'recent-court'+(timeout?' is-timeout':'')}>
+  <div className={styles.cameraControls} role="group" aria-label="Vista de la cancha"><button type="button" aria-pressed={perspective} onClick={()=>setPerspective(true)}>Perspectiva</button><button type="button" aria-pressed={!perspective} onClick={()=>setPerspective(false)}>Desde arriba</button></div>
+  <div className={styles.stage+(perspective?' '+styles.perspective:'')}>
   <svg key={shot?`${shot.play.id}:${shot.made}:${startX}:${startY}:${replay}`:'court-idle'} viewBox="0 0 94 50" role="img" aria-label={timeout?'Cancha durante el tiempo muerto':[outcome,coordinates].filter(Boolean).join(' · ')}>
-   <rect width="94" height="50" rx="1" fill="currentColor"/>
+   <rect width="94" height="50" rx="1" fill="#14253d"/><rect x="3" y="17" width="18" height="16" fill="#545ce255"/><rect x="73" y="17" width="18" height="16" fill="#18b9a355"/>
    <g fill="none" stroke="white" strokeWidth=".45" opacity=".85">
     <rect x="3" y="2" width="88" height="46"/><path d="M47 2v46"/><circle cx="47" cy="25" r="6"/>
     <path d="M3 17h18v16H3M91 17H73v16h18"/><circle cx="21" cy="25" r="6"/><circle cx="73" cy="25" r="6"/>
@@ -50,7 +52,9 @@ export default function RecentCourtGraphic({event,teams}:{event:ReturnType<typeo
    {timeoutTeam&&<TeamLogo team={timeoutTeam} size={44}/>}<strong>TIEMPO MUERTO</strong>
    <span>{[timeoutName,action?.clock].filter(Boolean).join(' · ')}</span>
   </div>}
+  </div>
   <figcaption className={styles.caption}>
+   {action&&!timeout&&/foul|end of|start of|enters the game/i.test(action.text)&&<strong>{/foul/i.test(action.text)?'Falta':/enters/i.test(action.text)?'Cambio de jugador':'Cambio de período'} · {action.clock}</strong>}
    <span aria-live="polite">
     {timeout?'Tiempo muerto':shot?<><strong>{outcome}{shot.made?' · +'+shot.value:''}</strong>{clock?' · '+clock:''}
      <span className={styles.location}>{coordinates?`Origen del tiro · ${coordinates}`:'Animación ilustrativa · sin coordenadas del tiro'}</span>
